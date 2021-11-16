@@ -1,0 +1,10 @@
+{
+  "login": {
+    "required": "verplicht",
+    "description": "Dit is de login pagina"
+  },
+  "home": {
+    "description": "Dit is de home pagina"
+  },
+  "test": "Dit is een test"
+}
