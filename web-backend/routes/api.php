@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TestTableController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -18,11 +19,11 @@ use Illuminate\Support\Facades\Route;
 Route::get('/test', function () {
     return 'test success';
 });
+Route::apiResource('test_table', TestTableController::class);
 
 //
-Route::middleware('auth:sanctum')->group(function(){
-    Route::get('/user', function(){
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function () {
         return response()->json(auth()->user());
     });
-
 });

@@ -21,3 +21,11 @@ export function useUser() {
     mutate,
   }
 }
+
+export function useTestData() {
+  const { data } = useSWR('/test_table', fetcher)
+
+  return {
+    testData: data,
+  }
+}
