@@ -1,0 +1,7 @@
+flask==2.0.2
+jsonpickle==2.0.0
+json5==0.9.6
+p2pnetwork==1.1
+pycryptodome==3.11.0
+pytest==6.2.5
+requests==2.26.0
