@@ -4,7 +4,7 @@ from typing import Any
 from Crypto.Hash import SHA256
 
 
-class Utils():
+class BlockchainUtils():
 
     @staticmethod
     def hash(data: Any) -> SHA256.SHA256Hash:

@@ -1,3 +1,4 @@
+bip-utils==2.1.0
 flask==2.0.2
 jsonpickle==2.0.0
 json5==0.9.6

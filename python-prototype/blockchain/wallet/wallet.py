@@ -5,7 +5,7 @@ from Crypto.Signature import PKCS1_v1_5
 
 from blockchain import Block
 from blockchain import Transaction, TxType
-from blockchain import Utils
+from blockchain import BlockchainUtils
 
 KEY_LENGTH_BITS = 2048
 
@@ -20,7 +20,7 @@ class Wallet():
             KEY_LENGTH_BITS) if private_key == None else RSA.import_key(private_key)
 
     def sign(self, data: Any) -> Any:
-        data_hash = Utils.hash(data)
+        data_hash = BlockchainUtils.hash(data)
         signature_scheme_object = PKCS1_v1_5.new(self.key_pair)
         signature = signature_scheme_object.sign(data_hash)
         return signature.hex()
@@ -45,7 +45,7 @@ class Wallet():
     @staticmethod
     def is_valid_signature(data: Any, signature: str, public_key_string: str) -> bool:
         signature = bytes.fromhex(signature)
-        data_hash = Utils.hash(data)
+        data_hash = BlockchainUtils.hash(data)
         public_key = RSA.importKey(public_key_string)
         signature_scheme_object = PKCS1_v1_5.new(public_key)
         return signature_scheme_object.verify(data_hash, signature)

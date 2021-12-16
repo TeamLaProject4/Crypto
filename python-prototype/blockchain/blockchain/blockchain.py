@@ -3,7 +3,7 @@ from typing import Dict, List, Set
 from .account_model import AccountModel
 from .block import Block
 from .transaction import Transaction, TxType
-from .utils import Utils
+from .utils import BlockchainUtils
 
 
 class Blockchain():
@@ -18,7 +18,7 @@ class Blockchain():
         return json_dict
 
     def latest_previous_hash(self) -> str:
-        return Utils.hash(self.blocks[-1].payload()).hexdigest()
+        return BlockchainUtils.hash(self.blocks[-1].payload()).hexdigest()
 
     def latest_block_height(self) -> int:
         return self.blocks[-1].height
