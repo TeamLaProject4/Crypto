@@ -1,7 +1,7 @@
 from blockchain import Blockchain, MemoryPool, Transaction, TxType
 from blockchain.wallet import Wallet
 
-from .communication import SocketCommunication
+from blockchain.node.communication.socket_communication import SocketCommunication
 
 
 class Node():
