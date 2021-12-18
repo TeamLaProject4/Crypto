@@ -1,7 +1,6 @@
+import blockchain.node.socket_communication as socket_communication
 from blockchain import Blockchain, MemoryPool, Transaction, TxType
 from blockchain.wallet import Wallet
-
-from blockchain.node.communication.socket_communication import SocketCommunication
 
 
 class Node():
@@ -18,9 +17,10 @@ class Node():
         self.wallet = wallet
         self.blockchain = blockchain if blockchain != None else Blockchain()
         self.memory_pool = memory_pool if memory_pool != None else MemoryPool()
-    
+
     def start(self) -> None:
-        self.p2p = SocketCommunication(self.host, self.port)
+        self.p2p = socket_communication.SocketCommunication(
+            self.host, self.port)
         self.p2p.start()
 
     # def create_transaction(self, receiver_public_key: str, amount: int, tx_type: TxType) -> Transaction:

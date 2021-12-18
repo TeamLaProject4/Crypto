@@ -3,8 +3,8 @@ import time
 
 from p2pnetwork.node import Node
 
-from blockchain.node.communication.message import Message, MessageType
-from blockchain.node.communication.encoding import Encoding
+import blockchain.node.message as msg
+import blockchain.node.encoding as encoding
 
 
 class PeerDiscoveryHandler():
@@ -31,9 +31,9 @@ class PeerDiscoveryHandler():
     def handshake_message(self) -> str:
         socket = self.socket_communication.socket
         peers = self.socket_communication.peers
-        message_type = MessageType.DISCOVERY
-        message = Message(socket, message_type, peers)
-        encoded_message = Encoding.encode(message)
+        message_type = msg.MessageType.DISCOVERY
+        message = msg.Message(socket, message_type, peers)
+        encoded_message = encoding.Encoding.encode(message)
         return encoded_message
 
     def handshake(self, node: Node) -> None:

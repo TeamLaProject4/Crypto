@@ -1,7 +1,6 @@
 import sys
 
 from blockchain.node.node import Node
-from blockchain.node.communication.encoding import Encoding
 from blockchain.wallet import Wallet
 
 if __name__ == '__main__':

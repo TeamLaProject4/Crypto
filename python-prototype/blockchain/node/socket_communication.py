@@ -2,10 +2,9 @@ from __future__ import annotations
 
 from typing import Any, List
 
+import blockchain.node.peer_discovery_handler as peer_discovery_handler
+import blockchain.node.socket as socket
 from p2pnetwork.node import Node
-
-import blockchain.node.communication.socket as socket
-import blockchain.node.communication.peer_discovery_handler as peer_discovery
 
 # TODO: refactor bootnode. Bootnodes should be in a config file or so and must be derived to a list
 BOOTNODE = socket.Socket('localhost', 5000)
@@ -17,7 +16,8 @@ class SocketCommunication(Node):
     def __init__(self, host: str, port: int, bootnodes: List[socket.Socket] = [BOOTNODE]) -> None:
         super().__init__(host, port, callback=None)
         self.peers = []
-        self.peer_discovery_handler = peer_discovery.PeerDiscoveryHandler(self)
+        self.peer_discovery_handler = peer_discovery_handler.PeerDiscoveryHandler(
+            self)
         self.socket = socket.Socket(host, port)
         self.bootnodes = bootnodes
 
@@ -25,7 +25,7 @@ class SocketCommunication(Node):
         super().start()
         self.peer_discovery_handler.start()
         self.connect_with_bootnode()
-    
+
     def connect_with_bootnode(self) -> None:
         # TODO: remove hardcoded indice 0, instead try all bootnodes, one by one till connected
         bootnode = self.bootnodes[0]

@@ -1,4 +1,4 @@
-from .blockchain.account_model import AccountModel
+from .blockchain import AccountModel
 from .blockchain import Block
 from .blockchain import Blockchain
 from .blockchain import MemoryPool
