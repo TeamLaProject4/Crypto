@@ -1,10 +1,10 @@
-from threading import Thread
 import time
+from threading import Thread
 
-from p2pnetwork.node import Node
-
-import blockchain.node.message as msg
 import blockchain.node.encoding as encoding
+import blockchain.node.message as msg
+# import blockchain.node.socket_communication as socket_communication
+from p2pnetwork.node import Node
 
 
 class PeerDiscoveryHandler():

@@ -7,7 +7,7 @@ import blockchain.node.socket as socket
 from p2pnetwork.node import Node
 
 # TODO: refactor bootnode. Bootnodes should be in a config file or so and must be derived to a list
-BOOTNODE = socket.Socket('localhost', 5000)
+BOOTNODE = socket.Socket('localhost', 10000)
 
 
 class SocketCommunication(Node):
@@ -33,12 +33,13 @@ class SocketCommunication(Node):
             self.connect_with_node(bootnode.host, bootnode.port)
 
     def inbound_node_connected(self, node: SocketCommunication) -> None:
+        self.send_message(node, 'connected')
         self.peer_discovery_handler.handshake(node)
 
     def outbound_node_connected(self, node: SocketCommunication) -> None:
         self.peer_discovery_handler.handshake(node)
 
-    def inbound_message(self, node: SocketCommunication, data: Any):
+    def node_message(self, node: SocketCommunication, data: Any):
         print(data)
 
     def send_message(self, receiver: Node, message: str) -> None:
