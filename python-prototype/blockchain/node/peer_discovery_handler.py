@@ -3,8 +3,8 @@ from threading import Thread
 from typing import Any
 
 import blockchain.node.encoding as encoding
-import blockchain.node.message as msg
-import blockchain.node.socket as sock
+import blockchain.node.message as message_
+import blockchain.node.socket as socket_
 # import blockchain.node.socket_communication as socket_communication
 from p2pnetwork.node import Node
 
@@ -33,30 +33,30 @@ class PeerDiscoveryHandler():
     def discovery(self) -> None:
         while True:
             handshake_message = self.handshake_message()
-            self.communication.broadcast(handshake_message)
+            self.communication.broadcast_message(handshake_message)
             time.sleep(INTERVAL_SECONDS)
 
     def handshake_message(self) -> str:
         socket = self.communication.socket
         peers = self.communication.peers
-        msg_type = msg.MessageType.DISCOVERY
-        message = msg.Message(socket, msg_type, peers)
+        msg_type = message_.MessageType.DISCOVERY
+        message = message_.Message(socket, msg_type, peers)
         encoded_message = encoding.Encoding.encode(message)
         return encoded_message
 
     def handshake(self, node: Node) -> None:
         handshake_message = self.handshake_message()
-        self.communication.send(node, handshake_message)
+        self.communication.send_message(node, handshake_message)
 
-    def add_socket_to_peers(self, socket: sock.Socket) -> None:
+    def add_socket_to_peers(self, socket: socket_.Socket) -> None:
         if socket not in self.communication.peers:
             self.communication.peers.append(socket)
 
-    def connect_with_node_if_not_in_peers(self, socket: sock.Socket) -> None:
+    def connect_with_node_if_not_in_peers(self, socket: socket_.Socket) -> None:
         if socket not in self.communication.peers and socket != self.communication.socket:
             self.communication.connect_with_node(socket.host, socket.port)
 
-    def handle_message(self, message: msg.Message) -> None:
+    def handle_message(self, message: message_.Message) -> None:
         socket = message.socket
         peers_of_peer = message.data
         self.add_socket_to_peers(socket)
