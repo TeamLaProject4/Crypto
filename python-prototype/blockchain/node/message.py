@@ -9,7 +9,7 @@ class MessageType(str, Enum):
 
 class Message():
 
-    def __init__(self, socket: socket.Socket, msg_type: MessageType, data) -> None:
-        self.sender_connector = socket
-        self.msg_type = msg_type
+    def __init__(self, socket: socket.Socket, message_type: MessageType, data) -> None:
+        self.socket = socket
+        self.message_type = message_type
         self.data = data

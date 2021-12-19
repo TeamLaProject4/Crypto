@@ -1,16 +1,21 @@
 import time
 from threading import Thread
+from typing import Any
 
 import blockchain.node.encoding as encoding
 import blockchain.node.message as msg
+import blockchain.node.socket as sock
 # import blockchain.node.socket_communication as socket_communication
 from p2pnetwork.node import Node
+
+INTERVAL_SECONDS = 10
 
 
 class PeerDiscoveryHandler():
 
+    # TODO: add typing to node: socket_communication.SocketCommunication. Fix circular import
     def __init__(self, node) -> None:
-        self.socket_communication = node
+        self.communication = node
 
     def start(self) -> None:
         thread_status = Thread(target=self.status, args=())
@@ -20,22 +25,40 @@ class PeerDiscoveryHandler():
 
     def status(self) -> None:
         while True:
-            print('status')
-            time.sleep(20)
+            print('Current connections:')
+            for peer in self.communication.peers:
+                print('-', peer.host, peer.port)
+            time.sleep(INTERVAL_SECONDS)
 
     def discovery(self) -> None:
         while True:
-            print('discovery')
-            time.sleep(20)
+            handshake_message = self.handshake_message()
+            self.communication.broadcast(handshake_message)
+            time.sleep(INTERVAL_SECONDS)
 
     def handshake_message(self) -> str:
-        socket = self.socket_communication.socket
-        peers = self.socket_communication.peers
-        message_type = msg.MessageType.DISCOVERY
-        message = msg.Message(socket, message_type, peers)
+        socket = self.communication.socket
+        peers = self.communication.peers
+        msg_type = msg.MessageType.DISCOVERY
+        message = msg.Message(socket, msg_type, peers)
         encoded_message = encoding.Encoding.encode(message)
         return encoded_message
 
     def handshake(self, node: Node) -> None:
         handshake_message = self.handshake_message()
-        self.socket_communication.send_message(node, handshake_message)
+        self.communication.send(node, handshake_message)
+
+    def add_socket_to_peers(self, socket: sock.Socket) -> None:
+        if socket not in self.communication.peers:
+            self.communication.peers.append(socket)
+
+    def connect_with_node_if_not_in_peers(self, socket: sock.Socket) -> None:
+        if socket not in self.communication.peers and socket != self.communication.socket:
+            self.communication.connect_with_node(socket.host, socket.port)
+
+    def handle_message(self, message: msg.Message) -> None:
+        socket = message.socket
+        peers_of_peer = message.data
+        self.add_socket_to_peers(socket)
+        for peer_socket in peers_of_peer:
+            self.connect_with_node_if_not_in_peers(peer_socket)
