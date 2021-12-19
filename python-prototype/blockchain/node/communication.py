@@ -41,7 +41,7 @@ class Communication(Node):
     def outbound_node_connected(self, node: Communication) -> None:
         self.peer_discovery_handler.handshake(node)
 
-    def node_message(self, node: Communication, data: Any):
+    def node_message(self, node: Communication, data: msg.Message):
         message = Encoding.decode(json.dumps(data))
         if message.message_type == message.message_type.DISCOVERY:
             self.peer_discovery_handler.handle_message(message)
