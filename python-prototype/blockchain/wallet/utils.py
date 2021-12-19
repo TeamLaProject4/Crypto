@@ -1,8 +1,6 @@
-from typing import List, Union
-
-from bip_utils import Bip39MnemonicGenerator, Bip39WordsNum, Bip39Languages, Bip39SeedGenerator, Bip32Secp256k1, Bip39MnemonicValidator
-from bip_utils.utils.mnemonic.mnemonic import Mnemonic
-
+from bip_utils import (Bip32Secp256k1, Bip39Languages, Bip39MnemonicGenerator,
+                       Bip39MnemonicValidator, Bip39SeedGenerator,
+                       Bip39WordsNum)
 
 LANGUAGE = Bip39Languages.ENGLISH
 WORDS_NUM = Bip39WordsNum.WORDS_NUM_12
