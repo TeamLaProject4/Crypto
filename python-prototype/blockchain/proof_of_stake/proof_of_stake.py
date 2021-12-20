@@ -1,6 +1,6 @@
 from typing import List
 
-from blockchain import BlockchainUtils
+import blockchain.blockchain.utils as utils
 from blockchain.proof_of_stake import Lot
 
 
@@ -8,6 +8,14 @@ class ProofOfStake():
 
     def __init__(self) -> None:
         self.stakers = {}
+        self.set_genesis_node_stake()
+    
+    # TODO: unit test
+    # TODO: remove hardcoded path and add more generic solution
+    def set_genesis_node_stake(self) -> None:
+        with open('keys/genesisPublicKey.pem', 'r') as f:
+            genesis_public_key = f.read()
+        self.stakers[genesis_public_key] = 1
 
     def is_account_in_stakers(self, public_key_string: str) -> bool:
         return public_key_string in self.stakers.keys()
@@ -44,13 +52,13 @@ class ProofOfStake():
             return offset < least_offset
 
         def get_offset(lot: Lot) -> int:
-            lot_int_val = int(lot.hash(), 16)
-            return abs(lot_int_val - seed_int_val)
+            lot_int = int(lot.hash(), 16)
+            return abs(lot_int - seed_int)
 
         winner = lots[0]
         least_offset = float('INF')
-        seed_int_val = int(
-            BlockchainUtils.hash(seed).hexdigest(), 16)
+        seed_int = int(
+            utils.BlockchainUtils.hash(seed).hexdigest(), 16)
 
         for lot in lots:
             if is_offset_smaller(lot):

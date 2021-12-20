@@ -1,4 +1,4 @@
-from blockchain import BlockchainUtils
+import blockchain.blockchain.utils as utils
 
 
 class Lot():
@@ -11,5 +11,5 @@ class Lot():
     def hash(self) -> str:
         hash = self.public_key_string + self.previous_block_hash
         for _ in range(self.iteration):
-            hash = BlockchainUtils.hash(hash).hexdigest()
+            hash = utils.BlockchainUtils.hash(hash).hexdigest()
         return hash

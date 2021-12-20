@@ -8,6 +8,12 @@ WORDS_NUM = Bip39WordsNum.WORDS_NUM_12
 
 class WalletUtils():
 
+    # TODO: unit test
+    @staticmethod
+    def read_key_from_file(file_path: str) -> str:
+        with open(file_path, 'r') as f:
+            return f.read()
+
     @staticmethod
     def generate_mnemonic() -> str:
         mnemonic = Bip39MnemonicGenerator(LANGUAGE).FromWordsNumber(WORDS_NUM)

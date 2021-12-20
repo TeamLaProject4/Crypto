@@ -48,4 +48,5 @@ class Transaction():
 # TODO remove exchange transaction type when initial coins has been implemented
 class TxType(str, Enum):
     TRANSFER = 'TRANSFER',
-    EXCHANGE = 'EXCHANGE'
+    EXCHANGE = 'EXCHANGE',
+    STAKE = 'STAKE'
