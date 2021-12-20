@@ -53,16 +53,20 @@ class Communication(Node):
     def broadcast_message(self, message: str) -> None:
         self.send_to_nodes(message)
 
+    # TODO: Implement Message subclasses (polymorphism)
     def __handle_message(self, message: message_.Message) -> None:
         if message.message_type == message_.MessageType.DISCOVERY:
             self.__handle_message_discovery(message)
         if message.message_type == message_.MessageType.TRANSACTION:
             self.__handle_message_transaction(message)
+        if message.message_type == message_.MessageType.BLOCK:
+            self.__handle_message_block(message)
 
     def __handle_message_discovery(self, message: message_.Message) -> None:
         self.peer_discovery_handler.handle_message(message)
     
     def __handle_message_transaction(self, message: message_.Message) -> None:
-        transaction = message.data
-        self.node.handle_transaction(transaction)
+        self.node.handle_transaction(message.data)
 
+    def __handle_message_block(self, message: message_.Message) -> None:
+        self.node.handle_block(message.data)

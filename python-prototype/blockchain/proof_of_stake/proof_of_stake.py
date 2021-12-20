@@ -12,6 +12,7 @@ class ProofOfStake():
     
     # TODO: unit test
     # TODO: remove hardcoded path and add more generic solution
+    # TODO: after others stake, then genesis can no longer be forger, if everyone unstaked, then genesis can be forger
     def set_genesis_node_stake(self) -> None:
         with open('keys/genesisPublicKey.pem', 'r') as f:
             genesis_public_key = f.read()

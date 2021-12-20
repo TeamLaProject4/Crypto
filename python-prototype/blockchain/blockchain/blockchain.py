@@ -54,6 +54,16 @@ class Blockchain():
 
     def is_valid_previous_block_hash(self, block: Block) -> bool:
         return self.latest_previous_hash() == block.previous_hash
+    
+    # TODO: unit test
+    def is_valid_forger(self, block: Block) -> bool:
+        return block.forger == self.next_forger()
+
+    # TODO: unit test
+    def is_block_transactions_valid(self, block: Block) -> bool:
+        transactions = block.transactions
+        covered_transactions = self.get_covered_transactions(transactions)
+        return len(transactions) == len(covered_transactions)
 
     def latest_previous_hash(self) -> str:
         return BlockchainUtils.hash(self.blocks[-1].payload()).hexdigest()
@@ -62,7 +72,8 @@ class Blockchain():
         return [tx for tx in transactions if self.is_transaction_covered(tx)]
 
     def is_transaction_covered(self, transaction: Transaction) -> bool:
-        # TODO remove echange transaction type check if type removed
+        # TODO: remove echange transaction type check if type removed
+        # TODO: check if double spending is covered (unit test: amount == 20, 3 transactions all send 10)
         if transaction.tx_type == TxType.EXCHANGE:
             return True
         sender_balance = self.account_model.get_balance(

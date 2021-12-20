@@ -65,7 +65,9 @@ def test_given_equal_stake_when_forger_picked_then_it_represents_stake():
     for _ in range(100):
         seed = generate_random_string(16)
         forger = pos.pick_forger(seed)
-        wins[forger] += 1
+        # TODO: remove if statement when genesis can no longer be forger after others stake
+        if forger in ['barrie', 'sjonnie']:
+            wins[forger] += 1
     
     b_wins = wins['barrie']
     s_wins = wins['sjonnie']
@@ -80,7 +82,9 @@ def test_given_unequal_stake_when_forger_picked_then_it_represents_stake():
     for _ in range(100):
         seed = generate_random_string(16)
         forger = pos.pick_forger(seed)
-        wins[forger] += 1
+        # TODO: remove if statement when genesis can no longer be forger after others stake
+        if forger in ['barrie', 'sjonnie']:
+            wins[forger] += 1
     
     b_wins = wins['barrie']
     s_wins = wins['sjonnie']
