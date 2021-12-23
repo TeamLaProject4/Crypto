@@ -2,7 +2,7 @@ import pytest
 from blockchain import Blockchain
 from blockchain import MemoryPool
 from blockchain import Transaction, TxType
-from blockchain.node import Node
+# from blockchain.node import Node
 from blockchain.wallet import Wallet
 
 

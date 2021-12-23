@@ -19,6 +19,11 @@ class Wallet():
         self.key_pair = RSA.generate(
             KEY_LENGTH_BITS) if private_key == None else RSA.import_key(private_key)
 
+    # TODO: unit test
+    def import_key(self, file_path) -> None:
+        with open(file_path, 'r') as f:
+            self.key_pair = RSA.import_key(f.read())
+
     def sign(self, data: Any) -> Any:
         data_hash = BlockchainUtils.hash(data)
         signature_scheme_object = PKCS1_v1_5.new(self.key_pair)

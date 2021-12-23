@@ -12,11 +12,11 @@ class AccountModel():
             self.balances[public_key_string] = 0
 
     def get_balance(self, public_key_string: str):
-        if not self.is_account_in_balances(public_key_string):
-            self.add_account(public_key_string)
+        # add account if not present in balances
+        self.add_account(public_key_string)
         return self.balances[public_key_string]
 
     def update_balance(self, public_key_string: str, amount: int):
-        if not self.is_account_in_balances(public_key_string):
-            self.add_account(public_key_string)
+        # add account if not present in balances
+        self.add_account(public_key_string)
         self.balances[public_key_string] += amount
