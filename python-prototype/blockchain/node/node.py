@@ -1,3 +1,4 @@
+from copy import deepcopy
 from typing import Any
 
 import blockchain.node.communication as communication
@@ -71,12 +72,36 @@ class Node():
         forger_valid = self.blockchain.is_valid_forger(block)
         block_transactions_valid = self.blockchain.is_block_transactions_valid(block)
 
+        if not block_count_valid:
+            self.request_missing_blocks()
+
         if all([block_count_valid, previous_block_hash_valid, signature_valid, forger_valid, block_transactions_valid]):
             self.blockchain.add_block(block)
             self.memory_pool.remove_transactions(block.transactions)
             message = message_.Message(self.p2p.socket, message_.MessageType.BLOCK, block)
             encoded_message = Encoding.encode(message)
             self.p2p.broadcast_message(encoded_message)
+    
+    def request_missing_blocks(self) -> None:
+        message = message_.Message(self.p2p.socket, message_.MessageType.BLOCKCHAIN_REQUEST, None)
+        encoded_message = Encoding.encode(message)
+        self.p2p.broadcast_message(encoded_message)
+    
+    def handle_blockchain_request(self, node: communication.Communication):
+        message = message_.Message(self.p2p.socket, message_.MessageType.BLOCKCHAIN, self.blockchain)
+        encoded_message = Encoding.encode(message)
+        self.p2p.send_message(node, encoded_message)
+
+    def handle_blockchain(self, blockchain: Blockchain) -> None:
+        local_blockchain = deepcopy(self.blockchain)
+        local_block_height = len(local_blockchain.blocks)
+        remote_block_height = len(blockchain.blocks)
+        if local_block_height < remote_block_height:
+            for block_number, block in enumerate(blockchain.blocks):
+                if block_number >= local_block_height:
+                    local_blockchain.add_block(block)
+                    self.memory_pool.remove_transactions(block.transactions)
+            self.blockchain = local_blockchain
 
     # TODO: unit test
     # TODO: function too long: seperate responsibilities

@@ -6,8 +6,10 @@ import blockchain.node.socket as socket_
 
 class MessageType(str, Enum):
     DISCOVERY = 'DISCOVERY',
-    TRANSACTION = 'TRANSACTION'
-    BLOCK = 'BLOCK'
+    TRANSACTION = 'TRANSACTION',
+    BLOCK = 'BLOCK',
+    BLOCKCHAIN = 'BLOCKCHAIN',
+    BLOCKCHAIN_REQUEST= 'BLOCKCHAIN_REQUEST'
 
 
 class Message():

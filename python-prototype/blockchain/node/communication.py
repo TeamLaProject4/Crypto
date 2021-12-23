@@ -45,7 +45,7 @@ class Communication(Node):
 
     def node_message(self, node: Communication, data: message_.Message):
         message = Encoding.decode(json.dumps(data))
-        self.__handle_message(message)
+        self.__handle_message(node, message)
 
     def send_message(self, receiver: Node, message: str) -> None:
         self.send_to_node(receiver, message)
@@ -54,13 +54,18 @@ class Communication(Node):
         self.send_to_nodes(message)
 
     # TODO: Implement Message subclasses (polymorphism)
-    def __handle_message(self, message: message_.Message) -> None:
+    def __handle_message(self, node: Communication, message: message_.Message) -> None:
         if message.message_type == message_.MessageType.DISCOVERY:
             self.__handle_message_discovery(message)
-        if message.message_type == message_.MessageType.TRANSACTION:
+        elif message.message_type == message_.MessageType.TRANSACTION:
             self.__handle_message_transaction(message)
-        if message.message_type == message_.MessageType.BLOCK:
+        elif message.message_type == message_.MessageType.BLOCK:
             self.__handle_message_block(message)
+        elif message.message_type == message_.MessageType.BLOCKCHAIN_REQUEST:
+            self.__handle_message_block_request(node)
+        elif message.message_type == message_.MessageType.BLOCKCHAIN:
+            blockchain = message.data
+            self.node.handle_blockchain(blockchain)
 
     def __handle_message_discovery(self, message: message_.Message) -> None:
         self.peer_discovery_handler.handle_message(message)
@@ -70,3 +75,6 @@ class Communication(Node):
 
     def __handle_message_block(self, message: message_.Message) -> None:
         self.node.handle_block(message.data)
+
+    def __handle_message_block_request(self, node: Communication) -> None:
+        self.node.handle_blockchain_request(node)
