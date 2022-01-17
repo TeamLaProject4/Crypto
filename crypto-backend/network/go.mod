@@ -1,4 +1,4 @@
-module TestGo
+module Networking
 
 go 1.17
 

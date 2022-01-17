@@ -9,11 +9,16 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
+	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	"github.com/multiformats/go-multiaddr"
 	"os"
+	"sync"
 )
 
 var logger = log.Logger("cryptomunt")
+
+const RANDEVOUS_STRING = "cryptomunt-randevous"
 
 func initLogger() {
 	log.SetAllLoggers(log.LevelWarn)
@@ -74,10 +79,46 @@ func initDHT(host host.Host) {
 
 }
 
+func initKDHT(ctx context.Context, host host.Host, bootstrapPeers []multiaddr.Multiaddr) (*dht.IpfsDHT, error) {
+	var options []dht.Option
+
+	if len(bootstrapPeers) == 0 {
+		options = append(options, dht.Mode(dht.ModeServer))
+	}
+
+	kademliaDHT, err := dht.New(ctx, host, options...)
+	if err != nil {
+		return nil, err
+	}
+
+	if err = kademliaDHT.Bootstrap(ctx); err != nil {
+		return nil, err
+	}
+
+	var wg sync.WaitGroup
+	for _, peerAddr := range bootstrapPeers {
+		peerinfo, _ := peer.AddrInfoFromP2pAddr(peerAddr)
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			if err := host.Connect(ctx, *peerinfo); err != nil {
+				logger.Errorf("Error while connecting to node %q: %-v", peerinfo, err)
+			} else {
+				logger.Infof("Connection established with bootstrap node: %q", *peerinfo)
+			}
+		}()
+	}
+	wg.Wait()
+
+	return kademliaDHT, nil
+}
+
 //create new host
 func initHost() host.Host {
 	//host, err := libp2p.New(libp2p.ListenAddrs([]multiaddr.Multiaddr(config.ListenAddresses)...))
 	host, err := libp2p.New()
+	ctx := context.Background()
 	if err != nil {
 		panic(err)
 	}
@@ -90,14 +131,29 @@ func initHost() host.Host {
 	//protocol id is a unique string on which hosts can agree how to communicate(protocol)?
 	host.SetStreamHandler("/cryptomunt/1.0.0", handleStream)
 
-	initDHT(host)
+	//initDHT(host)
+	//init dht
+	kademliaDHT, initDHTErr := initKDHT(ctx, host, nil)
+	if initDHTErr != nil {
+		logger.Error("dht error")
+		return nil
+	}
+
+	// We use a rendezvous point to announce our location.
+	// This is like telling your friends to meet you at the Eiffel Tower.
+	logger.Info("Announcing ourselves...")
+	routingDiscovery := discovery.NewRoutingDiscovery(kademliaDHT)
+	discovery.Advertise(ctx, routingDiscovery, RANDEVOUS_STRING)
+	logger.Debug("Successfully announced!")
+
 	return host
 }
 func main() {
 	initLogger()
-	node := initHost()
-	logger.Info("test ", node.ID())
+	host := initHost()
+	logger.Info("Node successfully started. NodeID:", host.ID())
 
+	select {}
 }
 
 func handleStream(stream network.Stream) {
