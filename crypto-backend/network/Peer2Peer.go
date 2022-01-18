@@ -5,6 +5,7 @@ import (
 	"context"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	discovery "github.com/libp2p/go-libp2p-discovery"
@@ -50,8 +51,8 @@ func initKDHT(ctx context.Context, host host.Host, bootstrapPeers []multiaddr.Mu
 }
 
 //init routing Discovery and connect to peers in the network
-func initRoutingDiscovery(ctx context.Context, kademliaDHT *dht.IpfsDHT, node host.Host) {
-	//Announce node on the network with randevous point
+func initRoutingDiscovery(ctx context.Context, kademliaDHT *dht.IpfsDHT, node host.Host, messages chan string) {
+	//Announce node on the network with randevous point every 3 hours
 	logger.Info("Announcing ourselves...")
 	routingDiscovery := discovery.NewRoutingDiscovery(kademliaDHT)
 	discovery.Advertise(ctx, routingDiscovery, RANDEVOUS_STRING)
@@ -64,17 +65,17 @@ func initRoutingDiscovery(ctx context.Context, kademliaDHT *dht.IpfsDHT, node ho
 		panic(err)
 	}
 
-	connectToPeers(ctx, peerChan, node)
+	connectToPeers(ctx, peerChan, node, messages)
 }
 
-func connectToPeers(ctx context.Context, peerChan <-chan peer.AddrInfo, node host.Host) {
+func connectToPeers(ctx context.Context, peerChan <-chan peer.AddrInfo, node host.Host, messages chan string) {
 	for peerNode := range peerChan {
 		if peerNode.ID == node.ID() {
 			continue
 		}
 		logger.Debug("Found peerNode:", peerNode)
-
 		logger.Debug("Connecting to:", peerNode)
+
 		stream, err := node.NewStream(ctx, peerNode.ID, protocol.ID(PROTOCOL_ID))
 
 		if err != nil {
@@ -84,14 +85,14 @@ func connectToPeers(ctx context.Context, peerChan <-chan peer.AddrInfo, node hos
 			rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 
 			go writeData(rw)
-			go readData(rw)
+			go readData(rw, messages)
 		}
 
 		logger.Info("Connected to:", peerNode)
 	}
 }
 
-func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr) host.Host {
+func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr, messages chan string) host.Host {
 	node, err := libp2p.New()
 	if err != nil {
 		panic(err)
@@ -100,7 +101,9 @@ func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr) host.Ho
 	logger.Info("address: ", node.Addrs())
 
 	//set streamhandler with unique protocol id
-	node.SetStreamHandler(protocol.ID(PROTOCOL_ID), handleStream)
+	node.SetStreamHandler(protocol.ID(PROTOCOL_ID), func(stream network.Stream) {
+		handleStream(stream, messages)
+	})
 
 	//init dht
 	kademliaDHT, initDHTErr := initKDHT(ctx, node, bootstrapPeers)
@@ -109,7 +112,7 @@ func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr) host.Ho
 		return nil
 	}
 
-	initRoutingDiscovery(ctx, kademliaDHT, node)
+	initRoutingDiscovery(ctx, kademliaDHT, node, messages)
 
 	return node
 }

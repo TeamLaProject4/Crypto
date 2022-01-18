@@ -13,13 +13,14 @@ const PROTOCOL_ID = "/cryptomunt/1.0.0"
 
 func main() {
 	config := Config{}
-	ctx, _ := context.WithCancel(context.Background())
+	ctx := context.Background()
+	messages := make(chan string, 100)
 	initLogger()
 
 	flag.Var(&config.DiscoveryPeers, "peer", "Peer multiaddress for peer discovery")
 	flag.Parse()
 
-	node := initHost(ctx, config.DiscoveryPeers)
+	node := initHost(ctx, config.DiscoveryPeers, messages)
 
 	logger.Infof("Host ID: %s", node.ID().Pretty())
 	logger.Infof("Connect to me on:")
@@ -27,7 +28,14 @@ func main() {
 		logger.Infof("  %s/p2p/%s", addr, node.ID().Pretty())
 	}
 
-	//select so that the streams can be handled
+	//TODO: handle messages in blockchain implementation, maybe return this channel?
+	for message := range messages {
+		logger.Info("CHANNEL MESSAGE: " + message)
+	}
+
+	//send into channel?
+
+	//sleep forever
 	select {}
 }
 
