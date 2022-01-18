@@ -51,7 +51,7 @@ func initKDHT(ctx context.Context, host host.Host, bootstrapPeers []multiaddr.Mu
 }
 
 //init routing Discovery and connect to peers in the network
-func initRoutingDiscovery(ctx context.Context, kademliaDHT *dht.IpfsDHT, node host.Host, messages chan string) {
+func initRoutingDiscovery(ctx context.Context, kademliaDHT *dht.IpfsDHT, node host.Host, readMessages chan string, writeMessages chan string) {
 	//Announce node on the network with randevous point every 3 hours
 	logger.Info("Announcing ourselves...")
 	routingDiscovery := discovery.NewRoutingDiscovery(kademliaDHT)
@@ -65,10 +65,10 @@ func initRoutingDiscovery(ctx context.Context, kademliaDHT *dht.IpfsDHT, node ho
 		panic(err)
 	}
 
-	connectToPeers(ctx, peerChan, node, messages)
+	connectToPeers(ctx, peerChan, node, readMessages, writeMessages)
 }
 
-func connectToPeers(ctx context.Context, peerChan <-chan peer.AddrInfo, node host.Host, messages chan string) {
+func connectToPeers(ctx context.Context, peerChan <-chan peer.AddrInfo, node host.Host, readMessages chan string, writeMessages chan string) {
 	for peerNode := range peerChan {
 		if peerNode.ID == node.ID() {
 			continue
@@ -84,15 +84,15 @@ func connectToPeers(ctx context.Context, peerChan <-chan peer.AddrInfo, node hos
 		} else {
 			rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 
-			go writeData(rw)
-			go readData(rw, messages)
+			go writeData(rw, writeMessages)
+			go readData(rw, readMessages)
 		}
 
 		logger.Info("Connected to:", peerNode)
 	}
 }
 
-func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr, messages chan string) host.Host {
+func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr, readMessages chan string, writeMessages chan string) host.Host {
 	node, err := libp2p.New()
 	if err != nil {
 		panic(err)
@@ -102,7 +102,7 @@ func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr, message
 
 	//set streamhandler with unique protocol id
 	node.SetStreamHandler(protocol.ID(PROTOCOL_ID), func(stream network.Stream) {
-		handleStream(stream, messages)
+		handleStream(stream, readMessages, writeMessages)
 	})
 
 	//init dht
@@ -112,7 +112,7 @@ func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr, message
 		return nil
 	}
 
-	initRoutingDiscovery(ctx, kademliaDHT, node, messages)
+	initRoutingDiscovery(ctx, kademliaDHT, node, readMessages, writeMessages)
 
 	return node
 }

@@ -1,2 +1,2 @@
-/bin/*
-/network/Networking
+bin/*
+**/Networking
