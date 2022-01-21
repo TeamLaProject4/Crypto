@@ -1,82 +1,63 @@
 package main
 
-//import (
-//	"reflect"
-//	"time"
-//)
+import (
+	"encoding/json"
+	"reflect"
+	"time"
+)
 
-//type Block struct {
-//	transactions  []Transaction
-//	previous_hash string
-//	forger        string
-//	height        int
-//	timestamp     int
-//	signature     string
-//}
-//
-//func NewBlock(
-//	transactions []Transaction,
-//	previous_hash string,
-//	forger string,
-//	height int,
-//	timestamp int,
-//	signature string,
-//) (self *Block) {
-//	self = new(Block)
-//	self.transactions = transactions
-//	self.previous_hash = previous_hash
-//	self.forger = forger
-//	self.height = height
-//	self.timestamp = func() int {
-//		if timestamp != nil {
-//			return timestamp
-//		}
-//		return int(float64(time.Now().UnixNano()) / 1000000000.0)
-//	}()
-//	self.signature = func() string {
-//		if signature != nil {
-//			return signature
-//		}
-//		return ""
-//	}()
-//	return
-//}
-//
-//func (self *Block) Eq(block Block) bool {
-//	return self.signature == block.signature &&
-//		reflect.DeepEqual(self.previous_hash, block.previous_hash) &&
-//		(reflect.DeepEqual(self.previous_hash, block.previous_hash) && reflect.DeepEqual(self.forger, block.forger)) &&
-//		(reflect.DeepEqual(self.previous_hash, block.previous_hash) && reflect.DeepEqual(self.forger, block.forger) && reflect.DeepEqual(self.height, block.height)) &&
-//		(reflect.DeepEqual(self.previous_hash, block.previous_hash) && reflect.DeepEqual(self.forger, block.forger) && reflect.DeepEqual(self.height, block.height) && self.timestamp == block.timestamp)
-//}
-//
-//func (self *Block) to_json() map[interface{}]interface{} {
-//	json_dict := map[string][]interface{}{}
-//	json_dict["previous_hash"] = self.previous_hash
-//	json_dict["forger"] = self.forger
-//	json_dict["height"] = self.height
-//	json_dict["timestamp"] = self.timestamp
-//	json_dict["signature"] = self.signature
-//	json_dict["transactions"] = func() (elts []interface{}) {
-//		for _, tx := range self.transactions {
-//			elts = append(elts, tx.to_json())
-//		}
-//		return
-//	}()
-//	return json_dict
-//}
-//
-//func (self *Block) payload() map[interface{}]interface{} {
-//	json_repr := deepcopy(self.to_json())
-//	json_repr["signature"] = ""
-//	return json_repr
-//}
-//
-//func (self *Block) sign(signature string) {
-//	self.signature = signature
-//}
-//
-//func genesis() Block {
-//	genesis := NewBlock([]interface{}{}, "genesis_hash", "genesis_forger", 0, 0)
-//	return genesis
-//}
+type Block struct {
+	Transactions []Transaction
+	PreviousHash string
+	Forger       string
+	Height       int
+	Timestamp    int64
+	Signature    string
+}
+
+var block = new(Block)
+
+func newBlock(newBlock Block) {
+	if newBlock.Timestamp == 0 {
+		newBlock.Timestamp = time.Now().Unix()
+	}
+	block = &newBlock
+}
+
+func blockEquals(blockCompare Block) bool {
+	return block.Signature == blockCompare.Signature &&
+		(reflect.DeepEqual(block.PreviousHash, blockCompare.PreviousHash) && reflect.DeepEqual(block.Forger, blockCompare.Forger) && reflect.DeepEqual(block.Height, blockCompare.Height) && block.Timestamp == blockCompare.Timestamp)
+}
+
+func blockToJson(block Block) string {
+	blockJson, err := json.Marshal(block)
+	if err != nil {
+		panic("ERROR")
+	}
+	return string(blockJson)
+}
+
+func blockPayload() string {
+	copy_block := Block{
+		Transactions: block.Transactions,
+		PreviousHash: block.PreviousHash,
+		Forger:       block.Forger,
+		Height:       block.Height,
+		Timestamp:    block.Timestamp,
+		Signature:    "",
+	}
+	return blockToJson(copy_block)
+}
+
+func signBlock(signature string) {
+	block.Signature = signature
+}
+
+func createGenesisBlock() Block {
+	genesis := new(Block)
+	genesis.PreviousHash = "genesis_hash"
+	genesis.Forger = "genesis_forger"
+	genesis.Height = 0
+	genesis.Timestamp = 0
+	return *genesis
+}

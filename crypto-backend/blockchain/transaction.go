@@ -20,9 +20,7 @@ type Transaction struct {
 
 var transaction = new(Transaction)
 
-func NewTransaction(
-	newTransaction Transaction,
-) {
+func newTransaction(newTransaction Transaction) *Transaction {
 	//check and fill variables if they are empty
 	if newTransaction.Id == "" {
 		newTransaction.Id = uuid.New().String()
@@ -32,13 +30,14 @@ func NewTransaction(
 	}
 
 	transaction = &newTransaction
+	return transaction
 }
 
-func TransactionEquals(transactionToCompareTo Transaction) bool {
+func transactionEquals(transactionToCompareTo Transaction) bool {
 	return transaction.Id == transactionToCompareTo.Id
 }
 
-func Hash() uint64 {
+func hashTransaction() uint64 {
 	hash, err := hashstructure.Hash(transaction, nil)
 	if err != nil {
 		panic(err)
@@ -46,7 +45,7 @@ func Hash() uint64 {
 	return hash
 }
 
-func TransactionToJson(transaction Transaction) string {
+func transactionToJson(transaction Transaction) string {
 	transactionJson, err := json.Marshal(transaction)
 	if err != nil {
 		panic("ERROR")
@@ -54,7 +53,7 @@ func TransactionToJson(transaction Transaction) string {
 	return string(transactionJson)
 }
 
-func payload() string {
+func transactionPayload() string {
 	copyTransaction := Transaction{
 		SenderPublicKey:   transaction.SenderPublicKey,
 		ReceiverPublicKey: transaction.ReceiverPublicKey,
@@ -64,10 +63,10 @@ func payload() string {
 		Timestamp:         transaction.Timestamp,
 		Signature:         "",
 	}
-	return TransactionToJson(copyTransaction)
+	return transactionToJson(copyTransaction)
 }
 
-func sign(signature string) {
+func signTransaction(signature string) {
 	transaction.Signature = signature
 }
 
