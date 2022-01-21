@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/mitchellh/hashstructure"
 	"time"
 
@@ -18,10 +18,6 @@ type Transaction struct {
 	Signature         string
 }
 
-type ComplexStruct struct {
-	Name string
-}
-
 var transaction = new(Transaction)
 
 func NewTransaction(
@@ -34,14 +30,12 @@ func NewTransaction(
 	if newTransaction.Timestamp == 0 {
 		newTransaction.Timestamp = time.Now().Unix()
 	}
-	//transaction.signature emptystring?
 
 	transaction = &newTransaction
-	//return transaction
 }
 
 func TransactionEquals(transactionToCompareTo Transaction) bool {
-	return transaction.Id == transaction.Id
+	return transaction.Id == transactionToCompareTo.Id
 }
 
 func Hash() uint64 {
@@ -49,19 +43,30 @@ func Hash() uint64 {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("%d\n", hash)
 	return hash
 }
 
-//func (self *Transaction) to_json() map[interface{}]interface{} {
-//	return self.__dict__
-//}
-//
-//func (self *Transaction) payload() map[interface{}]interface{} {
-//	json_repr := deepcopy(self.to_json())
-//	json_repr["signature"] = ""
-//	return json_repr
-//}
+func TransactionToJson(transaction Transaction) string {
+	transactionJson, err := json.Marshal(transaction)
+	if err != nil {
+		panic("ERROR")
+	}
+	return string(transactionJson)
+}
+
+func payload() string {
+	copyTransaction := Transaction{
+		SenderPublicKey:   transaction.SenderPublicKey,
+		ReceiverPublicKey: transaction.ReceiverPublicKey,
+		Amount:            transaction.Amount,
+		TransactionType:   transaction.TransactionType,
+		Id:                transaction.Id,
+		Timestamp:         transaction.Timestamp,
+		Signature:         "",
+	}
+	return TransactionToJson(copyTransaction)
+
+}
 
 func sign(signature string) {
 	transaction.Signature = signature

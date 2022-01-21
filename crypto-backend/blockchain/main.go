@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 func main() {
 	NewTransaction(Transaction{
 		SenderPublicKey:   "",
@@ -12,8 +10,9 @@ func main() {
 		Timestamp:         0,
 		Signature:         "",
 	})
-	fmt.Println(transaction)
-	Hash()
+	//println(Hash())
+	//println(TransactionToJson())
+	println(payload())
 
 }
 
