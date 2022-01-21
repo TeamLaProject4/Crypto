@@ -13,46 +13,29 @@ type Transaction struct {
 	amount              int
 	tx_type             TxType
 	id                  string
-	timestamp           int
+	timestamp           int64
 	signature           string
 }
 
-func NewTransaction(
-	sender_public_key string,
-	receiver_public_key string,
-	amount int,
-	tx_type TxType,
-	id string,
-	timestamp int,
-	signature string,
-) (self *Transaction) {
-	self = new(Transaction)
-	self.sender_public_key = sender_public_key
-	self.receiver_public_key = receiver_public_key
-	self.amount = amount
-	self.tx_type = tx_type
+var transaction = new(Transaction)
 
-	if id != "" {
-		self.id = id
-	} else {
-		id = uuid.New().String()
+func NewTransaction(
+	newTransaction Transaction,
+) {
+	//check and fill variables if they are empty
+	if newTransaction.id == "" {
+		newTransaction.id = uuid.New().String()
 	}
-	self.timestamp = func() int {
-		if timestamp != 0 {
-			return timestamp
-		}
-		return int(float64(time.Now().UnixNano()) / 1000000000.0)
-	}()
-	self.signature = func() string {
-		if signature != "" {
-			return signature
-		}
-		return ""
-	}()
-	return
+	if newTransaction.timestamp == 0 {
+		newTransaction.timestamp = time.Now().Unix()
+	}
+	//transaction.signature emptystring?
+
+	transaction = &newTransaction
+	//return transaction
 }
 
-func (self *Transaction) Eq(transaction Transaction) bool {
+func (self *Transaction) TransactionEquals(transaction Transaction) bool {
 	return reflect.DeepEqual(self.id, transaction.id)
 }
 
