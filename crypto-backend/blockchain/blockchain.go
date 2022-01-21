@@ -1,15 +1,15 @@
 package main
 
 type Blockchain struct {
-	blocks        []Block
-	account_model interface{}
-	pos           interface{}
+	blocks       []Block
+	accountModel AccountModel
+	proofOfStake interface{}
 }
 
 func NewBlockchain() (self *Blockchain) {
 	self = new(Blockchain)
 	self.blocks = []interface{}{Block.genesis()}
-	self.account_model = AccountModel()
+	self.accountModel = AccountModel()
 	self.pos = ProofOfStake()
 	return
 }
@@ -49,14 +49,14 @@ func (self *Blockchain) execute_transaction(transaction Transaction) {
 		if sender == receiver {
 			amount := transaction.amount
 			self.pos.update_stake(sender, amount)
-			self.account_model.update_balance(sender, -amount)
+			self.accountModel.update_balance(sender, -amount)
 		}
 	} else {
 		sender := transaction.sender_public_key
 		receiver := transaction.receiver_public_key
 		amount := transaction.amount
-		self.account_model.update_balance(sender, -amount)
-		self.account_model.update_balance(receiver, amount)
+		self.accountModel.update_balance(sender, -amount)
+		self.accountModel.update_balance(receiver, amount)
 	}
 }
 
@@ -97,12 +97,12 @@ func (self *Blockchain) is_transaction_covered(transaction Transaction) bool {
 	if transaction.tx_type == TxType.EXCHANGE {
 		return true
 	}
-	sender_balance := self.account_model.get_balance(transaction.sender_public_key)
+	sender_balance := self.accountModel.get_balance(transaction.sender_public_key)
 	return sender_balance >= transaction.amount
 }
 
 func (self *Blockchain) get_account_balance(public_key_string string) int {
-	return self.account_model.get_balance(public_key_string)
+	return self.accountModel.get_balance(public_key_string)
 }
 
 func (self *Blockchain) next_forger() string {

@@ -38,6 +38,7 @@ func transactionEquals(transactionToCompareTo Transaction) bool {
 }
 
 func hashTransaction() uint64 {
+	sha256
 	hash, err := hashstructure.Hash(transaction, nil)
 	if err != nil {
 		panic(err)
