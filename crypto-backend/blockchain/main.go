@@ -8,7 +8,7 @@ func main() {
 		TransactionType:   0,
 		Id:                "",
 		Timestamp:         0,
-		Signature:         "",
+		Signature:         "signature-value",
 	})
 	//println(Hash())
 	//println(TransactionToJson())

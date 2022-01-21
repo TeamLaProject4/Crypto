@@ -65,7 +65,6 @@ func payload() string {
 		Signature:         "",
 	}
 	return TransactionToJson(copyTransaction)
-
 }
 
 func sign(signature string) {
