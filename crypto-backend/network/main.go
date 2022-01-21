@@ -18,8 +18,8 @@ func main() {
 	ctx := context.Background()
 
 	//TODO: figure out channel buffer size
-	readMessages := make(chan string, 100)
-	writeMessages := make(chan string, 100)
+	readMessages := make(chan string, 1000)
+	writeMessages := make(chan string, 1000)
 
 	initLogger()
 
@@ -42,6 +42,14 @@ func main() {
 	select {}
 }
 
+func initLogger() {
+	log.SetAllLoggers(log.LevelWarn)
+	err := log.SetLogLevel("cryptomunt", "info")
+	if err != nil {
+		return
+	}
+}
+
 //temporary
 func printDataFromPeers(readMessages chan string) {
 	//TODO: handle messages in blockchain implementation, maybe return this channel?
@@ -60,13 +68,5 @@ func sendDataToPeers(writeMessages chan string) {
 			logger.Warn("Read input error")
 		}
 		writeMessages <- sendData
-	}
-}
-
-func initLogger() {
-	log.SetAllLoggers(log.LevelWarn)
-	err := log.SetLogLevel("cryptomunt", "info")
-	if err != nil {
-		return
 	}
 }
