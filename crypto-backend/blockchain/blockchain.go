@@ -1,19 +1,30 @@
 package blockchain
 
+import "cryptomunt/proofOfStake"
+
 type Blockchain struct {
 	blocks       []Block
 	accountModel AccountModel
-	proofOfStake interface{}
+	proofOfStake proofOfStake.ProofOfStake
 }
 
-//func NewBlockchain() (self *Blockchain) {
-//	self = new(Blockchain)
-//	self.blocks = []interface{}{Block.genesis()}
-//	self.accountModel = AccountModel()
-//	self.pos = ProofOfStake()
-//	return
-//}
-//
+var blockchain = new(Blockchain)
+
+func NewBlockchain() {
+	genesisBlock := createGenesisBlock()
+	var blocks []Block
+	blocks = append(blocks, genesisBlock)
+	proofOfStake.NewProofOfStake()
+
+	pos := proofOfStake.GetProofOfStake()
+
+	blockchain = &Blockchain{
+		blocks:       blocks,
+		accountModel: *accountModel,
+		proofOfStake: *pos,
+	}
+}
+
 //func (self *Blockchain) to_json() map[interface{}]interface{} {
 //	json_dict := map[string][]interface{}{}
 //	json_dict["blocks"] = func() (elts []interface{}) {
