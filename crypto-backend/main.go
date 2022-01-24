@@ -1,22 +1,21 @@
 package main
 
 import (
-	"cryptomunt/blockchain"
 	"cryptomunt/proofOfStake"
 	"fmt"
 )
 
 func main() {
-	testTransaction := blockchain.Transaction{
-		SenderPublicKey:   "",
-		ReceiverPublicKey: "",
-		Amount:            0,
-		TransactionType:   0,
-		Id:                "",
-		Timestamp:         0,
-		Signature:         "signature-value",
-	}
-	blockchain.NewTransaction(testTransaction)
+	//testTransaction := blockchain.Transaction{
+	//	SenderPublicKey:   "",
+	//	ReceiverPublicKey: "",
+	//	Amount:            0,
+	//	TransactionType:   0,
+	//	Id:                "",
+	//	Timestamp:         0,
+	//	Signature:         "signature-value",
+	//}
+	//blockchain.NewTransaction(testTransaction)
 
 	//testBlock := Block{
 	//	Transactions: []Transaction{*transaction},
@@ -36,13 +35,31 @@ func main() {
 	//println(Hash())
 	//println(TransactionToJson())
 	//println(payload())n
-	proofOfStake.NewLot(proofOfStake.Lot{
-		PublicKey:         "hello",
-		Iteration:         0,
-		PreviousBlockHash: "world",
-	})
+	//proofOfStake.NewLot(proofOfStake.Lot{
+	//	PublicKey:         "hello",
+	//	Iteration:         0,
+	//	PreviousBlockHash: "world",
+	//})
+	//
+	//fmt.Println(proofOfStake.GetLotHash())
 
-	fmt.Println(proofOfStake.GetLotHash())
+	proofOfStake.NewProofOfStake()
+	//proofOfStake.SetGenesisNodeStake()
+	//fmt.Println(proofOfStake.IsAccountInStakers("false"))
+
+	//proofOfStake.AddAccountToStakers("hello")
+	//proofOfStake.PrintStakers()
+
+	//proofOfStake.UpdateStake("moi", 20)
+	//proofOfStake.PrintStakers()
+	//proofOfStake.UpdateStake("moi", 5)
+	//proofOfStake.PrintStakers()
+	//fmt.Println(proofOfStake.GetStake("moi"))
+
+	proofOfStake.UpdateStake("moi", 1)
+	proofOfStake.UpdateStake("tammo", 3)
+	lots := proofOfStake.GenerateLots("seed")
+	fmt.Println(lots)
 
 }
 
