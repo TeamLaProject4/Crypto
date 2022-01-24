@@ -1,7 +1,13 @@
 package main
 
+import (
+	"cryptomunt/blockchain"
+	"cryptomunt/proofOfStake"
+	"fmt"
+)
+
 func main() {
-	testTransaction := Transaction{
+	testTransaction := blockchain.Transaction{
 		SenderPublicKey:   "",
 		ReceiverPublicKey: "",
 		Amount:            0,
@@ -10,7 +16,7 @@ func main() {
 		Timestamp:         0,
 		Signature:         "signature-value",
 	}
-	newTransaction(testTransaction)
+	blockchain.NewTransaction(testTransaction)
 
 	//testBlock := Block{
 	//	Transactions: []Transaction{*transaction},
@@ -29,7 +35,14 @@ func main() {
 
 	//println(Hash())
 	//println(TransactionToJson())
-	//println(payload())
+	//println(payload())n
+	proofOfStake.NewLot(proofOfStake.Lot{
+		PublicKey:         "hello",
+		Iteration:         0,
+		PreviousBlockHash: "world",
+	})
+
+	fmt.Println(proofOfStake.GetLotHash())
 
 }
 

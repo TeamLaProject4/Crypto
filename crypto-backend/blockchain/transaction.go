@@ -1,4 +1,4 @@
-package main
+package blockchain
 
 import (
 	"encoding/json"
@@ -20,7 +20,7 @@ type Transaction struct {
 
 var transaction = new(Transaction)
 
-func newTransaction(newTransaction Transaction) *Transaction {
+func NewTransaction(newTransaction Transaction) *Transaction {
 	//check and fill variables if they are empty
 	if newTransaction.Id == "" {
 		newTransaction.Id = uuid.New().String()
@@ -38,7 +38,6 @@ func transactionEquals(transactionToCompareTo Transaction) bool {
 }
 
 func hashTransaction() uint64 {
-	sha256
 	hash, err := hashstructure.Hash(transaction, nil)
 	if err != nil {
 		panic(err)

@@ -1,4 +1,4 @@
-package main
+package blockchain
 
 import (
 	"encoding/json"
@@ -17,7 +17,7 @@ type Block struct {
 
 var block = new(Block)
 
-func newBlock(newBlock Block) {
+func NewBlock(newBlock Block) {
 	if newBlock.Timestamp == 0 {
 		newBlock.Timestamp = time.Now().Unix()
 	}
