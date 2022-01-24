@@ -56,10 +56,14 @@ func main() {
 	//proofOfStake.PrintStakers()
 	//fmt.Println(proofOfStake.GetStake("moi"))
 
+	proofOfStake.UpdateStake("tammo", 3000)
 	proofOfStake.UpdateStake("moi", 1)
-	proofOfStake.UpdateStake("tammo", 3)
-	lots := proofOfStake.GenerateLots("seed")
-	fmt.Println(lots)
+	proofOfStake.UpdateStake("henk", 1)
+
+	//lots := proofOfStake.GenerateLots("seed")
+	//fmt.Println(lots)
+
+	fmt.Println(proofOfStake.PickForger("FF11asnF"))
 
 }
 

@@ -4,14 +4,15 @@ import (
 	"cryptomunt/utils"
 	"fmt"
 	"io/ioutil"
-	"math"
+	"math/big"
 	"os"
-	"strconv"
 )
 
 type ProofOfStake struct {
 	stakers map[string]int
 }
+
+const MAX_256_INT_VALUE = "10000000000000000000000000000000000000000000000000000000000000000"
 
 var proofOfStake = new(ProofOfStake)
 
@@ -84,29 +85,27 @@ func generateStakerLots(stakePublicKey string, stakeAmount int, seed string) []L
 	return lots
 }
 
-func isOffsetSmaller(lot Lot, seedInt int64, leastOffset int64) bool {
+func isOffsetSmaller(lot Lot, seedInt big.Int, leastOffset big.Int) bool {
 	offset := getOffset(lot, seedInt)
-	return offset < leastOffset
+	compareOffset := offset.Cmp(&leastOffset)
+
+	return compareOffset == -1
 }
 
-func getOffset(lot Lot, seedInt int64) int64 {
+func getOffset(lot Lot, seedInt big.Int) big.Int {
 	lotHash := GetLotHash(lot)
-	lotHashInt, err := strconv.ParseInt(lotHash, 16, 64)
-	if err != nil {
-		return 0
-	}
-	return int64(math.Abs(float64(lotHashInt - seedInt)))
+	lotHashInt := utils.GetBigIntHash(lotHash)
+
+	var difference = new(big.Int)
+	difference.Sub(&lotHashInt, &seedInt)
+
+	return utils.GetAbsolutBigInt(*difference)
 }
 
-//TODO: is float required for leastOffset?
 func pickWinner(lots []Lot, seed string) Lot {
 	winner := lots[0]
-	var leastOffset int64 = 9223372036854775807 //max 64 integer
-	seedHash := utils.GetHash(seed)
-	seedInt, err := strconv.ParseInt(seedHash, 16, 64)
-	if err != nil {
-		panic("Hash conversion error")
-	}
+	leastOffset := utils.HexToBigInt(MAX_256_INT_VALUE)
+	seedInt := utils.GetBigIntHash(seed)
 
 	for _, lot := range lots {
 		if isOffsetSmaller(lot, seedInt, leastOffset) {
@@ -117,7 +116,7 @@ func pickWinner(lots []Lot, seed string) Lot {
 	return winner
 }
 
-func pickForger(previousBlockHash string) string {
+func PickForger(previousBlockHash string) string {
 	lots := GenerateLots(previousBlockHash)
 	winner := pickWinner(lots, previousBlockHash)
 	return winner.PublicKey
