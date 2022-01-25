@@ -3,7 +3,6 @@ package blockchain
 import (
 	"encoding/json"
 	"reflect"
-	"time"
 )
 
 type Block struct {
@@ -15,18 +14,18 @@ type Block struct {
 	Signature    string
 }
 
-var block = new(Block)
+//var block = new(Block)
 
-func NewBlock(newBlock Block) {
-	if newBlock.Timestamp == 0 {
-		newBlock.Timestamp = time.Now().Unix()
-	}
-	block = &newBlock
-}
+//func NewBlock(newBlock Block) {
+//	if newBlock.Timestamp == 0 {
+//		newBlock.Timestamp = time.Now().Unix()
+//	}
+//	block = &newBlock
+//}
 
-func blockEquals(blockCompare Block) bool {
-	return block.Signature == blockCompare.Signature &&
-		(reflect.DeepEqual(block.PreviousHash, blockCompare.PreviousHash) && reflect.DeepEqual(block.Forger, blockCompare.Forger) && reflect.DeepEqual(block.Height, blockCompare.Height) && block.Timestamp == blockCompare.Timestamp)
+func blockEquals(blokA Block, blockB Block) bool {
+	return blokA.Signature == blockB.Signature &&
+		(reflect.DeepEqual(blokA.PreviousHash, blockB.PreviousHash) && reflect.DeepEqual(blokA.Forger, blockB.Forger) && reflect.DeepEqual(blokA.Height, blockB.Height) && blokA.Timestamp == blockB.Timestamp)
 }
 
 func blockToJson(block Block) string {
@@ -37,7 +36,7 @@ func blockToJson(block Block) string {
 	return string(blockJson)
 }
 
-func blockPayload() string {
+func getBlockPayload(block Block) string {
 	copy_block := Block{
 		Transactions: block.Transactions,
 		PreviousHash: block.PreviousHash,
@@ -49,7 +48,7 @@ func blockPayload() string {
 	return blockToJson(copy_block)
 }
 
-func signBlock(signature string) {
+func signBlock(block Block, signature string) {
 	block.Signature = signature
 }
 

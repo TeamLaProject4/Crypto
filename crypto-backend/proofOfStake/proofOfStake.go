@@ -9,7 +9,7 @@ import (
 )
 
 type ProofOfStake struct {
-	stakers map[string]int
+	Stakers map[string]int
 }
 
 const MAX_256_INT_VALUE = "10000000000000000000000000000000000000000000000000000000000000000"
@@ -21,12 +21,12 @@ func GetProofOfStake() *ProofOfStake {
 }
 
 func NewProofOfStake() {
-	newProofOfStake := ProofOfStake{stakers: map[string]int{}}
+	newProofOfStake := ProofOfStake{Stakers: map[string]int{}}
 	proofOfStake = &newProofOfStake
 }
 
 func PrintStakers() {
-	fmt.Println(proofOfStake.stakers)
+	fmt.Println(proofOfStake.Stakers)
 }
 
 // SetGenesisNodeStake TODO: unit test
@@ -43,34 +43,34 @@ func SetGenesisNodeStake() {
 	}
 
 	genisisPublicKey := string(fileBytes)
-	proofOfStake.stakers[genisisPublicKey] = 1
+	proofOfStake.Stakers[genisisPublicKey] = 1
 }
 
 func IsAccountInStakers(publicKey string) bool {
-	_, accountInStakers := proofOfStake.stakers[publicKey]
+	_, accountInStakers := proofOfStake.Stakers[publicKey]
 	return accountInStakers
 }
 
 func AddAccountToStakers(publicKey string) {
 	if !IsAccountInStakers(publicKey) {
-		proofOfStake.stakers[publicKey] = 0
+		proofOfStake.Stakers[publicKey] = 0
 	}
 }
 
 func UpdateStake(publicKey string, stake int) {
 	AddAccountToStakers(publicKey)
-	proofOfStake.stakers[publicKey] += stake
+	proofOfStake.Stakers[publicKey] += stake
 }
 
 func GetStake(publicKey string) int {
-	//TODO: addAccount to stakers not logical here, remove?
+	//TODO: addAccount to Stakers not logical here, remove?
 	AddAccountToStakers(publicKey)
-	return proofOfStake.stakers[publicKey]
+	return proofOfStake.Stakers[publicKey]
 }
 
 func GenerateLots(seed string) []Lot {
 	var lots []Lot
-	for stakePublicKey, stakeAmount := range proofOfStake.stakers {
+	for stakePublicKey, stakeAmount := range proofOfStake.Stakers {
 		lots = append(lots, generateStakerLots(stakePublicKey, stakeAmount, seed)...)
 	}
 	return lots

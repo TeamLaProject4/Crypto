@@ -6,7 +6,7 @@ import (
 	"math/big"
 )
 
-func GetHash(valueToHash string) string {
+func GetHexadecimalHash(valueToHash string) string {
 	sha256Hasher := sha256.New()
 	sha256Hasher.Write([]byte(valueToHash))
 	hashBytes := sha256Hasher.Sum(nil)
@@ -14,7 +14,7 @@ func GetHash(valueToHash string) string {
 }
 
 func GetBigIntHash(valueToHash string) big.Int {
-	return HexToBigInt(GetHash(valueToHash))
+	return HexToBigInt(GetHexadecimalHash(valueToHash))
 }
 
 func HexToBigInt(hex string) big.Int {

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cryptomunt/blockchain"
 	"cryptomunt/proofOfStake"
 	"fmt"
 )
@@ -63,7 +64,11 @@ func main() {
 	//lots := proofOfStake.GenerateLots("seed")
 	//fmt.Println(lots)
 
-	fmt.Println(proofOfStake.PickForger("FF11asnF"))
+	//fmt.Println(proofOfStake.PickForger("FF11asnF"))
+
+	blockchain.NewBlockchain()
+	fmt.Println(blockchain.GetBlockChain())
+	fmt.Println(blockchain.BlockchainToJson())
 
 }
 

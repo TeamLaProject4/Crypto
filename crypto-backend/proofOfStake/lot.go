@@ -21,7 +21,7 @@ func NewLot(newLot Lot) {
 func GetLotHash(lot Lot) string {
 	hash := lot.PublicKey + lot.PreviousBlockHash + strconv.Itoa(lot.Iteration)
 	fmt.Println("hash lot ", hash)
-	return utils.GetHash(hash)
+	return utils.GetHexadecimalHash(hash)
 
 	//TODO: python has a loop. Is a loop also required here?
 	//for i := lot.Iteration; i > 0; i-- {
