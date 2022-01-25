@@ -1,9 +1,13 @@
 package blockchain
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"cryptomunt/utils"
+	"fmt"
+	"os"
 )
 
 var KEY_LENGTH_BITS = 2048
@@ -13,14 +17,10 @@ var PUBLIC_KEY_PATH = "../keys/walletPublicKey.hex"
 //Keep wallet keys private
 type Wallet struct {
 	key rsa.PrivateKey //contains private and public keys
-	//privateKey string
-	//publicKey  string
-	//privateKey rsa.PrivateKey
-	//publicKey rsa.PublicKey
 }
 
 //func (wallet *Wallet) GetPublicKey() string {
-//	return wallet.publicKey
+//	return wallet.key.PublicKey
 //}
 
 //// NewWallet TODO: mnumonic?
@@ -36,63 +36,56 @@ func NewWallet(privateKey string) Wallet {
 //get the keypair from a file or generate one
 //func GetKeyPair() (string, string) {
 func GetKeyPair() rsa.PrivateKey {
-	//privateKey := utils.GetFileContents(PRIVATE_KEY_PATH)
-	//publicKey := utils.GetFileContents(PUBLIC_KEY_PATH)
-	//var privateKey rsa.PrivateKey
+	var privateKey rsa.PrivateKey
+	//var err error
 
 	//get from file
+	privateKey = utils.ReadRsaKeyFile("../keys/wallet.rsa")
 
-	//generate
-	//if privateKey == "" {
-	privateKey, err := rsa.GenerateKey(rand.Reader, KEY_LENGTH_BITS)
-	if err != nil {
-		panic("Failed to make a wallet")
+	//generate key
+	if privateKey.Size() < 1 {
+		key, _ := rsa.GenerateKey(rand.Reader, KEY_LENGTH_BITS)
+		privateKey = *key
+		//TODO: error handling
+		utils.WriteRsaKeyToFile(privateKey)
 	}
-	utils.WriteRsaKeyToFile(*privateKey)
-	//publicKey = utils.BigIntToHex(*key.N)
-	//privateKey = utils.BigIntToHex(*key.D)
 
-	//save to file
-	//utils.WriteFile(PRIVATE_KEY_PATH, privateKey)
-	//utils.WriteFile(publicKey, publicKey)
-	//}
-
-	return *privateKey
-	//return publicKey, privateKey
+	return privateKey
 }
 
-//func (wallet *Wallet) sign(data string) string {
-//	dataHash := utils.GetHexadecimalHash(data)
-//	//pkcs1
-//	//sign using signatureSchemeObject
-//
-//	message := []byte("message to be signed")
-//
-//	// Only small messages can be signed directly; thus the hash of a
-//	// message, rather than the message itself, is signed. This requires
-//	// that the hash function be collision resistant. SHA-256 is the
-//	// least-strong hash function that should be used for this at the time
-//	// of writing (2016).
-//	hashed := sha256.Sum256(message)
-//
-//	test := utils.HexToBigInt(wallet.privateKey)
-//	rsaPrivateKey := rsa.PrivateKey{
-//		PublicKey: rsa.PublicKey{},
-//		D:         &test,
-//	}
-//
-//	signature, err := rsa.SignPKCS1v15(rand.Reader, &rsaPrivateKey, crypto.SHA256, hashed[:])
-//	if err != nil {
-//		fmt.Fprintf(os.Stderr, "Error from signing: %s\n", err)
-//		return
-//	}
-//
-//	fmt.Printf("Signature: %x\n", signature)
-//
-//	//signatureSchemeObject := PKCS1_v1_5.new(wallet.KeyPair)
-//	//signature := signatureSchemeObject.sign(dataHash)
-//	//return signature.hex()
-//}
+func (wallet *Wallet) sign(data string) string {
+	//dataHash := utils.GetHexadecimalHash(data)
+	//pkcs1
+	//sign using signatureSchemeObject
+
+	message := []byte(data)
+
+	// Only small messages can be signed directly; thus the hash of a
+	// message, rather than the message itself, is signed. This requires
+	// that the hash function be collision resistant. SHA-256 is the
+	// least-strong hash function that should be used for this at the time
+	// of writing (2016).
+	hashed := sha256.Sum256(message)
+
+	//test := utils.HexToBigInt(wallet.privateKey)
+	//rsaPrivateKey := rsa.PrivateKey{
+	//	PublicKey: rsa.PublicKey{},
+	//	D:         &test,
+	//}
+
+	signature, err := rsa.SignPKCS1v15(rand.Reader, &wallet.key, crypto.SHA256, hashed[:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error from signing: %s\n", err)
+		return ""
+	}
+
+	fmt.Printf("Signature: %x\n", signature)
+
+	return utils.GetHexadecimalHash(string(signature))
+	//signatureSchemeObject := PKCS1_v1_5.new(wallet.KeyPair)
+	//signature := signatureSchemeObject.sign(dataHash)
+	//return signature.hex()
+}
 
 //func (wallet *Wallet) publicKeyString() string {
 //	return string(wallet.KeyPair.public_key().export_key("PEM"))
