@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/mitchellh/hashstructure"
 	"time"
-
 	"github.com/google/uuid"
 )
 
@@ -30,11 +29,11 @@ func NewTransaction(transaction Transaction) Transaction {
 	return transaction
 }
 
-func (transaction *Transaction) transactionEquals(transactionToCompareTo Transaction) bool {
+func (transaction *Transaction) Equals(transactionToCompareTo Transaction) bool {
 	return transaction.Id == transactionToCompareTo.Id
 }
 
-func (transaction *Transaction) hashTransaction() uint64 {
+func (transaction *Transaction) hash() uint64 {
 	hash, err := hashstructure.Hash(transaction, nil)
 	if err != nil {
 		panic(err)
@@ -50,7 +49,7 @@ func (transaction *Transaction) toJson() string {
 	return string(transactionJson)
 }
 
-func (transaction *Transaction) transactionPayload() string {
+func (transaction *Transaction) payload() string {
 	tempSignature := transaction.Signature
 	transactionJson := transaction.toJson()
 	transaction.Signature = tempSignature
@@ -58,7 +57,7 @@ func (transaction *Transaction) transactionPayload() string {
 	return transactionJson
 }
 
-func (transaction *Transaction) signTransaction(signature string) {
+func (transaction *Transaction) sign(signature string) {
 	transaction.Signature = signature
 }
 
