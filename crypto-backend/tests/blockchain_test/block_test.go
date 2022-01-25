@@ -2,6 +2,7 @@ package blockchain_test
 
 import (
 	blockchain "cryptomunt/blockchain"
+	"encoding/json"
 	"testing"
 	"time"
 )
@@ -47,5 +48,31 @@ func TestWhenDuplicateBlocksConstructedThenBlocksAreEqual(t *testing.T) {
 
 	if !block1.Equals(block2) {
 		t.Errorf("Expected '%+v', but got '%+v'", block1, block2)
+	}
+}
+
+func TestWhenBlockSignedThenSignatureIsSet(t *testing.T) {
+	block := constructBlock()
+	block.Sign(SIGNATURE)
+
+	got := block.Signature
+	want := SIGNATURE
+	if want != got {
+		t.Errorf("Expected '%s', but got '%s'", want, got)
+	}
+}
+
+func TestWhenBlockSignedThenPayloadSignatureStaysEmpty(t *testing.T) {
+	block := constructBlock()
+	block.Sign(SIGNATURE)
+	payload := block.Payload()
+
+	var result map[string]interface{}
+	json.Unmarshal([]byte(payload), &result)
+
+	got := result["Signature"]
+	want := ""
+	if got != want {
+		t.Errorf("Expected '%s', but got '%s'", want, got)
 	}
 }

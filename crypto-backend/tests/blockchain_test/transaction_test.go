@@ -71,6 +71,6 @@ func TestWhenTransactionSignedThenPayloadSignatureStaysEmpty(t *testing.T) {
 	got := result["Signature"]
 	want := ""
 	if got != want {
-		t.Errorf("Expected '%v', but got '%v'", want, got)
+		t.Errorf("Expected '%s', but got '%s'", want, got)
 	}
 }
