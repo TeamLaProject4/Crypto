@@ -49,7 +49,7 @@ func (transaction *Transaction) toJson() string {
 	return string(transactionJson)
 }
 
-func (transaction *Transaction) payload() string {
+func (transaction *Transaction) Payload() string {
 	tempSignature := transaction.Signature
 	transaction.Signature = ""
 
@@ -59,7 +59,7 @@ func (transaction *Transaction) payload() string {
 	return transactionJson
 }
 
-func (transaction *Transaction) sign(signature string) {
+func (transaction *Transaction) Sign(signature string) {
 	transaction.Signature = signature
 }
 

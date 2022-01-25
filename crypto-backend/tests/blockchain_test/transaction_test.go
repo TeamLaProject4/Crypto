@@ -1,6 +1,7 @@
-package blockchain
+package blockchain_test
 
 import (
+	blockchain "cryptomunt/blockchain"
 	"encoding/json"
 	"github.com/google/uuid"
 	"testing"
@@ -10,21 +11,11 @@ import (
 const SENDER_PUBLIC_KEY = "alice"
 const RECEIVER_PUBLIC_KEY = "bob"
 const AMOUNT = 10
-const TX_TYPE = TRANSFER
+const TX_TYPE = blockchain.TRANSFER
 const SIGNATURE = "VeRyN1CeSiGn4TuRe"
 
-// want := Transaction{
-// 	SenderPublicKey:	"alice"
-// 	ReceiverPublicKey:	"bob"
-// 	Amount:				10
-// 	TransactionType:  	TRANSFER
-// 	Id:					0
-// 	Timestamp:			0
-// 	Signature:			"VeRyN1CeSiGn4TuRe"
-// }
-
-func constructTransaction() Transaction {
-	return Transaction{
+func constructTransaction() blockchain.Transaction {
+	return blockchain.Transaction{
 		SenderPublicKey:   SENDER_PUBLIC_KEY,
 		ReceiverPublicKey: RECEIVER_PUBLIC_KEY,
 		Amount:            AMOUNT,
@@ -60,7 +51,7 @@ func TestWhenDuplicateTransactionsConstructedThenTransactionsAreEqual(t *testing
 
 func TestWhenTransactionSignedThenSignatureIsSet(t *testing.T) {
 	tx := constructTransaction()
-	tx.sign(SIGNATURE)
+	tx.Sign(SIGNATURE)
 
 	got := tx.Signature
 	want := SIGNATURE
@@ -71,8 +62,8 @@ func TestWhenTransactionSignedThenSignatureIsSet(t *testing.T) {
 
 func TestWhenTransactionSignedThenPayloadSignatureStaysEmpty(t *testing.T) {
 	tx := constructTransaction()
-	tx.sign(SIGNATURE)
-	payload := tx.payload()
+	tx.Sign(SIGNATURE)
+	payload := tx.Payload()
 
 	var result map[string]interface{}
 	json.Unmarshal([]byte(payload), &result)

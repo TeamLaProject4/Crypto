@@ -30,12 +30,12 @@ func createGenesisBlock() Block {
 	return *genesis
 }
 
-func (block *Block) blockEquals(blockToCompareTo Block) bool {
+func (block *Block) Equals(blockToCompareTo Block) bool {
 	return block.Signature == blockToCompareTo.Signature &&
 		(reflect.DeepEqual(block.PreviousHash, blockToCompareTo.PreviousHash) && reflect.DeepEqual(block.Forger, blockToCompareTo.Forger) && reflect.DeepEqual(block.Height, blockToCompareTo.Height) && block.Timestamp == blockToCompareTo.Timestamp)
 }
 
-func (block *Block) blockToJson() string {
+func (block *Block) ToJson() string {
 	blockJson, err := json.Marshal(block)
 	if err != nil {
 		panic("ERROR")
@@ -43,15 +43,15 @@ func (block *Block) blockToJson() string {
 	return string(blockJson)
 }
 
-func (block *Block) getPayload() string {
+func (block *Block) Payload() string {
 	tempSignature := block.Signature
 	block.Signature = ""
-	blockJson := block.blockToJson()
+	blockJson := block.ToJson()
 
 	block.Signature = tempSignature
 	return blockJson
 }
 
-func (block *Block) signBlock(signature string) {
+func (block *Block) Sign(signature string) {
 	block.Signature = signature
 }
