@@ -3,9 +3,7 @@ package proofOfStake
 import (
 	"cryptomunt/utils"
 	"fmt"
-	"io/ioutil"
 	"math/big"
-	"os"
 )
 
 func pickWinner(lots []Lot, seed string) Lot {
@@ -74,17 +72,8 @@ func (proofOfStake *ProofOfStake) PrintStakers() {
 //TODO: remove hardcoded path and add more generic solution
 // TODO: after others stake, then genesis can no longer be forger, if everyone unstaked, then genesis can be forger
 func (proofOfStake *ProofOfStake) SetGenesisNodeStake() {
-	file, err := os.OpenFile("../keys/genesisPublicKey.pem", os.O_RDONLY, 0o777)
-	if err != nil {
-		panic(err)
-	}
-	fileBytes, err2 := ioutil.ReadAll(file)
-	if err2 != nil {
-		panic(err2)
-	}
-
-	genisisPublicKey := string(fileBytes)
-	proofOfStake.Stakers[genisisPublicKey] = 1
+	genesisPublicKey := utils.GetFileContents("../keys/genesisPublicKey.pem")
+	proofOfStake.Stakers[genesisPublicKey] = 1
 }
 
 func (proofOfStake *ProofOfStake) IsAccountInStakers(publicKey string) bool {

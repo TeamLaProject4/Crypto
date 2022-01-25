@@ -3,7 +3,9 @@ package utils
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"io/ioutil"
 	"math/big"
+	"os"
 )
 
 func GetHexadecimalHash(valueToHash string) string {
@@ -34,4 +36,17 @@ func BigIntToHex(number big.Int) string {
 func GetAbsolutBigInt(number big.Int) big.Int {
 	var newNumber = new(big.Int)
 	return *newNumber.Abs(&number)
+}
+
+func GetFileContents(filePath string) string {
+	file, err := os.OpenFile(filePath, os.O_RDONLY, 0o777)
+	if err != nil {
+		panic(err)
+	}
+	fileBytes, err2 := ioutil.ReadAll(file)
+	if err2 != nil {
+		panic(err2)
+	}
+
+	return string(fileBytes)
 }

@@ -1,11 +1,10 @@
 package blockchain
 
 import (
-	"fmt"
 	"encoding/json"
+	"github.com/google/uuid"
 	"testing"
 	"time"
-	"github.com/google/uuid"
 )
 
 const SENDER_PUBLIC_KEY = "alice"
@@ -26,27 +25,27 @@ const SIGNATURE = "VeRyN1CeSiGn4TuRe"
 
 func constructTransaction() Transaction {
 	return Transaction{
-		SenderPublicKey:	SENDER_PUBLIC_KEY,
-		ReceiverPublicKey:	RECEIVER_PUBLIC_KEY,
-		Amount:				AMOUNT,
-		TransactionType:  	TX_TYPE,
+		SenderPublicKey:   SENDER_PUBLIC_KEY,
+		ReceiverPublicKey: RECEIVER_PUBLIC_KEY,
+		Amount:            AMOUNT,
+		TransactionType:   TX_TYPE,
 	}
 }
 
 func TestWhenTransactionConstructedThenSignatureIsEmpty(t *testing.T) {
 	tx := constructTransaction()
-	
+
 	got := tx.Signature
 	want := ""
-    if want != got {
-        t.Errorf("Expected '%s', but got '%s'", want, got)
-    }
+	if want != got {
+		t.Errorf("Expected '%s', but got '%s'", want, got)
+	}
 }
 
 func TestWhenDuplicateTransactionsConstructedThenTransactionsAreEqual(t *testing.T) {
 	id := uuid.New().String()
 	timestamp := time.Now().Unix()
-	
+
 	tx1 := constructTransaction()
 	tx2 := constructTransaction()
 	tx1.Id = id
@@ -54,9 +53,9 @@ func TestWhenDuplicateTransactionsConstructedThenTransactionsAreEqual(t *testing
 	tx1.Timestamp = timestamp
 	tx2.Timestamp = timestamp
 
-    if tx1 != tx2 {
-        t.Errorf("Expected '%+v', but got '%+v'", tx1, tx2)
-    }
+	if tx1 != tx2 {
+		t.Errorf("Expected '%+v', but got '%+v'", tx1, tx2)
+	}
 }
 
 func TestWhenTransactionSignedThenSignatureIsSet(t *testing.T) {
@@ -65,9 +64,9 @@ func TestWhenTransactionSignedThenSignatureIsSet(t *testing.T) {
 
 	got := tx.Signature
 	want := SIGNATURE
-    if got != want {
-        t.Errorf("Expected '%s', but got '%s'", want, got)
-    }
+	if got != want {
+		t.Errorf("Expected '%s', but got '%s'", want, got)
+	}
 }
 
 func TestWhenTransactionSignedThenPayloadSignatureStaysEmpty(t *testing.T) {
@@ -80,7 +79,7 @@ func TestWhenTransactionSignedThenPayloadSignatureStaysEmpty(t *testing.T) {
 
 	got := result["Signature"]
 	want := ""
-    if got != want {
-        t.Errorf("Expected '%v', but got '%v'", want, got)
-    }
+	if got != want {
+		t.Errorf("Expected '%v', but got '%v'", want, got)
+	}
 }

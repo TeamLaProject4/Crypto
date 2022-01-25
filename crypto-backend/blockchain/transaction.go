@@ -2,9 +2,9 @@ package blockchain
 
 import (
 	"encoding/json"
+	"github.com/google/uuid"
 	"github.com/mitchellh/hashstructure"
 	"time"
-	"github.com/google/uuid"
 )
 
 type Transaction struct {
@@ -51,6 +51,8 @@ func (transaction *Transaction) toJson() string {
 
 func (transaction *Transaction) payload() string {
 	tempSignature := transaction.Signature
+	transaction.Signature = ""
+
 	transactionJson := transaction.toJson()
 	transaction.Signature = tempSignature
 

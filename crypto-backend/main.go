@@ -1,9 +1,8 @@
 package main
 
 import (
-	"cryptomunt/blockchain"
+	"crypto"
 	"cryptomunt/proofOfStake"
-	"fmt"
 )
 
 func main() {
@@ -57,18 +56,23 @@ func main() {
 	//proofOfStake.PrintStakers()
 	//fmt.Println(proofOfStake.GetStake("moi"))
 
-	proofOfStake.UpdateStake("tammo", 3000)
-	proofOfStake.UpdateStake("moi", 1)
-	proofOfStake.UpdateStake("henk", 1)
+	//proofOfStake.UpdateStake("tammo", 3000)
+	//proofOfStake.UpdateStake("moi", 1)
+	//proofOfStake.UpdateStake("henk", 1)
 
 	//lots := proofOfStake.GenerateLots("seed")
 	//fmt.Println(lots)
 
 	//fmt.Println(proofOfStake.PickForger("FF11asnF"))
 
-	blockchain.NewBlockchain()
-	fmt.Println(blockchain.GetBlockChain())
-	fmt.Println(blockchain.ToJson())
+	//blockchain.NewBlockchain()
+	//fmt.Println(blockchain.GetBlockChain())
+	//fmt.Println(blockchain.ToJson())
+
+	test := crypto.PublicKey("JOHNNY")public
+	test.
+		fmt.Println(test)
+	//publicKey = crypto.PublicKey(privateKey)
 
 }
 
