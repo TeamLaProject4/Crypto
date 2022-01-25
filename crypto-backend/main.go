@@ -1,8 +1,9 @@
 package main
 
 import (
-	"crypto"
 	"cryptomunt/proofOfStake"
+	"cryptomunt/utils"
+	"fmt"
 )
 
 func main() {
@@ -69,14 +70,8 @@ func main() {
 	//fmt.Println(blockchain.GetBlockChain())
 	//fmt.Println(blockchain.ToJson())
 
-	test := crypto.PublicKey("JOHNNY")public
-	test.
-		fmt.Println(test)
-	//publicKey = crypto.PublicKey(privateKey)
+	//fmt.Println(blockchain.GetKeyPair())
+	privKey := utils.ReadRsaKeyFile("../keys/wallet.rsa")
+	fmt.Println(privKey.PublicKey)
 
 }
-
-//1839806922502695369
-
-//7314111797897617339
-//7314111797897617339
