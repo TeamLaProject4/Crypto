@@ -18,26 +18,23 @@ type Transaction struct {
 	Signature         string
 }
 
-var transaction = new(Transaction)
-
-func NewTransaction(newTransaction Transaction) *Transaction {
+func NewTransaction(transaction Transaction) Transaction {
 	//check and fill variables if they are empty
-	if newTransaction.Id == "" {
-		newTransaction.Id = uuid.New().String()
+	if transaction.Id == "" {
+		transaction.Id = uuid.New().String()
 	}
-	if newTransaction.Timestamp == 0 {
-		newTransaction.Timestamp = time.Now().Unix()
+	if transaction.Timestamp == 0 {
+		transaction.Timestamp = time.Now().Unix()
 	}
 
-	transaction = &newTransaction
 	return transaction
 }
 
-func transactionEquals(transactionToCompareTo Transaction) bool {
+func (transaction *Transaction) transactionEquals(transactionToCompareTo Transaction) bool {
 	return transaction.Id == transactionToCompareTo.Id
 }
 
-func hashTransaction() uint64 {
+func (transaction *Transaction) hashTransaction() uint64 {
 	hash, err := hashstructure.Hash(transaction, nil)
 	if err != nil {
 		panic(err)
@@ -45,7 +42,7 @@ func hashTransaction() uint64 {
 	return hash
 }
 
-func transactionToJson(transaction Transaction) string {
+func (transaction *Transaction) toJson() string {
 	transactionJson, err := json.Marshal(transaction)
 	if err != nil {
 		panic("ERROR")
@@ -53,27 +50,22 @@ func transactionToJson(transaction Transaction) string {
 	return string(transactionJson)
 }
 
-func transactionPayload() string {
-	copyTransaction := Transaction{
-		SenderPublicKey:   transaction.SenderPublicKey,
-		ReceiverPublicKey: transaction.ReceiverPublicKey,
-		Amount:            transaction.Amount,
-		TransactionType:   transaction.TransactionType,
-		Id:                transaction.Id,
-		Timestamp:         transaction.Timestamp,
-		Signature:         "",
-	}
-	return transactionToJson(copyTransaction)
+func (transaction *Transaction) transactionPayload() string {
+	tempSignature := transaction.Signature
+	transactionJson := transaction.toJson()
+	transaction.Signature = tempSignature
+
+	return transactionJson
 }
 
-func signTransaction(signature string) {
+func (transaction *Transaction) signTransaction(signature string) {
 	transaction.Signature = signature
 }
 
 type TransactionType int64
 
 const (
-	TRANSFER TransactionType = iota
-	EXCHANGE
-	STAKE
+	TRANSFER TransactionType = iota //transaction
+	EXCHANGE                        //buy coins with fiad money
+	STAKE                           //stake in the lottery
 )

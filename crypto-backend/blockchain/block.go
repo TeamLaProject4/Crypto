@@ -3,6 +3,7 @@ package blockchain
 import (
 	"encoding/json"
 	"reflect"
+	"time"
 )
 
 type Block struct {
@@ -14,44 +15,12 @@ type Block struct {
 	Signature    string
 }
 
-//var block = new(Block)
-
-//func NewBlock(newBlock Block) {
-//	if newBlock.Timestamp == 0 {
-//		newBlock.Timestamp = time.Now().Unix()
-//	}
-//	block = &newBlock
-//}
-
-func blockEquals(blokA Block, blockB Block) bool {
-	return blokA.Signature == blockB.Signature &&
-		(reflect.DeepEqual(blokA.PreviousHash, blockB.PreviousHash) && reflect.DeepEqual(blokA.Forger, blockB.Forger) && reflect.DeepEqual(blokA.Height, blockB.Height) && blokA.Timestamp == blockB.Timestamp)
-}
-
-func blockToJson(block Block) string {
-	blockJson, err := json.Marshal(block)
-	if err != nil {
-		panic("ERROR")
+func CreateBlock(newBlock Block) Block {
+	if newBlock.Timestamp == 0 {
+		newBlock.Timestamp = time.Now().Unix()
 	}
-	return string(blockJson)
+	return newBlock
 }
-
-func getBlockPayload(block Block) string {
-	copy_block := Block{
-		Transactions: block.Transactions,
-		PreviousHash: block.PreviousHash,
-		Forger:       block.Forger,
-		Height:       block.Height,
-		Timestamp:    block.Timestamp,
-		Signature:    "",
-	}
-	return blockToJson(copy_block)
-}
-
-func signBlock(block Block, signature string) {
-	block.Signature = signature
-}
-
 func createGenesisBlock() Block {
 	genesis := new(Block)
 	genesis.PreviousHash = "genesis_hash"
@@ -59,4 +28,30 @@ func createGenesisBlock() Block {
 	genesis.Height = 0
 	genesis.Timestamp = 0
 	return *genesis
+}
+
+func (block *Block) blockEquals(blockToCompareTo Block) bool {
+	return block.Signature == blockToCompareTo.Signature &&
+		(reflect.DeepEqual(block.PreviousHash, blockToCompareTo.PreviousHash) && reflect.DeepEqual(block.Forger, blockToCompareTo.Forger) && reflect.DeepEqual(block.Height, blockToCompareTo.Height) && block.Timestamp == blockToCompareTo.Timestamp)
+}
+
+func (block *Block) blockToJson() string {
+	blockJson, err := json.Marshal(block)
+	if err != nil {
+		panic("ERROR")
+	}
+	return string(blockJson)
+}
+
+func (block *Block) getPayload() string {
+	tempSignature := block.Signature
+	block.Signature = ""
+	blockJson := block.blockToJson()
+
+	block.Signature = tempSignature
+	return blockJson
+}
+
+func (block *Block) signBlock(signature string) {
+	block.Signature = signature
 }

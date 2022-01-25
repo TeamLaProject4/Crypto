@@ -4,35 +4,34 @@ import (
 	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
 	"encoding/json"
+	//"github.com/btcsuite/btcd/blockchain"
 )
 
 type Blockchain struct {
 	Blocks       []Block
-	AccountModel AccountModel
-	ProofOfStake proofOfStake.ProofOfStake
+	AccountModel *AccountModel
+	ProofOfStake *proofOfStake.ProofOfStake
 }
 
-var blockchain = new(Blockchain)
-
-func GetBlockChain() *Blockchain {
-	return blockchain
-}
-func NewBlockchain() {
+//func GetBlockChain() *Blockchain {
+//	return blockchain
+//}
+func NewBlockchain() Blockchain {
 	genesisBlock := createGenesisBlock()
 	var blocks []Block
 	blocks = append(blocks, genesisBlock)
-	proofOfStake.NewProofOfStake()
+	pos := proofOfStake.NewProofOfStake()
 
-	pos := proofOfStake.GetProofOfStake()
+	accountModel := NewAccountModel()
 
-	blockchain = &Blockchain{
+	return Blockchain{
 		Blocks:       blocks,
-		AccountModel: *accountModel,
-		ProofOfStake: *pos,
+		AccountModel: &accountModel,
+		ProofOfStake: &pos,
 	}
 }
 
-func BlockchainToJson() string {
+func (blockchain *Blockchain) ToJson() string {
 	blockchainJson, err := json.Marshal(blockchain)
 	if err != nil {
 		panic("ERROR")
@@ -40,92 +39,93 @@ func BlockchainToJson() string {
 	return string(blockchainJson)
 }
 
-func getLatestBlockHeight() int {
+func (blockchain *Blockchain) getLatestBlockHeight() int {
 	return len(blockchain.Blocks) - 1
 }
 
-func addBlock(block Block) {
-	if isValidBlockCount(block) && isValidPreviousBlockHash(block) {
-		executeTransactions(block.Transactions)
+func (blockchain *Blockchain) addBlock(block Block) {
+	if blockchain.isValidBlockHeight(block) && blockchain.isValidPreviousBlockHash(block) {
+		blockchain.executeTransactions(block.Transactions)
 		blockchain.Blocks = append(blockchain.Blocks, block)
 	}
 }
 
-func executeTransactions(transactions []Transaction) {
+func (blockchain *Blockchain) executeTransactions(transactions []Transaction) {
 	for _, transaction := range transactions {
-		executeTransaction(transaction)
+		blockchain.executeTransaction(transaction)
 	}
 }
 
-func executeTransaction(transaction Transaction) {
+func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 	sender := transaction.SenderPublicKey
 	receiver := transaction.ReceiverPublicKey
 	amount := transaction.Amount
 
 	if transaction.TransactionType == STAKE {
 		if sender == receiver {
-			proofOfStake.UpdateStake(sender, amount)
-			updateAccountModelBalance(sender, -amount)
+
+			blockchain.ProofOfStake.UpdateStake(sender, amount)
+			blockchain.AccountModel.updateBalance(sender, -amount)
 		}
 	} else {
-		updateAccountModelBalance(sender, -amount)
-		updateAccountModelBalance(receiver, amount)
+		blockchain.AccountModel.updateBalance(sender, -amount)
+		blockchain.AccountModel.updateBalance(receiver, amount)
 	}
 }
 
-func isValidBlockCount(block Block) bool {
-	blockLenght := len(blockchain.Blocks)
-	return blockchain.Blocks[blockLenght-1].Height == block.Height-1
+func (blockchain *Blockchain) isValidBlockHeight(block Block) bool {
+	blockLength := len(blockchain.Blocks)
+	return blockchain.Blocks[blockLength-1].Height == block.Height-1
 }
 
-func isValidPreviousBlockHash(block Block) bool {
-	return getLatestPreviousHash() == block.PreviousHash
+func (blockchain *Blockchain) isValidPreviousBlockHash(block Block) bool {
+	return blockchain.getLatestPreviousHash() == block.PreviousHash
 }
 
-func isValidForger(block Block) bool {
-	return block.Forger == getNextForger()
+func (blockchain *Blockchain) isValidForger(block Block) bool {
+	return block.Forger == blockchain.getNextForger()
 }
 
-func isBlockTransactionsValid(block Block) bool {
+func (blockchain *Blockchain) isBlockTransactionsValid(block Block) bool {
 	transactions := block.Transactions
-	covered_transactions := getCoveredTransactions(transactions)
-	return len(transactions) == len(covered_transactions)
+	coveredTransactions := blockchain.getCoveredTransactions(transactions)
+	return len(transactions) == len(coveredTransactions)
 }
 
-func getLatestPreviousHash() string {
+func (blockchain *Blockchain) getLatestPreviousHash() string {
 	blockLenght := len(blockchain.Blocks)
 	latestBlock := blockchain.Blocks[blockLenght-1]
-	payload := getBlockPayload(latestBlock)
+	payload := latestBlock.getPayload()
 
 	return utils.GetHexadecimalHash(payload)
 }
 
-func getCoveredTransactions(transactions []Transaction) []Transaction {
+func (blockchain *Blockchain) getCoveredTransactions(transactions []Transaction) []Transaction {
 	var coveredTransactions = make([]Transaction, len(transactions))
 
 	for _, transaction := range transactions {
-		if isTransactionCovered(transaction) {
+		if blockchain.isTransactionCovered(transaction) {
 			coveredTransactions = append(coveredTransactions, transaction)
 		}
 	}
 	return coveredTransactions
 }
 
-func isTransactionCovered(transaction Transaction) bool {
+func (blockchain *Blockchain) isTransactionCovered(transaction Transaction) bool {
 	if transaction.TransactionType == EXCHANGE {
 		return true
 	}
-	senderBalance := getAccountModelBalance(transaction.SenderPublicKey)
+	senderBalance := blockchain.AccountModel.getBalance(transaction.SenderPublicKey)
 	return senderBalance >= transaction.Amount
 }
 
-func accountBalance(publicKey string) int {
-	return getAccountModelBalance(publicKey)
+func (blockchain *Blockchain) accountBalance(publicKey string) int {
+	return blockchain.AccountModel.getBalance(publicKey)
 }
 
-func getNextForger() string {
-	prevBlockHash := getLatestPreviousHash()
-	return proofOfStake.PickForger(prevBlockHash)
+func (blockchain *Blockchain) getNextForger() string {
+	prevBlockHash := blockchain.getLatestPreviousHash()
+	return blockchain.ProofOfStake.PickForger(prevBlockHash)
 }
 
 //func createBlock(transactions []Transaction, forgerWallet interface{}) Block {
@@ -140,7 +140,7 @@ func getNextForger() string {
 //	return block
 //}
 
-func isTransactionInBlockchain(transaction Transaction) bool {
+func (blockchain *Blockchain) isTransactionInBlockchain(transaction Transaction) bool {
 	for _, block := range blockchain.Blocks {
 		for _, blockTransaction := range block.Transactions {
 			if blockTransaction == transaction {

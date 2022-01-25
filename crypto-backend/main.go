@@ -42,7 +42,7 @@ func main() {
 	//	PreviousBlockHash: "world",
 	//})
 	//
-	//fmt.Println(proofOfStake.GetLotHash())
+	//fmt.Println(proofOfStake.GetHash())
 
 	proofOfStake.NewProofOfStake()
 	//proofOfStake.SetGenesisNodeStake()
@@ -68,7 +68,7 @@ func main() {
 
 	blockchain.NewBlockchain()
 	fmt.Println(blockchain.GetBlockChain())
-	fmt.Println(blockchain.BlockchainToJson())
+	fmt.Println(blockchain.ToJson())
 
 }
 

@@ -26,6 +26,11 @@ func HexToBigInt(hex string) big.Int {
 	return *number
 }
 
+func BigIntToHex(number big.Int) string {
+	bytes := number.Bytes()
+	return hex.EncodeToString(bytes)
+}
+
 func GetAbsolutBigInt(number big.Int) big.Int {
 	var newNumber = new(big.Int)
 	return *newNumber.Abs(&number)
