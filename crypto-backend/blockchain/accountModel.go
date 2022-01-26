@@ -12,23 +12,23 @@ func NewAccountModel() AccountModel {
 	return AccountModel{Balances: *new(map[string]int)}
 }
 
-func (accountModel *AccountModel) isAccountInBalances(publicKey string) bool {
+func (accountModel *AccountModel) IsAccountInBalances(publicKey string) bool {
 	_, accountInBalances := accountModel.Balances[publicKey]
 	return accountInBalances
 }
 
-func (accountModel *AccountModel) addAccount(publicKey string) {
-	if !accountModel.isAccountInBalances(publicKey) {
+func (accountModel *AccountModel) AddAccount(publicKey string) {
+	if !accountModel.IsAccountInBalances(publicKey) {
 		accountModel.Balances[publicKey] = 0
 	}
 }
 
-func (accountModel *AccountModel) getBalance(publicKey string) int {
-	accountModel.addAccount(publicKey)
+func (accountModel *AccountModel) GetBalance(publicKey string) int {
+	accountModel.AddAccount(publicKey)
 	return accountModel.Balances[publicKey]
 }
 
-func (accountModel *AccountModel) updateBalance(publicKey string, amount int) {
-	accountModel.addAccount(publicKey)
+func (accountModel *AccountModel) UpdateBalance(publicKey string, amount int) {
+	accountModel.AddAccount(publicKey)
 	accountModel.Balances[publicKey] += amount
 }
