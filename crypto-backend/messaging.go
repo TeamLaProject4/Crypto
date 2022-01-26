@@ -1,8 +1,8 @@
-package network
+package main
 
 import (
 	"bufio"
-	"cryptomunt/utils"
+	//"cryptomunt/utils"
 	"fmt"
 	"github.com/libp2p/go-libp2p-core/network"
 )

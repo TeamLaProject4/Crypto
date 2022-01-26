@@ -1,13 +1,5 @@
 package main
 
-import (
-	"bufio"
-	network "cryptomunt/network"
-	"cryptomunt/utils"
-	"fmt"
-	"os"
-)
-
 func main() {
 	//testTransaction := blockchain.Transaction{
 	//	SenderPublicKey:   "",
@@ -84,23 +76,24 @@ func main() {
 	//fmt.Println("isValid? ", isValid)
 	//fmt.Println(key.Sign("{test: 'test', hellothere: 'general martijn'}"))
 
-	utils.InitLogger()
-	p2pNetwork := network.CreateNetwork()
+	//utils.InitLogger()
+	//p2pNetwork := network.CreateNetwork()
+	CreateNetwork()
 
 	//temp function to send data from main
-	go func() {
-		stdReader := bufio.NewReader(os.Stdin)
-		for {
-			sendData, err := stdReader.ReadString('\n')
-			if err != nil {
-				fmt.Println("Error reading from stdin")
-				panic(err)
-			}
-			utils.Logger.Info("sending data")
-			p2pNetwork.SendDataToPeers(sendData)
-			utils.Logger.Info("data sent")
-		}
-	}()
+	//go func() {
+	//	stdReader := bufio.NewReader(os.Stdin)
+	//	for {
+	//		sendData, err := stdReader.ReadString('\n')
+	//		if err != nil {
+	//			fmt.Println("Error reading from stdin")
+	//			panic(err)
+	//		}
+	//		utils.Logger.Info("sending data")
+	//		p2pNetwork.SendDataToPeers(sendData)
+	//		utils.Logger.Info("data sent")
+	//	}
+	//}()
 	//keep running forever
-	select {}
+	//select {}
 }

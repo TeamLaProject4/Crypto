@@ -1,12 +1,10 @@
-package network
+package main
 
 import (
 	"context"
-	"cryptomunt/utils"
 	"flag"
+	"github.com/ipfs/go-log/v2"
 )
-
-//var utils.Logger = log.utils.Logger("cryptomunt")
 
 const RANDEVOUS_STRING = "cryptomunt-randevous"
 const PROTOCOL_ID = "/cryptomunt/1.0.0"
@@ -15,17 +13,30 @@ type NetworkModel struct {
 	ReadMessages  chan string
 	WriteMessages chan string
 }
+type Utils struct {
+	Logger *log.ZapEventLogger
+}
 
-func CreateNetwork() NetworkModel {
+var Logger = log.Logger("cryptomunt")
+var utils = Utils{Logger: Logger}
+
+func InitLogger() {
+	log.SetAllLoggers(log.LevelWarn)
+	err := log.SetLogLevel("cryptomunt", "info")
+	if err != nil {
+		return
+	}
+}
+
+func CreateNetwork() {
 	config := Config{}
 	ctx := context.Background()
+	InitLogger()
 
 	//TODO: figure out channel buffer size
 	//TODO: dont remove from channel until all peers have received a message?
 	readMessages := make(chan string, 1000)
 	writeMessages := make(chan string, 1000)
-
-	//initutils.Logger()
 
 	flag.Var(&config.DiscoveryPeers, "peer", "Peer multiaddress for peer discovery")
 	flag.Parse()
@@ -41,22 +52,15 @@ func CreateNetwork() NetworkModel {
 	go printDataFromPeers(readMessages)
 	//go sendDataToPeers(writeMessages)
 
-	return NetworkModel{
-		ReadMessages:  readMessages,
-		WriteMessages: writeMessages,
-	}
+	select {}
+	//return NetworkModel{
+	//	ReadMessages:  readMessages,
+	//	WriteMessages: writeMessages,
+	//}
 	//sleep forever
 	//select {}
 	//return
 }
-
-//func initutils.Logger() {
-//	log.SetAllutils.Loggers(log.LevelWarn)
-//	err := log.SetLogLevel("cryptomunt", "info")
-//	if err != nil {
-//		return
-//	}
-//}
 
 //temporary
 func printDataFromPeers(readMessages chan string) {

@@ -3,14 +3,12 @@ module cryptomunt
 go 1.17
 
 require (
-	github.com/google/uuid v1.3.0
 	github.com/ipfs/go-log/v2 v2.5.0
 	github.com/libp2p/go-libp2p v0.17.0
-	github.com/libp2p/go-libp2p-core v0.14.0
+	github.com/libp2p/go-libp2p-core v0.13.0
 	github.com/libp2p/go-libp2p-discovery v0.6.0
 	github.com/libp2p/go-libp2p-kad-dht v0.15.0
-	github.com/mitchellh/hashstructure v1.1.0
-	github.com/multiformats/go-multiaddr v0.5.0
+	github.com/multiformats/go-multiaddr v0.4.0
 )
 
 require (
@@ -26,6 +24,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/gopacket v1.1.19 // indirect
+	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
