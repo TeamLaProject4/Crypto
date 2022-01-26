@@ -1,13 +1,14 @@
-package main
+package network
 
 import (
 	"bufio"
+	"cryptomunt/utils"
 	"fmt"
 	"github.com/libp2p/go-libp2p-core/network"
 )
 
 func handleStream(stream network.Stream, readMessages chan string, writeMessages chan string) {
-	logger.Info("Got a new stream!")
+	utils.Logger.Info("Got a new stream!")
 
 	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 
@@ -15,6 +16,7 @@ func handleStream(stream network.Stream, readMessages chan string, writeMessages
 	go writeData(rw, writeMessages)
 }
 
+//Read data received from peers and put it in the messages channel
 func readData(rw *bufio.ReadWriter, messages chan string) {
 	for {
 		str, err := rw.ReadString('\n')
@@ -36,13 +38,14 @@ func readData(rw *bufio.ReadWriter, messages chan string) {
 	}
 }
 
+//Write data to peers when the writeMessages channel receives new values
 func writeData(rw *bufio.ReadWriter, writeMessages chan string) {
-	//for {
-	logger.Info("in writedata function")
+	//utils.Logger.Info("in writedata function")
 	for sendData := range writeMessages {
-		logger.Info("sending data")
+		utils.Logger.Info("sending data")
 		_, err := rw.WriteString(fmt.Sprintf("%s\n", sendData))
-		logger.Info("data sent")
+		utils.Logger.Info("data sent")
+
 		if err != nil {
 			fmt.Println("Error writing to buffer")
 			panic(err)
@@ -53,39 +56,5 @@ func writeData(rw *bufio.ReadWriter, writeMessages chan string) {
 			panic(err)
 		}
 	}
-	//}
 
-	//stdReader := bufio.NewReader(os.Stdin)
-	//for {
-	//	sendData := <-writeMessages
-	//	logger.Info("sending data")
-	//	_, err := rw.WriteString(fmt.Sprintf("%s\n", sendData))
-	//	logger.Info("data sent")
-	//	if err != nil {
-	//		fmt.Println("Error writing to buffer")
-	//		panic(err)
-	//	}
-	//	err = rw.Flush()
-	//	if err != nil {
-	//		fmt.Println("Error flushing buffer")
-	//		panic(err)
-	//	}
-	//	//fmt.Print("> ")
-	//	//sendData, err := stdReader.ReadString('\n')
-	//	//if err != nil {
-	//	//	fmt.Println("Error reading from stdin")
-	//	//	panic(err)
-	//	//}
-	//	//
-	//	//_, err = rw.WriteString(fmt.Sprintf("%s\n", sendData))
-	//	//if err != nil {
-	//	//	fmt.Println("Error writing to buffer")
-	//	//	panic(err)
-	//	//}
-	//	//err = rw.Flush()
-	//	//if err != nil {
-	//	//	fmt.Println("Error flushing buffer")
-	//	//	panic(err)
-	//	//}
-	//}
 }

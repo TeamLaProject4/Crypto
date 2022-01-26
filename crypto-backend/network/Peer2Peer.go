@@ -1,8 +1,9 @@
-package main
+package network
 
 import (
 	"bufio"
 	"context"
+	"cryptomunt/utils"
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
@@ -39,9 +40,9 @@ func initKDHT(ctx context.Context, host host.Host, bootstrapPeers []multiaddr.Mu
 		go func() {
 			defer wg.Done()
 			if err := host.Connect(ctx, *peerinfo); err != nil {
-				logger.Errorf("Error while connecting to node %q: %-v", peerinfo, err)
+				utils.Logger.Errorf("Error while connecting to node %q: %-v", peerinfo, err)
 			} else {
-				logger.Infof("Connection established with bootstrap node: %q", *peerinfo)
+				utils.Logger.Infof("Connection established with bootstrap node: %q", *peerinfo)
 			}
 		}()
 	}
@@ -53,13 +54,13 @@ func initKDHT(ctx context.Context, host host.Host, bootstrapPeers []multiaddr.Mu
 //init routing Discovery and connect to peers in the network
 func initRoutingDiscovery(ctx context.Context, kademliaDHT *dht.IpfsDHT, node host.Host, readMessages chan string, writeMessages chan string) {
 	//Announce node on the network with randevous point every 3 hours
-	logger.Info("Announcing ourselves...")
+	utils.Logger.Info("Announcing ourselves...")
 	routingDiscovery := discovery.NewRoutingDiscovery(kademliaDHT)
 	discovery.Advertise(ctx, routingDiscovery, RANDEVOUS_STRING)
-	logger.Debug("Successfully announced!")
+	utils.Logger.Debug("Successfully announced!")
 
 	//Search for nodes on the network with randevous point
-	logger.Debug("Searching for other peers...")
+	utils.Logger.Debug("Searching for other peers...")
 	peerChan, err := routingDiscovery.FindPeers(ctx, RANDEVOUS_STRING)
 	if err != nil {
 		panic(err)
@@ -73,13 +74,13 @@ func connectToPeers(ctx context.Context, peerChan <-chan peer.AddrInfo, node hos
 		if peerNode.ID == node.ID() {
 			continue
 		}
-		logger.Debug("Found peerNode:", peerNode)
-		logger.Debug("Connecting to:", peerNode)
+		utils.Logger.Debug("Found peerNode:", peerNode)
+		utils.Logger.Debug("Connecting to:", peerNode)
 
 		stream, err := node.NewStream(ctx, peerNode.ID, protocol.ID(PROTOCOL_ID))
 
 		if err != nil {
-			logger.Warn("Connection failed:", err)
+			utils.Logger.Warn("Connection failed:", err)
 			continue
 		} else {
 			rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
@@ -88,7 +89,7 @@ func connectToPeers(ctx context.Context, peerChan <-chan peer.AddrInfo, node hos
 			go readData(rw, readMessages)
 		}
 
-		logger.Info("Connected to:", peerNode)
+		utils.Logger.Info("Connected to:", peerNode)
 	}
 }
 
@@ -97,8 +98,8 @@ func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr, readMes
 	if err != nil {
 		panic(err)
 	}
-	logger.Info("Host created. We are:", node.ID())
-	logger.Info("address: ", node.Addrs())
+	utils.Logger.Info("Host created. We are:", node.ID())
+	utils.Logger.Info("address: ", node.Addrs())
 
 	//set streamhandler with unique protocol id
 	node.SetStreamHandler(protocol.ID(PROTOCOL_ID), func(stream network.Stream) {
@@ -108,7 +109,7 @@ func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr, readMes
 	//init dht
 	kademliaDHT, initDHTErr := initKDHT(ctx, node, bootstrapPeers)
 	if initDHTErr != nil {
-		logger.Error("dht error")
+		utils.Logger.Error("dht error")
 		return nil
 	}
 

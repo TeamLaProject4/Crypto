@@ -1,9 +1,11 @@
 package main
 
 import (
-	"cryptomunt/blockchain"
-	"cryptomunt/proofOfStake"
+	"bufio"
+	network "cryptomunt/network"
+	"cryptomunt/utils"
 	"fmt"
+	"os"
 )
 
 func main() {
@@ -44,7 +46,7 @@ func main() {
 	//
 	//fmt.Println(proofOfStake.GetHash())
 
-	proofOfStake.NewProofOfStake()
+	//proofOfStake.NewProofOfStake()
 	//proofOfStake.SetGenesisNodeStake()
 	//fmt.Println(proofOfStake.IsAccountInStakers("false"))
 
@@ -74,12 +76,31 @@ func main() {
 	//privKey := utils.ReadRsaKeyFile("../keys/wallet.rsa")
 	//fmt.Println(privKey.PublicKey)
 
-	wallet := blockchain.CreateWallet()
-	block := wallet.CreateBlock(nil, "PrevHashValue", 3)
-	publicKeyHEx := wallet.GetPublicKeyHex()
-
-	isValid := blockchain.IsValidSignature(block.GetPayload(), block.Signature, publicKeyHEx)
-	fmt.Println("isValid? ", isValid)
+	//wallet := blockchain.CreateWallet()
+	//block := wallet.CreateBlock(nil, "PrevHashValue", 3)
+	//publicKeyHEx := wallet.GetPublicKeyHex()
+	//
+	//isValid := blockchain.IsValidSignature(block.GetPayload(), block.Signature, publicKeyHEx)
+	//fmt.Println("isValid? ", isValid)
 	//fmt.Println(key.Sign("{test: 'test', hellothere: 'general martijn'}"))
 
+	utils.InitLogger()
+	p2pNetwork := network.CreateNetwork()
+
+	//temp function to send data from main
+	go func() {
+		stdReader := bufio.NewReader(os.Stdin)
+		for {
+			sendData, err := stdReader.ReadString('\n')
+			if err != nil {
+				fmt.Println("Error reading from stdin")
+				panic(err)
+			}
+			utils.Logger.Info("sending data")
+			p2pNetwork.SendDataToPeers(sendData)
+			utils.Logger.Info("data sent")
+		}
+	}()
+	//keep running forever
+	select {}
 }
