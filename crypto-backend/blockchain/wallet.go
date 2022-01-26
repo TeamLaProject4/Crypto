@@ -46,7 +46,7 @@ func GetKeyPair() rsa.PrivateKey {
 
 func (wallet *Wallet) sign(data string) string {
 	message := []byte(data)
-	//sign hash of message because only small messages can be signed
+	//Sign hash of message because only small messages can be signed
 	hashed := sha256.Sum256(message)
 
 	signature, err := rsa.SignPKCS1v15(rand.Reader, &wallet.key, crypto.SHA256, hashed[:])

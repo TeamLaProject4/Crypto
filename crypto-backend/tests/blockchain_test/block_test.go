@@ -36,14 +36,14 @@ func TestWhenDuplicateBlocksConstructedThenBlocksAreEqual(t *testing.T) {
 		PreviousHash: "prev_hash",
 		Forger:       "forger",
 		Height:       1,
-		Timestamp:	  timestamp,
+		Timestamp:    timestamp,
 	}
 	block2 := blockchain.Block{
 		Transactions: []blockchain.Transaction{tx},
 		PreviousHash: "prev_hash",
 		Forger:       "forger",
 		Height:       1,
-		Timestamp:	  timestamp,
+		Timestamp:    timestamp,
 	}
 
 	if !block1.Equals(block2) {
@@ -65,7 +65,7 @@ func TestWhenBlockSignedThenSignatureIsSet(t *testing.T) {
 func TestWhenBlockSignedThenPayloadSignatureStaysEmpty(t *testing.T) {
 	block := constructBlock()
 	block.Sign(SIGNATURE)
-	payload := block.Payload()
+	payload := block.GetPayload()
 
 	var result map[string]interface{}
 	json.Unmarshal([]byte(payload), &result)
