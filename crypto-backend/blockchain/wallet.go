@@ -6,6 +6,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"cryptomunt/utils"
+	"encoding/hex"
 	"fmt"
 	"os"
 )
@@ -19,25 +20,15 @@ type Wallet struct {
 	key rsa.PrivateKey //contains private and public keys
 }
 
-//func (wallet *Wallet) GetPublicKey() string {
-//	return wallet.key.PublicKey
-//}
-
 //// NewWallet TODO: mnumonic?
-func NewWallet(privateKey string) Wallet {
+func CreateWallet() Wallet {
 	return Wallet{key: GetKeyPair()}
-	//publicKey, privateKeyFinal := getKeyPair()
-	//return Wallet{
-	//	privateKey: privateKeyFinal,
-	//	publicKey:  publicKey,
-	//}
 }
 
 //get the keypair from a file or generate one
 //func GetKeyPair() (string, string) {
 func GetKeyPair() rsa.PrivateKey {
 	var privateKey rsa.PrivateKey
-	//var err error
 
 	//get from file
 	privateKey = utils.ReadRsaKeyFile("../keys/wallet.rsa")
@@ -54,24 +45,9 @@ func GetKeyPair() rsa.PrivateKey {
 }
 
 func (wallet *Wallet) sign(data string) string {
-	//dataHash := utils.GetHexadecimalHash(data)
-	//pkcs1
-	//sign using signatureSchemeObject
-
 	message := []byte(data)
-
-	// Only small messages can be signed directly; thus the hash of a
-	// message, rather than the message itself, is signed. This requires
-	// that the hash function be collision resistant. SHA-256 is the
-	// least-strong hash function that should be used for this at the time
-	// of writing (2016).
+	//sign hash of message because only small messages can be signed
 	hashed := sha256.Sum256(message)
-
-	//test := utils.HexToBigInt(wallet.privateKey)
-	//rsaPrivateKey := rsa.PrivateKey{
-	//	PublicKey: rsa.PublicKey{},
-	//	D:         &test,
-	//}
 
 	signature, err := rsa.SignPKCS1v15(rand.Reader, &wallet.key, crypto.SHA256, hashed[:])
 	if err != nil {
@@ -79,64 +55,67 @@ func (wallet *Wallet) sign(data string) string {
 		return ""
 	}
 
-	fmt.Printf("Signature: %x\n", signature)
-
-	return utils.GetHexadecimalHash(string(signature))
-	//signatureSchemeObject := PKCS1_v1_5.new(wallet.KeyPair)
-	//signature := signatureSchemeObject.sign(dataHash)
-	//return signature.hex()
+	return hex.EncodeToString(signature)
 }
 
-//func (wallet *Wallet) publicKeyString() string {
-//	return string(wallet.KeyPair.public_key().export_key("PEM"))
-//}
+func (wallet *Wallet) GetPublicKeyHex() string {
+	return utils.GetRsaPublicKeyHexValue(&wallet.key.PublicKey)
+}
 
-//func (wallet *Wallet) createTransaction(
-//	receiverPublicKey string,
-//	amount int,
-//	transactionType TransactionType,
-//) Transaction {
-//
-//	transaction := NewTransaction(
-//		Transaction{
-//			SenderPublicKey:   wallet.publicKeyString(),
-//			ReceiverPublicKey: receiverPublicKey,
-//			Amount:            amount,
-//			TransactionType:   transactionType,
-//			Id:                "",
-//			Timestamp:         0,
-//			Signature:         "",
-//		})
-//
-//	signature := wallet.sign(transaction.ToJson())
-//	transaction.Sign(signature)
-//	return transaction
-//}
-//
-//func (wallet *Wallet) createBlock(
-//	transactions []Transaction,
-//	previousHash string,
-//	blockCount int,
-//) Block {
-//	block := CreateBlock(
-//		Block{
-//			Transactions: transactions,
-//			PreviousHash: previousHash,
-//			Forger:       "",
-//			Height:       blockCount,
-//			Timestamp:    0,
-//			Signature:    wallet.publicKeyString(),
-//		})
-//		transactions, previousHash, wallet.publicKeyString(), blockCount)
-//	signature := wallet.sign(block.payload())
-//	block.sign(signature)
-//	return block
-//}
-//
-//func (data *Wallet) isValidSignature(signature string, publicKey string) bool {
-//	signature := bytes.fromhex(signature)
-//	data_hash := BlockchainUtils.hash(data)
-//	public_key := RSA.importKey(publicKey)
-//	signature_scheme_object := PKCS1_v1_5.new(public_key)
-//	return signature_scheme_object.verify(data_hash, signature)
-//}
+func (wallet *Wallet) createTransaction(
+	receiverPublicKey string,
+	amount int,
+	transactionType TransactionType,
+) Transaction {
+	transaction := NewTransaction(
+		Transaction{
+			SenderPublicKey:   wallet.GetPublicKeyHex(),
+			ReceiverPublicKey: receiverPublicKey,
+			Amount:            amount,
+			TransactionType:   transactionType,
+			Id:                "",
+			Timestamp:         0,
+			Signature:         "",
+		})
+
+	signature := wallet.sign(transaction.toJson())
+	transaction.Sign(signature)
+	return transaction
+}
+
+func (wallet *Wallet) CreateBlock(
+	transactions []Transaction,
+	previousHash string,
+	blockCount int,
+) Block {
+	block := CreateBlock(
+		Block{
+			Transactions: transactions,
+			PreviousHash: previousHash,
+			Forger:       "",
+			Height:       blockCount,
+			Timestamp:    0,
+			Signature:    wallet.GetPublicKeyHex(),
+		})
+	signature := wallet.sign(block.GetPayload())
+	block.sign(signature)
+	return block
+}
+
+func IsValidSignature(blockPayload string, signatureHex string, publicKey string) bool {
+	signature, err := hex.DecodeString(signatureHex)
+	if err != nil {
+		return false
+	}
+
+	message := []byte(blockPayload)
+	hashed := sha256.Sum256(message)
+
+	pubKey, _ := utils.GetPublicKeyFromHex(publicKey)
+	err = rsa.VerifyPKCS1v15(&pubKey, crypto.SHA256, hashed[:], signature)
+
+	if err != nil {
+		return false
+	}
+	return true
+}

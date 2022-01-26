@@ -95,7 +95,7 @@ func (blockchain *Blockchain) isBlockTransactionsValid(block Block) bool {
 func (blockchain *Blockchain) getLatestPreviousHash() string {
 	blockLenght := len(blockchain.Blocks)
 	latestBlock := blockchain.Blocks[blockLenght-1]
-	payload := latestBlock.Payload()
+	payload := latestBlock.GetPayload()
 
 	return utils.GetHexadecimalHash(payload)
 }

@@ -1,8 +1,8 @@
 package main
 
 import (
+	"cryptomunt/blockchain"
 	"cryptomunt/proofOfStake"
-	"cryptomunt/utils"
 	"fmt"
 )
 
@@ -71,7 +71,15 @@ func main() {
 	//fmt.Println(blockchain.ToJson())
 
 	//fmt.Println(blockchain.GetKeyPair())
-	privKey := utils.ReadRsaKeyFile("../keys/wallet.rsa")
-	fmt.Println(privKey.PublicKey)
+	//privKey := utils.ReadRsaKeyFile("../keys/wallet.rsa")
+	//fmt.Println(privKey.PublicKey)
+
+	wallet := blockchain.CreateWallet()
+	block := wallet.CreateBlock(nil, "PrevHashValue", 3)
+	publicKeyHEx := wallet.GetPublicKeyHex()
+
+	isValid := blockchain.IsValidSignature(block.GetPayload(), block.Signature, publicKeyHEx)
+	fmt.Println("isValid? ", isValid)
+	//fmt.Println(key.Sign("{test: 'test', hellothere: 'general martijn'}"))
 
 }
