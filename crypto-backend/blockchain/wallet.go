@@ -97,7 +97,7 @@ func (wallet *Wallet) CreateBlock(
 			Timestamp:    0,
 			Signature:    wallet.GetPublicKeyHex(),
 		})
-	signature := wallet.sign(block.GetPayload())
+	signature := wallet.sign(block.Payload())
 	block.Sign(signature)
 	return block
 }
