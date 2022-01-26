@@ -43,7 +43,7 @@ func (block *Block) ToJson() string {
 	return string(blockJson)
 }
 
-func (block *Block) Payload() string {
+func (block *Block) GetPayload() string {
 	tempSignature := block.Signature
 	block.Signature = ""
 	blockJson := block.ToJson()
@@ -52,6 +52,6 @@ func (block *Block) Payload() string {
 	return blockJson
 }
 
-func (block *Block) Sign(signature string) {
+func (block *Block) sign(signature string) {
 	block.Signature = signature
 }

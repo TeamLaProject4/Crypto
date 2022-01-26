@@ -113,3 +113,33 @@ func ReadRsaKeyFile(filePath string) rsa.PrivateKey {
 
 	return *privateKeyImported
 }
+
+func GetRsaPublicKeyHexValue(pubkey *rsa.PublicKey) string {
+	pubkeyBytes := x509.MarshalPKCS1PublicKey(pubkey)
+
+	pubkeyPem := pem.EncodeToMemory(
+		&pem.Block{
+			Type:  "RSA PUBLIC KEY",
+			Bytes: pubkeyBytes,
+		},
+	)
+
+	return hex.EncodeToString(pubkeyPem)
+}
+
+func GetPublicKeyFromHex(hexValue string) (rsa.PublicKey, error) {
+	var publicKeyEmpty rsa.PublicKey
+	pubPem, _ := hex.DecodeString(hexValue)
+	block, _ := pem.Decode(pubPem)
+
+	if block == nil {
+		return publicKeyEmpty, nil
+	}
+
+	publicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
+	if err != nil {
+		return *publicKey, err
+	}
+
+	return *publicKey, nil
+}
