@@ -17,7 +17,7 @@ type Blockchain struct {
 //	return blockchain
 //}
 func NewBlockchain() Blockchain {
-	genesisBlock := createGenesisBlock()
+	genesisBlock := CreateGenesisBlock()
 	var blocks []Block
 	blocks = append(blocks, genesisBlock)
 	pos := proofOfStake.NewProofOfStake()

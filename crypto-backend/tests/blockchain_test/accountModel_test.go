@@ -2,9 +2,7 @@ package blockchain_test
 
 import (
 	blockchain "cryptomunt/blockchain"
-	// "encoding/json"
 	"testing"
-	// "time"
 )
 
 func TestWhenAccountAddedThenAccountInBalances(t *testing.T) {
@@ -45,5 +43,4 @@ func TestWhenBalanceUpdatedThenBalanceHasCorrectAmount(t *testing.T) {
 	if got != want {
 		t.Errorf("Expected '%d', but got '%d'", want, got)
 	}
-
 }

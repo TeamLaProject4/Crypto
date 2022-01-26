@@ -21,7 +21,8 @@ func CreateBlock(newBlock Block) Block {
 	}
 	return newBlock
 }
-func createGenesisBlock() Block {
+
+func CreateGenesisBlock() Block {
 	genesis := new(Block)
 	genesis.PreviousHash = "genesis_hash"
 	genesis.Forger = "genesis_forger"
