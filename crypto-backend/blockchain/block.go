@@ -12,7 +12,7 @@ type Block struct {
 	Forger       string
 	Height       int
 	Timestamp    int64
-	Signature    string
+	Signature    string `json:"signature"`
 }
 
 func CreateBlock(newBlock Block) Block {

@@ -10,7 +10,6 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
-	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/multiformats/go-multiaddr"
 	"sync"
 )
@@ -100,8 +99,6 @@ func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr) host.Ho
 	utils.Logger.Info("Host created. We are:", node.ID())
 	utils.Logger.Info("address: ", node.Addrs())
 
-	gossipPubSub, err := pubsub.NewGossipSub(ctx, node)
-
 	//init dht
 	kademliaDHT, initDHTErr := initKDHT(ctx, node, bootstrapPeers)
 	if initDHTErr != nil {
@@ -111,23 +108,6 @@ func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr) host.Ho
 	}
 
 	initRoutingDiscovery(ctx, kademliaDHT, node)
-
-	// join the chat room
-
-	//sub to multiple topics
-	//methode send to topic
-	//extra: unsub from topic
-
-	cr, err := JoinChatRoom(ctx, gossipPubSub, node.ID(), "", "ROOM")
-	if err != nil {
-		panic(err)
-	}
-
-	// draw the UI
-	ui := NewChatUI(cr)
-	if err = ui.Run(); err != nil {
-		printErr("error running text UI: %s", err)
-	}
 
 	return node
 }
