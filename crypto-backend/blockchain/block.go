@@ -7,12 +7,12 @@ import (
 )
 
 type Block struct {
-	Transactions []Transaction
-	PreviousHash string
-	Forger       string
-	Height       int
-	Timestamp    int64
-	Signature    string
+	Transactions []Transaction `json:"transactions"`
+	PreviousHash string        `json:"previous_hash"`
+	Forger       string        `json:"forger"`
+	Height       int           `json:"height"`
+	Timestamp    int64         `json:"timestamp"`
+	Signature    string        `json:"signature"`
 }
 
 func CreateBlock(newBlock Block) Block {

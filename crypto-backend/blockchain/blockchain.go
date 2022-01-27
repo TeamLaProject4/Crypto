@@ -8,9 +8,9 @@ import (
 )
 
 type Blockchain struct {
-	Blocks       []Block
-	AccountModel *AccountModel
-	ProofOfStake *proofOfStake.ProofOfStake
+	Blocks       []Block `json:"blocks"`
+	accountModel *AccountModel
+	proofOfStake *proofOfStake.ProofOfStake
 }
 
 //func GetBlockChain() *Blockchain {
@@ -26,8 +26,8 @@ func CreateBlockchain() Blockchain {
 
 	return Blockchain{
 		Blocks:       blocks,
-		AccountModel: &accountModel,
-		ProofOfStake: &pos,
+		accountModel: &accountModel,
+		proofOfStake: &pos,
 	}
 }
 
@@ -64,12 +64,12 @@ func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 	if transaction.TransactionType == STAKE {
 		if sender == receiver {
 
-			blockchain.ProofOfStake.UpdateStake(sender, amount)
-			blockchain.AccountModel.UpdateBalance(sender, -amount)
+			blockchain.proofOfStake.UpdateStake(sender, amount)
+			blockchain.accountModel.UpdateBalance(sender, -amount)
 		}
 	} else {
-		blockchain.AccountModel.UpdateBalance(sender, -amount)
-		blockchain.AccountModel.UpdateBalance(receiver, amount)
+		blockchain.accountModel.UpdateBalance(sender, -amount)
+		blockchain.accountModel.UpdateBalance(receiver, amount)
 	}
 }
 
@@ -115,17 +115,17 @@ func (blockchain *Blockchain) isTransactionCovered(transaction Transaction) bool
 	if transaction.TransactionType == EXCHANGE {
 		return true
 	}
-	senderBalance := blockchain.AccountModel.GetBalance(transaction.SenderPublicKey)
+	senderBalance := blockchain.accountModel.GetBalance(transaction.SenderPublicKey)
 	return senderBalance >= transaction.Amount
 }
 
 func (blockchain *Blockchain) accountBalance(publicKey string) int {
-	return blockchain.AccountModel.GetBalance(publicKey)
+	return blockchain.accountModel.GetBalance(publicKey)
 }
 
 func (blockchain *Blockchain) getNextForger() string {
 	prevBlockHash := blockchain.getLatestPreviousHash()
-	return blockchain.ProofOfStake.PickForger(prevBlockHash)
+	return blockchain.proofOfStake.PickForger(prevBlockHash)
 }
 
 //func createBlock(transactions []Transaction, forgerWallet interface{}) Block {

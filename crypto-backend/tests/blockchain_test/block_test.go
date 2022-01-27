@@ -70,7 +70,7 @@ func TestWhenBlockSignedThenPayloadSignatureStaysEmpty(t *testing.T) {
 	var result map[string]interface{}
 	json.Unmarshal([]byte(payload), &result)
 
-	got := result["Signature"]
+	got := result["signature"]
 	want := ""
 	if got != want {
 		t.Errorf("Expected '%s', but got '%s'", want, got)
