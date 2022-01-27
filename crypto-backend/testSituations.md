@@ -1,5 +1,5 @@
 ## Situation 1
-1. 3 nodes connected to each other
+1. 3 nodes connected to each other V
 2. blockchain has to be initialised
    1. per node?
    2. if new node comes to network

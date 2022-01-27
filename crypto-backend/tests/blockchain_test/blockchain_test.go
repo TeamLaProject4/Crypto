@@ -6,7 +6,7 @@ import (
 )
 
 func TestWhenNewBlockchainCreatedThenFirstBlockIsGenesis(t *testing.T) {
-	chain := blockchain.NewBlockchain()
+	chain := blockchain.CreateBlockchain()
 	genesis := blockchain.CreateGenesisBlock()
 
 	firstBlock := chain.Blocks[0]

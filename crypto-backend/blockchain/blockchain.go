@@ -16,7 +16,7 @@ type Blockchain struct {
 //func GetBlockChain() *Blockchain {
 //	return blockchain
 //}
-func NewBlockchain() Blockchain {
+func CreateBlockchain() Blockchain {
 	genesisBlock := CreateGenesisBlock()
 	var blocks []Block
 	blocks = append(blocks, genesisBlock)
