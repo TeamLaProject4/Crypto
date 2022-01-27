@@ -21,7 +21,8 @@ func CreateBlock(newBlock Block) Block {
 	}
 	return newBlock
 }
-func createGenesisBlock() Block {
+
+func CreateGenesisBlock() Block {
 	genesis := new(Block)
 	genesis.PreviousHash = "genesis_hash"
 	genesis.Forger = "genesis_forger"
@@ -43,7 +44,7 @@ func (block *Block) ToJson() string {
 	return string(blockJson)
 }
 
-func (block *Block) GetPayload() string {
+func (block *Block) Payload() string {
 	tempSignature := block.Signature
 	block.Signature = ""
 	blockJson := block.ToJson()

@@ -17,7 +17,7 @@ type Blockchain struct {
 //	return blockchain
 //}
 func NewBlockchain() Blockchain {
-	genesisBlock := createGenesisBlock()
+	genesisBlock := CreateGenesisBlock()
 	var blocks []Block
 	blocks = append(blocks, genesisBlock)
 	pos := proofOfStake.NewProofOfStake()
@@ -65,11 +65,11 @@ func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 		if sender == receiver {
 
 			blockchain.ProofOfStake.UpdateStake(sender, amount)
-			blockchain.AccountModel.updateBalance(sender, -amount)
+			blockchain.AccountModel.UpdateBalance(sender, -amount)
 		}
 	} else {
-		blockchain.AccountModel.updateBalance(sender, -amount)
-		blockchain.AccountModel.updateBalance(receiver, amount)
+		blockchain.AccountModel.UpdateBalance(sender, -amount)
+		blockchain.AccountModel.UpdateBalance(receiver, amount)
 	}
 }
 
@@ -95,7 +95,7 @@ func (blockchain *Blockchain) isBlockTransactionsValid(block Block) bool {
 func (blockchain *Blockchain) getLatestPreviousHash() string {
 	blockLenght := len(blockchain.Blocks)
 	latestBlock := blockchain.Blocks[blockLenght-1]
-	payload := latestBlock.GetPayload()
+	payload := latestBlock.Payload()
 
 	return utils.GetHexadecimalHash(payload)
 }
@@ -115,12 +115,12 @@ func (blockchain *Blockchain) isTransactionCovered(transaction Transaction) bool
 	if transaction.TransactionType == EXCHANGE {
 		return true
 	}
-	senderBalance := blockchain.AccountModel.getBalance(transaction.SenderPublicKey)
+	senderBalance := blockchain.AccountModel.GetBalance(transaction.SenderPublicKey)
 	return senderBalance >= transaction.Amount
 }
 
 func (blockchain *Blockchain) accountBalance(publicKey string) int {
-	return blockchain.AccountModel.getBalance(publicKey)
+	return blockchain.AccountModel.GetBalance(publicKey)
 }
 
 func (blockchain *Blockchain) getNextForger() string {
