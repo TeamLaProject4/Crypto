@@ -1,9 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"cryptomunt/utils"
 	"fmt"
+	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/peer"
 	"os"
 )
 
@@ -84,22 +85,45 @@ func main() {
 	//fmt.Println(key.Sign("{test: 'test', hellothere: 'general martijn'}"))
 
 	utils.InitLogger()
-	p2pNetwork := CreateNetwork()
+	//p2pNetwork :=
+	CreateNetwork()
 
-	//temp function to send data from main
-	go func() {
-		stdReader := bufio.NewReader(os.Stdin)
-		for {
-			sendData, err := stdReader.ReadString('\n')
-			if err != nil {
-				fmt.Println("Error reading from stdin")
-				panic(err)
-			}
-			utils.Logger.Info("sending data")
-			p2pNetwork.SendDataToPeers(sendData)
-			utils.Logger.Info("data sent")
-		}
-	}()
+	////temp function to send data from main
+	//go func() {
+	//	stdReader := bufio.NewReader(os.Stdin)
+	//	for {
+	//		sendData, err := stdReader.ReadString('\n')
+	//		if err != nil {
+	//			fmt.Println("Error reading from stdin")
+	//			panic(err)
+	//		}
+	//		utils.Logger.Info("sending data")
+	//		p2pNetwork.SendDataToPeers(sendData)
+	//		utils.Logger.Info("data sent")
+	//	}
+	//}()
 	//keep running forever
 	select {}
+}
+
+// printErr is like fmt.Printf, but writes to stderr.
+func printErr(m string, args ...interface{}) {
+	fmt.Fprintf(os.Stderr, m, args...)
+}
+
+// defaultNick generates a nickname based on the $USER environment variable and
+// the last 8 chars of a peer ID.
+func defaultNick(p peer.ID) string {
+	return fmt.Sprintf("%s-%s", os.Getenv("USER"), shortID(p))
+}
+
+// shortID returns the last 8 chars of a base58-encoded peer id.
+func shortID(p peer.ID) string {
+	pretty := p.Pretty()
+	return pretty[len(pretty)-8:]
+}
+
+// discoveryNotifee gets notified when we find a new peer via mDNS discovery
+type discoveryNotifee struct {
+	h host.Host
 }

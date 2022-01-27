@@ -1,18 +1,16 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"cryptomunt/utils"
-
 	//"cryptomunt/utils"
+
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
-	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/go-libp2p-core/protocol"
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
+	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/multiformats/go-multiaddr"
 	"sync"
 )
@@ -71,6 +69,14 @@ func initRoutingDiscovery(ctx context.Context, kademliaDHT *dht.IpfsDHT, node ho
 	connectToPeers(ctx, peerChan, node, readMessages, writeMessages)
 }
 
+//func (n *discoveryNotifee) HandlePeerFound(pi peer.AddrInfo) {
+//	fmt.Printf("discovered new peer %s\n", pi.ID.Pretty())
+//	err := n.h.Connect(context.Background(), pi)
+//	if err != nil {
+//		fmt.Printf("error connecting to peer %s: %s\n", pi.ID.Pretty(), err)
+//	}
+//}
+
 func connectToPeers(ctx context.Context, peerChan <-chan peer.AddrInfo, node host.Host, readMessages chan string, writeMessages chan string) {
 	for peerNode := range peerChan {
 		if peerNode.ID == node.ID() {
@@ -79,16 +85,17 @@ func connectToPeers(ctx context.Context, peerChan <-chan peer.AddrInfo, node hos
 		utils.Logger.Debug("Found peerNode:", peerNode)
 		utils.Logger.Debug("Connecting to:", peerNode)
 
-		stream, err := node.NewStream(ctx, peerNode.ID, protocol.ID(PROTOCOL_ID))
+		//stream, err := node.NewStream(ctx, peerNode.ID, protocol.ID(PROTOCOL_ID))
+		err := node.Connect(ctx, peerNode)
 
 		if err != nil {
 			utils.Logger.Warn("Connection failed:", err)
 			continue
 		} else {
-			rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
+			//rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
 
-			go writeData(rw, writeMessages)
-			go readData(rw, readMessages)
+			//go writeData(rw, writeMessages)
+			//go readData(rw, readMessages)
 		}
 
 		utils.Logger.Info("Connected to:", peerNode)
@@ -103,10 +110,12 @@ func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr, readMes
 	utils.Logger.Info("Host created. We are:", node.ID())
 	utils.Logger.Info("address: ", node.Addrs())
 
+	ps, err := pubsub.NewGossipSub(ctx, node)
+
 	//set streamhandler with unique protocol id
-	node.SetStreamHandler(protocol.ID(PROTOCOL_ID), func(stream network.Stream) {
-		handleStream(stream, readMessages, writeMessages)
-	})
+	//node.SetStreamHandler(protocol.ID(PROTOCOL_ID), func(stream network.Stream) {
+	//	handleStream(stream, readMessages, writeMessages)
+	//})
 
 	//init dht
 	kademliaDHT, initDHTErr := initKDHT(ctx, node, bootstrapPeers)
@@ -116,6 +125,17 @@ func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr, readMes
 	}
 
 	initRoutingDiscovery(ctx, kademliaDHT, node, readMessages, writeMessages)
+
+	// join the chat room
+	cr, err := JoinChatRoom(ctx, ps, node.ID(), "", "ROOM")
+	if err != nil {
+		panic(err)
+	}
+	// draw the UI
+	ui := NewChatUI(cr)
+	if err = ui.Run(); err != nil {
+		printErr("error running text UI: %s", err)
+	}
 
 	return node
 }
