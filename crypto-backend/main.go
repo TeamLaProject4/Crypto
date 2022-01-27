@@ -1,10 +1,7 @@
 package main
 
 import (
-	"bufio"
-	"cryptomunt/utils"
-	"fmt"
-	"os"
+	"flag"
 )
 
 func main() {
@@ -83,23 +80,36 @@ func main() {
 	//fmt.Println("isValid? ", isValid)
 	//fmt.Println(key.Sign("{test: 'test', hellothere: 'general martijn'}"))
 
-	utils.InitLogger()
-	p2pNetwork := CreateNetwork()
+	//setup
+	//utils.InitLogger()
+	//StartP2pNetwork(getConfigFlags())
+	//p2pNetwork := CreateNetwork(getConfigFlags())
+	//
+	////temp function to send data from main
+	//go func() {
+	//	stdReader := bufio.NewReader(os.Stdin)
+	//	for {
+	//		sendData, err := stdReader.ReadString('\n')
+	//		if err != nil {
+	//			fmt.Println("Error reading from stdin")
+	//			panic(err)
+	//		}
+	//		p2pNetwork.SendDataToPeers(sendData)
+	//	}
+	//}()
+	////keep running forever
+	//select {}
 
-	//temp function to send data from main
-	go func() {
-		stdReader := bufio.NewReader(os.Stdin)
-		for {
-			sendData, err := stdReader.ReadString('\n')
-			if err != nil {
-				fmt.Println("Error reading from stdin")
-				panic(err)
-			}
-			utils.Logger.Info("sending data")
-			p2pNetwork.SendDataToPeers(sendData)
-			utils.Logger.Info("data sent")
-		}
-	}()
+	node := CreateNode(getConfigFlags())
+	node.StartP2pNetwork()
+
 	//keep running forever
 	select {}
+}
+
+func getConfigFlags() Config {
+	config := Config{}
+	flag.Var(&config.DiscoveryPeers, "peer", "Peer multiaddress for peer discovery")
+	flag.Parse()
+	return config
 }

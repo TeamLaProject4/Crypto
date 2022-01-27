@@ -23,8 +23,9 @@ func readData(rw *bufio.ReadWriter, messages chan string) {
 	for {
 		str, err := rw.ReadString('\n')
 		if err != nil {
-			fmt.Println("Error reading from buffer")
-			panic(err)
+			utils.Logger.Error("Error reading from buffer")
+			//TODO: remove from peer list?
+			//panic(err)
 		}
 
 		if str == "" {
@@ -49,13 +50,13 @@ func writeData(rw *bufio.ReadWriter, writeMessages chan string) {
 		utils.Logger.Info("data sent")
 
 		if err != nil {
-			fmt.Println("Error writing to buffer")
-			panic(err)
+			utils.Logger.Error("Error writing to buffer")
+			//panic(err)
 		}
 		err = rw.Flush()
 		if err != nil {
-			fmt.Println("Error flushing buffer")
-			panic(err)
+			utils.Logger.Error("Error flushing buffer")
+			//panic(err)
 		}
 	}
 

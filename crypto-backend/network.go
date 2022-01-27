@@ -3,24 +3,23 @@ package main
 import (
 	"context"
 	"cryptomunt/utils"
-	"flag"
 	"github.com/ipfs/go-log/v2"
 )
 
 const RANDEVOUS_STRING = "cryptomunt-randevous"
 const PROTOCOL_ID = "/cryptomunt/1.0.0"
 
-type NetworkModel struct {
+type NetworkChannels struct {
 	ReadMessages  chan string
 	WriteMessages chan string
 }
 
 var Logger = log.Logger("cryptomunt")
 
-func CreateNetwork() NetworkModel {
+func CreateNetwork(config Config) NetworkChannels {
 	utils.Logger.Info("Starting network")
 
-	config := Config{}
+	//config := Config{}
 	ctx := context.Background()
 
 	//TODO: figure out channel buffer size
@@ -28,8 +27,8 @@ func CreateNetwork() NetworkModel {
 	readMessages := make(chan string, 1000)
 	writeMessages := make(chan string, 1000)
 
-	flag.Var(&config.DiscoveryPeers, "peer", "Peer multiaddress for peer discovery")
-	flag.Parse()
+	//flag.Var(&config.DiscoveryPeers, "peer", "Peer multiaddress for peer discovery")
+	//flag.Parse()
 
 	node := initHost(ctx, config.DiscoveryPeers, readMessages, writeMessages)
 	utils.Logger.Infof("Host ID: %s", node.ID().Pretty())
@@ -42,7 +41,7 @@ func CreateNetwork() NetworkModel {
 	go printDataFromPeers(readMessages)
 	//go sendDataToPeers(writeMessages)
 
-	return NetworkModel{
+	return NetworkChannels{
 		ReadMessages:  readMessages,
 		WriteMessages: writeMessages,
 	}
@@ -59,6 +58,6 @@ func printDataFromPeers(readMessages chan string) {
 	}
 }
 
-func (NetworkModel *NetworkModel) SendDataToPeers(jsonData string) {
+func (NetworkModel *NetworkChannels) SendDataToPeers(jsonData string) {
 	NetworkModel.WriteMessages <- jsonData
 }
