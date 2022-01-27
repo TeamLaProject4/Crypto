@@ -95,11 +95,14 @@ func (cryptoNode *CryptoNode) subscribeToTopics() []Subscription {
 		panic(err)
 	}
 
+	go readSubscription(transactionSub)
+	go readSubscription(transactionSub)
+
 	return []Subscription{*transactionSub, *blockChainSub}
 }
 
 func readSubscription(sub *Subscription) {
 	for message := range sub.Messages {
-		utils.Logger.Info(message.Message + sub.TopicName)
+		utils.Logger.Info(message.Message, sub.TopicName)
 	}
 }
