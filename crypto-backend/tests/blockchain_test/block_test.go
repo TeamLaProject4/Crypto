@@ -65,7 +65,7 @@ func TestWhenBlockSignedThenSignatureIsSet(t *testing.T) {
 func TestWhenBlockSignedThenPayloadSignatureStaysEmpty(t *testing.T) {
 	block := constructBlock()
 	block.Sign(SIGNATURE)
-	payload := block.GetPayload()
+	payload := block.Payload()
 
 	var result map[string]interface{}
 	json.Unmarshal([]byte(payload), &result)
