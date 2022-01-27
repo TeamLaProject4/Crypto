@@ -52,7 +52,7 @@ func initKDHT(ctx context.Context, host host.Host, bootstrapPeers []multiaddr.Mu
 }
 
 //init routing Discovery and connect to peers in the network
-func initRoutingDiscovery(ctx context.Context, kademliaDHT *dht.IpfsDHT, node host.Host, readMessages chan string, writeMessages chan string) {
+func initRoutingDiscovery(ctx context.Context, kademliaDHT *dht.IpfsDHT, node host.Host) {
 	//Announce node on the network with randevous point every 3 hours
 	utils.Logger.Info("Announcing ourselves...")
 	routingDiscovery := discovery.NewRoutingDiscovery(kademliaDHT)
@@ -66,71 +66,63 @@ func initRoutingDiscovery(ctx context.Context, kademliaDHT *dht.IpfsDHT, node ho
 		panic(err)
 	}
 
-	connectToPeers(ctx, peerChan, node, readMessages, writeMessages)
+	connectToPeers(ctx, peerChan, node)
 }
 
-//func (n *discoveryNotifee) HandlePeerFound(pi peer.AddrInfo) {
-//	fmt.Printf("discovered new peer %s\n", pi.ID.Pretty())
-//	err := n.h.Connect(context.Background(), pi)
-//	if err != nil {
-//		fmt.Printf("error connecting to peer %s: %s\n", pi.ID.Pretty(), err)
-//	}
-//}
-
-func connectToPeers(ctx context.Context, peerChan <-chan peer.AddrInfo, node host.Host, readMessages chan string, writeMessages chan string) {
+func connectToPeers(ctx context.Context, peerChan <-chan peer.AddrInfo, node host.Host) {
 	for peerNode := range peerChan {
+		//filter out yourself
 		if peerNode.ID == node.ID() {
 			continue
 		}
+
 		utils.Logger.Debug("Found peerNode:", peerNode)
 		utils.Logger.Debug("Connecting to:", peerNode)
 
-		//stream, err := node.NewStream(ctx, peerNode.ID, protocol.ID(PROTOCOL_ID))
+		//connect to peer
 		err := node.Connect(ctx, peerNode)
 
 		if err != nil {
 			utils.Logger.Warn("Connection failed:", err)
 			continue
-		} else {
-			//rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
-
-			//go writeData(rw, writeMessages)
-			//go readData(rw, readMessages)
 		}
 
 		utils.Logger.Info("Connected to:", peerNode)
 	}
 }
 
-func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr, readMessages chan string, writeMessages chan string) host.Host {
+func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr) host.Host {
 	node, err := libp2p.New()
 	if err != nil {
 		panic(err)
 	}
+
 	utils.Logger.Info("Host created. We are:", node.ID())
 	utils.Logger.Info("address: ", node.Addrs())
 
-	ps, err := pubsub.NewGossipSub(ctx, node)
-
-	//set streamhandler with unique protocol id
-	//node.SetStreamHandler(protocol.ID(PROTOCOL_ID), func(stream network.Stream) {
-	//	handleStream(stream, readMessages, writeMessages)
-	//})
+	gossipPubSub, err := pubsub.NewGossipSub(ctx, node)
 
 	//init dht
 	kademliaDHT, initDHTErr := initKDHT(ctx, node, bootstrapPeers)
 	if initDHTErr != nil {
 		utils.Logger.Error("dht error")
+		panic(initDHTErr)
 		return nil
 	}
 
-	initRoutingDiscovery(ctx, kademliaDHT, node, readMessages, writeMessages)
+	initRoutingDiscovery(ctx, kademliaDHT, node)
 
 	// join the chat room
-	cr, err := JoinChatRoom(ctx, ps, node.ID(), "", "ROOM")
+
+	//sub to multiple topics
+	//methode send to topic
+	//extra: unsub from topic
+
+	cr, err := JoinChatRoom(ctx, gossipPubSub, node.ID(), "", "ROOM")
 	if err != nil {
 		panic(err)
 	}
+
 	// draw the UI
 	ui := NewChatUI(cr)
 	if err = ui.Run(); err != nil {

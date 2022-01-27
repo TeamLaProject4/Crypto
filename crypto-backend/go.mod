@@ -3,19 +3,12 @@ module cryptomunt
 go 1.17
 
 require (
-	//github.com/gdamore/tcell/v2 v2.4.1-0.20210905002822-f057f0a857a1
 	github.com/google/uuid v1.3.0
 	github.com/ipfs/go-log/v2 v2.5.0
-	//github.com/libp2p/go-libp2p v0.17.0
-	//github.com/libp2p/go-libp2p-core v0.13.0
 	github.com/libp2p/go-libp2p-discovery v0.6.0
 	github.com/libp2p/go-libp2p-kad-dht v0.15.0
-	//github.com/libp2p/go-libp2p-pubsub v0.6.1
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/multiformats/go-multiaddr v0.4.0
-	//github.com/rivo/tview v0.0.0-20220106183741-90d72bc664f5
-
-
 	github.com/gdamore/tcell/v2 v2.1.0
     github.com/libp2p/go-libp2p v0.17.0
     github.com/libp2p/go-libp2p-core v0.13.0
