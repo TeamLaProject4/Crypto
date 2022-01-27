@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"cryptomunt/utils"
 	"flag"
 	"github.com/ipfs/go-log/v2"
 )
@@ -13,25 +14,12 @@ type NetworkModel struct {
 	ReadMessages  chan string
 	WriteMessages chan string
 }
-type Utils struct {
-	Logger *log.ZapEventLogger
-}
 
 var Logger = log.Logger("cryptomunt")
-var utils = Utils{Logger: Logger}
-
-func InitLogger() {
-	log.SetAllLoggers(log.LevelWarn)
-	err := log.SetLogLevel("cryptomunt", "info")
-	if err != nil {
-		return
-	}
-}
 
 func CreateNetwork() {
 	config := Config{}
 	ctx := context.Background()
-	InitLogger()
 
 	//TODO: figure out channel buffer size
 	//TODO: dont remove from channel until all peers have received a message?
