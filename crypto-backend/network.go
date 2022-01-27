@@ -38,7 +38,7 @@ func CreateNetwork(config Config) NetworkChannels {
 	}
 
 	//use channels to communicate with goroutines for each peer
-	go printDataFromPeers(readMessages)
+	//go printDataFromPeers(readMessages)
 	//go sendDataToPeers(writeMessages)
 
 	return NetworkChannels{
@@ -47,15 +47,6 @@ func CreateNetwork(config Config) NetworkChannels {
 	}
 	//sleep forever
 	//select {}
-}
-
-//temporary
-func printDataFromPeers(readMessages chan string) {
-	//TODO: handle messages in blockchain implementation, maybe return this channel?
-	for message := range readMessages {
-		utils.Logger.Info("CHANNEL READ MESSAGE: " + message)
-		//blockchain.createTransaction()
-	}
 }
 
 func (NetworkModel *NetworkChannels) SendDataToPeers(jsonData string) {

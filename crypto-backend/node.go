@@ -31,6 +31,7 @@ func (node *Node) StartP2pNetwork() NetworkChannels {
 	utils.InitLogger()
 	networkChannels := CreateNetwork(node.config)
 	go node.writeDataToPeers()
+	go node.printDataFromPeers()
 
 	return networkChannels
 	//keep running forever
@@ -46,5 +47,14 @@ func (node *Node) writeDataToPeers() {
 			panic(err)
 		}
 		node.networkChannels.SendDataToPeers(sendData)
+	}
+}
+
+//temporary
+func (node *Node) printDataFromPeers() {
+	//TODO: handle messages in blockchain implementation, maybe return this channel?
+	for message := range node.networkChannels.ReadMessages {
+		utils.Logger.Info("CHANNEL READ MESSAGE: " + message)
+		//blockchain.createTransaction()
 	}
 }
