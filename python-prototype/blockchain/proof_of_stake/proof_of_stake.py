@@ -46,7 +46,7 @@ class ProofOfStake():
             lots += generate_staker_lots(staker)
         return lots
 
-    def __pick_winner(self, lots: List[Lot], seed: str) -> Lot:
+    def pick_winner(self, lots: List[Lot], seed: str) -> Lot:
 
         def is_offset_smaller(lot: Lot) -> bool:
             offset = get_offset(lot)
@@ -70,5 +70,5 @@ class ProofOfStake():
 
     def pick_forger(self, previous_block_hash: str) -> str:
         lots = self.__generate_lots(previous_block_hash)
-        winner = self.__pick_winner(lots, previous_block_hash)
+        winner = self.pick_winner(lots, previous_block_hash)
         return winner.public_key_string
