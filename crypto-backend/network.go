@@ -17,7 +17,9 @@ type NetworkModel struct {
 
 var Logger = log.Logger("cryptomunt")
 
-func CreateNetwork() {
+func CreateNetwork() NetworkModel {
+	utils.Logger.Info("Starting network")
+
 	config := Config{}
 	ctx := context.Background()
 
@@ -40,14 +42,12 @@ func CreateNetwork() {
 	go printDataFromPeers(readMessages)
 	//go sendDataToPeers(writeMessages)
 
-	select {}
-	//return NetworkModel{
-	//	ReadMessages:  readMessages,
-	//	WriteMessages: writeMessages,
-	//}
+	return NetworkModel{
+		ReadMessages:  readMessages,
+		WriteMessages: writeMessages,
+	}
 	//sleep forever
 	//select {}
-	//return
 }
 
 //temporary
