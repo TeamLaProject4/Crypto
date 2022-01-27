@@ -72,7 +72,7 @@ func (wallet *Wallet) createTransaction(
 			SenderPublicKey:   wallet.GetPublicKeyHex(),
 			ReceiverPublicKey: receiverPublicKey,
 			Amount:            amount,
-			TransactionType:   transactionType,
+			TxType:   transactionType,
 			Id:                "",
 			Timestamp:         0,
 			Signature:         "",

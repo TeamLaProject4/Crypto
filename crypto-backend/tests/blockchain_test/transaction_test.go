@@ -19,7 +19,7 @@ func constructTransaction() blockchain.Transaction {
 		SenderPublicKey:   SENDER_PUBLIC_KEY,
 		ReceiverPublicKey: RECEIVER_PUBLIC_KEY,
 		Amount:            AMOUNT,
-		TransactionType:   TX_TYPE,
+		TxType:   TX_TYPE,
 	}
 }
 
