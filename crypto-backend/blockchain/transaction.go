@@ -11,7 +11,7 @@ type Transaction struct {
 	SenderPublicKey   string          `json:"sender_pk"`
 	ReceiverPublicKey string          `json:"receiver_pk"`
 	Amount            int             `json:"amount"`
-	TransactionType   TransactionType `json:"tx_type"`
+	TxType            TransactionType `json:"tx_type"`
 	Id                string          `json:"id"`
 	Timestamp         int64           `json:"timestamp"`
 	Signature         string          `json:"signature"`

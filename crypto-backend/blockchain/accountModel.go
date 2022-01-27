@@ -8,8 +8,9 @@ type AccountModel struct {
 
 func NewAccountModel() AccountModel {
 	//TODO: add later for multiple AccountModel instances
-	//AccountModel = new(AccountModel)
-	return AccountModel{Balances: *new(map[string]int)}
+	accountModel := new(AccountModel)
+	accountModel.Balances = make(map[string]int)
+	return *accountModel
 }
 
 func (accountModel *AccountModel) IsAccountInBalances(publicKey string) bool {

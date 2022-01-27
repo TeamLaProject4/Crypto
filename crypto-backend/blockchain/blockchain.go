@@ -8,9 +8,9 @@ import (
 )
 
 type Blockchain struct {
-	Blocks       []Block `json:"blocks"`
-	accountModel *AccountModel
-	proofOfStake *proofOfStake.ProofOfStake
+	Blocks       []Block                    `json:"blocks"`
+	accountModel *AccountModel              `json:"-"`
+	proofOfStake *proofOfStake.ProofOfStake `json:"-"`
 }
 
 //func GetBlockChain() *Blockchain {
@@ -39,18 +39,18 @@ func (blockchain *Blockchain) ToJson() string {
 	return string(blockchainJson)
 }
 
-func (blockchain *Blockchain) getLatestBlockHeight() int {
+func (blockchain *Blockchain) LatestBlockHeight() int {
 	return len(blockchain.Blocks) - 1
 }
 
-func (blockchain *Blockchain) addBlock(block Block) {
-	if blockchain.isValidBlockHeight(block) && blockchain.isValidPreviousBlockHash(block) {
-		blockchain.executeTransactions(block.Transactions)
+func (blockchain *Blockchain) AddBlock(block Block) {
+	if blockchain.IsValidBlockHeight(block) && blockchain.IsValidPreviousBlockHash(block) {
+		blockchain.ExecuteTransactions(block.Transactions)
 		blockchain.Blocks = append(blockchain.Blocks, block)
 	}
 }
 
-func (blockchain *Blockchain) executeTransactions(transactions []Transaction) {
+func (blockchain *Blockchain) ExecuteTransactions(transactions []Transaction) {
 	for _, transaction := range transactions {
 		blockchain.executeTransaction(transaction)
 	}
@@ -61,7 +61,7 @@ func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 	receiver := transaction.ReceiverPublicKey
 	amount := transaction.Amount
 
-	if transaction.TransactionType == STAKE {
+	if transaction.TxType == STAKE {
 		if sender == receiver {
 
 			blockchain.proofOfStake.UpdateStake(sender, amount)
@@ -73,13 +73,13 @@ func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 	}
 }
 
-func (blockchain *Blockchain) isValidBlockHeight(block Block) bool {
+func (blockchain *Blockchain) IsValidBlockHeight(block Block) bool {
 	blockLength := len(blockchain.Blocks)
 	return blockchain.Blocks[blockLength-1].Height == block.Height-1
 }
 
-func (blockchain *Blockchain) isValidPreviousBlockHash(block Block) bool {
-	return blockchain.getLatestPreviousHash() == block.PreviousHash
+func (blockchain *Blockchain) IsValidPreviousBlockHash(block Block) bool {
+	return blockchain.LatestPreviousHash() == block.PreviousHash
 }
 
 func (blockchain *Blockchain) isValidForger(block Block) bool {
@@ -88,11 +88,11 @@ func (blockchain *Blockchain) isValidForger(block Block) bool {
 
 func (blockchain *Blockchain) isBlockTransactionsValid(block Block) bool {
 	transactions := block.Transactions
-	coveredTransactions := blockchain.getCoveredTransactions(transactions)
+	coveredTransactions := blockchain.GetCoveredTransactions(transactions)
 	return len(transactions) == len(coveredTransactions)
 }
 
-func (blockchain *Blockchain) getLatestPreviousHash() string {
+func (blockchain *Blockchain) LatestPreviousHash() string {
 	blockLenght := len(blockchain.Blocks)
 	latestBlock := blockchain.Blocks[blockLenght-1]
 	payload := latestBlock.Payload()
@@ -100,31 +100,31 @@ func (blockchain *Blockchain) getLatestPreviousHash() string {
 	return utils.GetHexadecimalHash(payload)
 }
 
-func (blockchain *Blockchain) getCoveredTransactions(transactions []Transaction) []Transaction {
+func (blockchain *Blockchain) GetCoveredTransactions(transactions []Transaction) []Transaction {
 	var coveredTransactions = make([]Transaction, len(transactions))
 
 	for _, transaction := range transactions {
-		if blockchain.isTransactionCovered(transaction) {
+		if blockchain.IsTransactionCovered(transaction) {
 			coveredTransactions = append(coveredTransactions, transaction)
 		}
 	}
 	return coveredTransactions
 }
 
-func (blockchain *Blockchain) isTransactionCovered(transaction Transaction) bool {
-	if transaction.TransactionType == EXCHANGE {
+func (blockchain *Blockchain) IsTransactionCovered(transaction Transaction) bool {
+	if transaction.TxType == EXCHANGE {
 		return true
 	}
 	senderBalance := blockchain.accountModel.GetBalance(transaction.SenderPublicKey)
 	return senderBalance >= transaction.Amount
 }
 
-func (blockchain *Blockchain) accountBalance(publicKey string) int {
+func (blockchain *Blockchain) GetAccountBalance(publicKey string) int {
 	return blockchain.accountModel.GetBalance(publicKey)
 }
 
 func (blockchain *Blockchain) getNextForger() string {
-	prevBlockHash := blockchain.getLatestPreviousHash()
+	prevBlockHash := blockchain.LatestPreviousHash()
 	return blockchain.proofOfStake.PickForger(prevBlockHash)
 }
 
