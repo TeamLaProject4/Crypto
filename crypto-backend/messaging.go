@@ -29,12 +29,13 @@ func readData(rw *bufio.ReadWriter, messages chan string) {
 		}
 
 		if str == "" {
+			utils.Logger.Info("received data is empty")
 			return
 		}
 		if str != "\n" {
 			// Green console colour: 	\x1b[32m
 			// Reset console colour: 	\x1b[0m
-			fmt.Printf("\x1b[32m%s\x1b[0m> ", str)
+			//fmt.Printf("\x1b[32m%s\x1b[0m> ", str)
 			messages <- str
 		}
 
