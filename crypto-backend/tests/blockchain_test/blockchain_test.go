@@ -164,7 +164,7 @@ func TestWhenTransactionIsExchangeTypeThenTransactionCovered(t *testing.T) {
 	exchangeTx.SenderPublicKey = "exchange"
 	exchangeTx.ReceiverPublicKey = "alice"
 	exchangeTx.Amount = 10
-	exchangeTx.TxType = blockchain.EXCHANGE
+	exchangeTx.Type = blockchain.EXCHANGE
 
 	got := chain.IsTransactionCovered(*exchangeTx)
 	want := true
@@ -181,7 +181,7 @@ func TestWhenExchangeTransactionExecutedThenReceiverHasCorrectBalance(t *testing
 	exchangeTx.SenderPublicKey = "exchange"
 	exchangeTx.ReceiverPublicKey = "alice"
 	exchangeTx.Amount = 10
-	exchangeTx.TxType = blockchain.EXCHANGE
+	exchangeTx.Type = blockchain.EXCHANGE
 	coveredTransactions := chain.GetCoveredTransactions([]blockchain.Transaction{*exchangeTx})
 	chain.ExecuteTransactions(coveredTransactions)
 
@@ -199,7 +199,7 @@ func TestWhenTransferTransactionExecutedThenReceiverHasCorrectBalance(t *testing
 	exchangeTx.SenderPublicKey = "exchange"
 	exchangeTx.ReceiverPublicKey = "alice"
 	exchangeTx.Amount = 10
-	exchangeTx.TxType = blockchain.EXCHANGE
+	exchangeTx.Type = blockchain.EXCHANGE
 	coveredTransactions := chain.GetCoveredTransactions([]blockchain.Transaction{*exchangeTx})
 	chain.ExecuteTransactions(coveredTransactions)
 
@@ -207,7 +207,7 @@ func TestWhenTransferTransactionExecutedThenReceiverHasCorrectBalance(t *testing
 	transferTx.SenderPublicKey = "alice"
 	transferTx.ReceiverPublicKey = "bob"
 	transferTx.Amount = 5
-	transferTx.TxType = blockchain.TRANSFER
+	transferTx.Type = blockchain.TRANSFER
 	coveredTransactions = chain.GetCoveredTransactions([]blockchain.Transaction{*transferTx})
 	chain.ExecuteTransactions(coveredTransactions)
 
