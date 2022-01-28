@@ -6,7 +6,7 @@ type AccountModel struct {
 
 //var accountModel = new(AccountModel)
 
-func NewAccountModel() AccountModel {
+func CreateAccountModel() AccountModel {
 	//TODO: add later for multiple AccountModel instances
 	accountModel := new(AccountModel)
 	accountModel.Balances = make(map[string]int)

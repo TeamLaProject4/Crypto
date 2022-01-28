@@ -45,6 +45,7 @@ class Node():
         payload = transaction.payload()
         signature = transaction.signature
         sender_public_key = transaction.sender_public_key
+
         transaction_in_memory_pool = self.is_transaction_in_memory_pool(
             transaction)
         signature_valid = self.is_valid_signature(
