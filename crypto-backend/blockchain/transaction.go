@@ -37,7 +37,7 @@ func (transaction *Transaction) hash() uint64 {
 	return hash
 }
 
-func (transaction *Transaction) toJson() string {
+func (transaction *Transaction) ToJson() string {
 	transactionJson, err := json.Marshal(transaction)
 	if err != nil {
 		panic("ERROR")
@@ -49,7 +49,7 @@ func (transaction *Transaction) Payload() string {
 	tempSignature := transaction.Signature
 	transaction.Signature = ""
 
-	transactionJson := transaction.toJson()
+	transactionJson := transaction.ToJson()
 	transaction.Signature = tempSignature
 
 	return transactionJson

@@ -22,7 +22,7 @@ func CreateBlockchain() Blockchain {
 	blocks = append(blocks, genesisBlock)
 	pos := proofOfStake.NewProofOfStake()
 
-	accountModel := NewAccountModel()
+	accountModel := CreateAccountModel()
 
 	return Blockchain{
 		Blocks:       blocks,

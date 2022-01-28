@@ -100,6 +100,7 @@ func (subscription *Subscription) readLoop() {
 		if err != nil {
 			continue
 		}
+
 		// send valid messages onto the Messages channel
 		subscription.Messages <- message
 	}

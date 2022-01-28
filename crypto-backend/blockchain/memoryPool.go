@@ -11,10 +11,10 @@ type MemoryPool struct {
 
 const TRANSACTION_THRESHOLD = 100
 
-func CreateMemoryPool() *MemoryPool {
+func CreateMemoryPool() MemoryPool {
 	memoryPool := new(MemoryPool)
 	memoryPool.transactions = make([]Transaction, 0)
-	return memoryPool
+	return *memoryPool
 }
 
 func (memoryPool *MemoryPool) IsTransactionInPool(transaction Transaction) bool {

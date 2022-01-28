@@ -32,6 +32,8 @@ type CryptoNode struct {
 	ctx           context.Context
 	subscriptions []Subscription
 	Blockchain    blockchain.Blockchain
+	MemoryPool    blockchain.MemoryPool
+	Wallet        blockchain.Wallet
 	//sub map[TopicType]Subscription
 }
 
@@ -40,16 +42,22 @@ func CreateCryptoNode() CryptoNode {
 	ctx := context.Background()
 	config := parseFlags()
 
+	//p2p
 	node := initHost(ctx, config.BootNodes)
-
+	//init
 	cryptoNode := CryptoNode{
 		Libp2pNode: node,
 		ctx:        ctx,
 	}
 
+	//pubsub
 	cryptoNode.logNodeAddr()
 	cryptoNode.subscriptions = cryptoNode.subscribeToTopics()
-	//cryptoNode.readSubscriptions() //log incomin messages
+
+	//blockchain
+	cryptoNode.Blockchain = blockchain.CreateBlockchain()
+	cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
+	cryptoNode.Wallet = blockchain.CreateWallet()
 
 	return cryptoNode
 }
