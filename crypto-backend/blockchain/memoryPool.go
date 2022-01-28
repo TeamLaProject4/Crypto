@@ -13,7 +13,7 @@ const TRANSACTION_THRESHOLD = 100
 
 func CreateMemoryPool() *MemoryPool {
 	memoryPool := new(MemoryPool)
-	memoryPool.transactions = make([]Transaction, 150) //150 ideally should be 100
+	memoryPool.transactions = make([]Transaction, 0) //150 ideally should be 100
 	return memoryPool
 }
 
