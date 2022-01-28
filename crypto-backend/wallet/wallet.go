@@ -6,10 +6,17 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"cryptomunt/utils"
+	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"os"
 )
+
+
+func generateMnemonic() {
+	ecdsa.
+}
+
 
 var KEY_LENGTH_BITS = 2048
 var PRIVATE_KEY_PATH = "../keys/walletPrivateKey.hex"
