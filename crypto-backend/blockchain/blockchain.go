@@ -61,7 +61,7 @@ func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 	receiver := transaction.ReceiverPublicKey
 	amount := transaction.Amount
 
-	if transaction.TxType == STAKE {
+	if transaction.Type == STAKE {
 		if sender == receiver {
 
 			blockchain.proofOfStake.UpdateStake(sender, amount)
@@ -112,7 +112,7 @@ func (blockchain *Blockchain) GetCoveredTransactions(transactions []Transaction)
 }
 
 func (blockchain *Blockchain) IsTransactionCovered(transaction Transaction) bool {
-	if transaction.TxType == EXCHANGE {
+	if transaction.Type == EXCHANGE {
 		return true
 	}
 	senderBalance := blockchain.accountModel.GetBalance(transaction.SenderPublicKey)
