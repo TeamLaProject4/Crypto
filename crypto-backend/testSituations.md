@@ -2,9 +2,10 @@
 1. 3 nodes connected to each other V
 2. blockchain has to be initialised
    1. per node?
-   2. if new node comes to network
+   2. 1x genesis?
+   3. if new node comes to network
       1. copy existing blockchain from node(bootnode?)
-   3. check python code
+   4. check python code
 3. give wallet starting amount of coins(testing purposes)
    1. no amount in wallet then cannot make transaction
 4. check if blockchain is equal across nodes
@@ -12,6 +13,8 @@
 6. stake 
 7. create new block
 8. check if blockchain is equal across nodes
+
+MEMORYPOOL!
 
 ## Situation 2
 1. consensus across network
