@@ -14,7 +14,6 @@
 7. create new block
 8. check if blockchain is equal across nodes
 
-MEMORYPOOL!
 
 ## Situation 2
 1. consensus across network
