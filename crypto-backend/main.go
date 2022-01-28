@@ -1,115 +1,38 @@
 package main
 
 import (
-	"flag"
+	"bufio"
+	"cryptomunt/blockchain"
+	"cryptomunt/networking"
+	"cryptomunt/utils"
+	"fmt"
+	"os"
 )
 
 func main() {
-	//testTransaction := blockchain.Transaction{
-	//	SenderPublicKey:   "",
-	//	ReceiverPublicKey: "",
-	//	Amount:            0,
-	//	TransactionType:   0,
-	//	Id:                "",
-	//	Timestamp:         0,
-	//	Signature:         "signature-value",
-	//}
-	//blockchain.NewTransaction(testTransaction)
+	utils.InitLogger()
 
-	//testBlock := Block{
-	//	Transactions: []Transaction{*transaction},
-	//	PreviousHash: "",
-	//	Forger:       "",
-	//	Height:       0,
-	//	Timestamp:    0,
-	//	Signature:    "block-signature-value",
-	//}
-	//newBlock(testBlock)
-	//
-	//println(block)
-	//println(blockToJson(*block))
-	//println(blockPayload())
-	//println(blockEquals(testBlock))
+	node := networking.CreateCryptoNode()
 
-	//println(Hash())
-	//println(TransactionToJson())
-	//println(payload())n
-	//proofOfStake.NewLot(proofOfStake.Lot{
-	//	PublicKey:         "hello",
-	//	Iteration:         0,
-	//	PreviousBlockHash: "world",
-	//})
-	//
-	//fmt.Println(proofOfStake.GetHash())
+	//getBlockChainFromNetwork()
+	node.Blockchain = blockchain.CreateBlockchain()
 
-	//proofOfStake.NewProofOfStake()
-	//proofOfStake.SetGenesisNodeStake()
-	//fmt.Println(proofOfStake.IsAccountInStakers("false"))
+	//node.GetBlockChainFromNetwork()
 
-	//proofOfStake.AddAccountToStakers("hello")
-	//proofOfStake.PrintStakers()
+	go tempWriteToTopic(node)
 
-	//proofOfStake.UpdateStake("moi", 20)
-	//proofOfStake.PrintStakers()
-	//proofOfStake.UpdateStake("moi", 5)
-	//proofOfStake.PrintStakers()
-	//fmt.Println(proofOfStake.GetStake("moi"))
-
-	//proofOfStake.UpdateStake("tammo", 3000)
-	//proofOfStake.UpdateStake("moi", 1)
-	//proofOfStake.UpdateStake("henk", 1)
-
-	//lots := proofOfStake.GenerateLots("seed")
-	//fmt.Println(lots)
-
-	//fmt.Println(proofOfStake.PickForger("FF11asnF"))
-
-	//blockchain.NewBlockchain()
-	//fmt.Println(blockchain.GetBlockChain())
-	//fmt.Println(blockchain.ToJson())
-
-	//fmt.Println(blockchain.GetKeyPair())
-	//privKey := utils.ReadRsaKeyFile("../keys/wallet.rsa")
-	//fmt.Println(privKey.PublicKey)
-
-	//wallet := blockchain.CreateWallet()
-	//block := wallet.CreateBlock(nil, "PrevHashValue", 3)
-	//publicKeyHEx := wallet.GetPublicKeyHex()
-	//
-	//isValid := blockchain.IsValidSignature(block.GetPayload(), block.Signature, publicKeyHEx)
-	//fmt.Println("isValid? ", isValid)
-	//fmt.Println(key.Sign("{test: 'test', hellothere: 'general martijn'}"))
-
-	//setup
-	//utils.InitLogger()
-	//StartP2pNetwork(getConfigFlags())
-	//p2pNetwork := CreateNetwork(getConfigFlags())
-	//
-	////temp function to send data from main
-	//go func() {
-	//	stdReader := bufio.NewReader(os.Stdin)
-	//	for {
-	//		sendData, err := stdReader.ReadString('\n')
-	//		if err != nil {
-	//			fmt.Println("Error reading from stdin")
-	//			panic(err)
-	//		}
-	//		p2pNetwork.SendDataToPeers(sendData)
-	//	}
-	//}()
-	////keep running forever
-	//select {}
-
-	node := CreateNode(getConfigFlags())
-	node.StartP2pNetwork()
-
-	//keep running forever
 	select {}
 }
 
-func getConfigFlags() Config {
-	config := Config{}
-	flag.Var(&config.DiscoveryPeers, "peer", "Peer multiaddress for peer discovery")
-	flag.Parse()
-	return config
+func tempWriteToTopic(node networking.CryptoNode) {
+	stdReader := bufio.NewReader(os.Stdin)
+	for {
+		sendData, err := stdReader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading from stdin")
+			panic(err)
+		}
+		fmt.Println("writing to topic...")
+		node.WriteToTopic(sendData, networking.BLOCKCHAIN)
+	}
 }

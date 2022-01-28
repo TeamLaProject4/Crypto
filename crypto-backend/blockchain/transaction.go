@@ -11,13 +11,13 @@ type Transaction struct {
 	SenderPublicKey   string          `json:"sender_pk"`
 	ReceiverPublicKey string          `json:"receiver_pk"`
 	Amount            int             `json:"amount"`
-	TxType            TransactionType `json:"tx_type"`
+	Type              TransactionType `json:"tx_type"`
 	Id                string          `json:"id"`
 	Timestamp         int64           `json:"timestamp"`
 	Signature         string          `json:"signature"`
 }
 
-func NewTransaction(transaction Transaction) Transaction {
+func CreateTransaction(transaction Transaction) Transaction {
 	//check and fill variables if they are empty
 	if transaction.Id == "" {
 		transaction.Id = uuid.New().String()
@@ -27,10 +27,6 @@ func NewTransaction(transaction Transaction) Transaction {
 	}
 
 	return transaction
-}
-
-func (transaction *Transaction) Equals(transactionToCompareTo Transaction) bool {
-	return transaction.Id == transactionToCompareTo.Id
 }
 
 func (transaction *Transaction) hash() uint64 {
@@ -66,7 +62,7 @@ func (transaction *Transaction) Sign(signature string) {
 type TransactionType int64
 
 const (
-	TRANSFER TransactionType = iota //transaction
+	TRANSFER TransactionType = iota //transactions
 	EXCHANGE                        //buy coins with fiad money
 	STAKE                           //stake in the lottery
 )

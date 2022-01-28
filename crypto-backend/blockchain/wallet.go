@@ -67,12 +67,12 @@ func (wallet *Wallet) createTransaction(
 	amount int,
 	transactionType TransactionType,
 ) Transaction {
-	transaction := NewTransaction(
+	transaction := CreateTransaction(
 		Transaction{
 			SenderPublicKey:   wallet.GetPublicKeyHex(),
 			ReceiverPublicKey: receiverPublicKey,
 			Amount:            amount,
-			TxType:   transactionType,
+			Type:              transactionType,
 			Id:                "",
 			Timestamp:         0,
 			Signature:         "",
