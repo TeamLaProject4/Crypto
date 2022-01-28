@@ -18,27 +18,35 @@
 <body class="d-flex h-100 text-center text-white bg-dark">
 
 <div class="container col-sm px-4 py-5">
-    <h1>Generate a QR-code to send a transaction</h1>
+    <h1>Generate a QR-code to send a <i>CryptoMunt</i> transaction</h1>
     <hr>
-    <div class="text-center">
+    <div class="text-center w-50 mx-auto">
         <!-- Get a Placeholder image initially, this will change according to the data entered later -->
         <img src="https://chart.googleapis.com/chart?cht=qr&chl=m4Rt1jN-1000&chs=160x160&chld=L|0" class="qr-code img-thumbnail img-responsive" />
         <div class="row">
+            <div class="col">
+            <input type="url" id="cryptielink" placeholder="https://chart.googleapis.com/chart?cht=qr&chl=m4Rt1jN-1000&chs=160x160&chld=L|0" readonly >
+                <button class="btn btn-info" onclick="copyLink()">Copy URL</button>
+            </div>
+            <br> <br> <hr> <br>
         <div class="col-sm form-floating text-dark">
-                <!-- Input box to enter the required data -->
-                <input type="text" class="form-control" id="accountnumber" placeholder="u89rjoiefoi" />
-                <label for="accountnumber">Account number</label>
-            </div>
-            <div class="col-sm form-floating text-dark">
-                <!-- Input box to enter the required data -->
-                <input type="number" class="form-control" id="amount" placeholder="1000000" />
-                <label for="amount">Amount</label>
-            </div>
+            <!-- Input box to enter the required data -->
+            <input type="text" class="form-control input-sm" id="accountnumber" placeholder="u89rjoiefoi" />
+            <label for="accountnumber">Account number</label>
         </div>
-                <br>
-                <!-- Button to generate QR Code for the entered data -->
-                <button type="button" class= "btn btn-warning btn-lg font-weight-bold" id="generate">Generate Cryptie</button>
     </div>
+    <br>
+    <div class="row">
+        <div class="col-sm form-floating text-dark">
+            <!-- Input box to enter the required data -->
+            <input type="number" class="form-control" id="amount" placeholder="1000000" />
+            <label for="amount">Amount</label>
+        </div>
+    </div>
+    <br>
+    <!-- Button to generate QR Code for the entered data -->
+    <button type="button" class= "btn btn-warning btn-lg font-weight-bold" id="generate">Generate Cryptie</button>
+</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
@@ -51,15 +59,32 @@
             .html();
     }
 
+    function copyLink() {
+        /* Get the text field */
+        var copyText = document.getElementById("cryptielink");
+
+        /* Select the text field */
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+        /* Copy the text inside the text field */
+        navigator.clipboard.writeText(copyText.value);
+
+        /* Alert the copied text */
+        alert("Copied the text: " + copyText.value);
+    }
+
     $(function () {
 
         // Specify an onclick function for the generate button
         $('#generate').click(function () {
 
             // Generate the link that would be used to generate the QR Code with the given data
-            let finalURL = 'https://chart.googleapis.com/chart?cht=qr&chl=' + htmlEncode($('#accountnumber').val() + '-' + $('#amount').val()) + '&chs=160x160&chld=L|0'
+            let cryptielink = htmlEncode('confirmpayment.html?' + $('#accountnumber').val() + '-' + $('#amount').val())
+            let finalURL = 'https://chart.googleapis.com/chart?cht=qr&chl=' + cryptielink + '&chs=160x160&chld=L|0'
             // Replace the src of the image with the QR code image
             $('.qr-code').attr('src', finalURL);
+            document.getElementById("cryptielink").value = cryptielink;
         });
     });
 </script>
