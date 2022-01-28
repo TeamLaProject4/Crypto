@@ -4,6 +4,7 @@ import (
 	"context"
 	"cryptomunt/blockchain"
 	"cryptomunt/utils"
+	"encoding/json"
 	"flag"
 	"github.com/libp2p/go-libp2p-core/host"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
@@ -14,9 +15,9 @@ const RANDEVOUS_STRING = "cryptomunt-randevous"
 type TopicType string
 
 const (
-	TRANSACTION TopicType = "TRANSACTION" //transaction
-	BLOCKCHAIN            = "BLOCKCHAIN"
-	ETC                   = "ETC"
+	TRANSACTION     TopicType = "TRANSACTION" //transaction
+	BLOCK_FORGED              = "BLOCK_FORGED"
+	CONSENSUS_ERROR           = "CONSENSUS_ERROR"
 )
 
 type Config struct {
@@ -53,6 +54,7 @@ func CreateCryptoNode() CryptoNode {
 	//pubsub
 	cryptoNode.logNodeAddr()
 	cryptoNode.subscriptions = cryptoNode.subscribeToTopics()
+	cryptoNode.readSubscriptions()
 
 	//blockchain
 	cryptoNode.Blockchain = blockchain.CreateBlockchain()
@@ -85,11 +87,11 @@ func (cryptoNode *CryptoNode) WriteToTopic(data string, topicType TopicType) {
 	}
 }
 
-//func (cryptoNode *CryptoNode) readSubscriptions() {
-//	for _, subscription := range cryptoNode.subscriptions {
-//		go readSubscription(&subscription)
-//	}
-//}
+func (cryptoNode *CryptoNode) readSubscriptions() {
+	for _, subscription := range cryptoNode.subscriptions {
+		go cryptoNode.readSubscription(subscription)
+	}
+}
 
 func parseFlags() Config {
 	config := Config{}
@@ -112,20 +114,65 @@ func (cryptoNode *CryptoNode) subscribeToTopics() []Subscription {
 
 	//subscribtion topics
 	transactionSub, err := subscribeToTopic(cryptoNode.ctx, gossipPubSub, cryptoNode.Libp2pNode.ID(), TRANSACTION)
-	blockChainSub, err := subscribeToTopic(cryptoNode.ctx, gossipPubSub, cryptoNode.Libp2pNode.ID(), BLOCKCHAIN)
+	blockForgedSub, err := subscribeToTopic(cryptoNode.ctx, gossipPubSub, cryptoNode.Libp2pNode.ID(), BLOCK_FORGED)
 
 	if err != nil {
 		panic(err)
 	}
 
-	go readSubscription(transactionSub)
-	go readSubscription(blockChainSub)
+	//go readSubscription(transactionSub)
+	//go readSubscription(blockChainSub)
 
-	return []Subscription{*transactionSub, *blockChainSub}
+	return []Subscription{*transactionSub, *blockForgedSub}
 }
 
-func readSubscription(sub *Subscription) {
+func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 	for message := range sub.Messages {
 		utils.Logger.Info(message.Message, sub.TopicName)
+
+		topicType := TopicType(sub.TopicName)
+
+		switch topicType {
+		case TRANSACTION:
+			utils.Logger.Info("Transaction received from the network")
+			utils.Logger.Info("transaction length", cryptoNode.MemoryPool.GetTransactionsLength())
+
+			var transaction blockchain.Transaction
+			err := json.Unmarshal([]byte(message.Message), &transaction)
+			if err != nil {
+				utils.Logger.Error("unmarshal error ", err)
+				return
+			}
+			utils.Logger.Info("transaction unmarshaled", transaction)
+			cryptoNode.handleTransaction(transaction)
+			//
+			utils.Logger.Info("new transaction length", cryptoNode.MemoryPool.GetTransactionsLength())
+
+		case BLOCK_FORGED:
+			utils.Logger.Info("Forged block received from the network")
+
+		}
+	}
+}
+
+func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transaction) {
+	payload := transaction.Payload()
+	signature := transaction.Signature
+	senderPublicKey := transaction.SenderPublicKey
+
+	transactionInMemoryPool := cryptoNode.MemoryPool.IsTransactionInPool(transaction)
+	signatureValid := blockchain.IsValidSignature(payload, signature, senderPublicKey)
+	transactionInBlockchain := cryptoNode.Blockchain.IsTransactionInBlockchain(transaction)
+
+	if !transactionInMemoryPool && signatureValid && !transactionInBlockchain {
+		cryptoNode.MemoryPool.AddTransaction(transaction)
+
+		//TODO: this was for python p2p? sending to other nodes? Libp2p handles this already
+		//message := message_.Message(self.p2p.socket, message_.MessageType.TRANSACTION, transaction)
+		//encoded_message := []byte(Encoding)
+		//self.p2p.broadcast_message(encoded_message)
+		//if self.memory_pool.is_transaction_threshold_reached() {
+		//	self.forge()
+		//}
 	}
 }

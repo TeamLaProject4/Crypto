@@ -140,7 +140,7 @@ func (blockchain *Blockchain) getNextForger() string {
 //	return block
 //}
 
-func (blockchain *Blockchain) isTransactionInBlockchain(transaction Transaction) bool {
+func (blockchain *Blockchain) IsTransactionInBlockchain(transaction Transaction) bool {
 	for _, block := range blockchain.Blocks {
 		for _, blockTransaction := range block.Transactions {
 			if blockTransaction == transaction {

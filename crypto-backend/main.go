@@ -42,6 +42,7 @@ func tempWriteToTopic(node networking.CryptoNode) {
 			Amount:            15,
 			Type:              blockchain.TRANSFER,
 		})
+		transaction.Sign("TEST_SIGNATURE")
 
 		node.WriteToTopic(transaction.ToJson(), networking.TRANSACTION)
 	}
