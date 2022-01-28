@@ -1,4 +1,4 @@
-package blockchain
+package wallet
 
 import (
 	"crypto"
@@ -72,7 +72,7 @@ func (wallet *Wallet) createTransaction(
 			SenderPublicKey:   wallet.GetPublicKeyHex(),
 			ReceiverPublicKey: receiverPublicKey,
 			Amount:            amount,
-			TxType:   transactionType,
+			TxType:            transactionType,
 			Id:                "",
 			Timestamp:         0,
 			Signature:         "",
