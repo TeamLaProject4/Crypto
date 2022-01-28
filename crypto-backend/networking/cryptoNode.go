@@ -145,7 +145,6 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 			}
 			utils.Logger.Info("transaction unmarshaled", transaction)
 			cryptoNode.handleTransaction(transaction)
-			//
 			utils.Logger.Info("new transaction length", cryptoNode.MemoryPool.GetTransactionsLength())
 
 		case BLOCK_FORGED:
@@ -166,13 +165,5 @@ func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transacti
 
 	if !transactionInMemoryPool && signatureValid && !transactionInBlockchain {
 		cryptoNode.MemoryPool.AddTransaction(transaction)
-
-		//TODO: this was for python p2p? sending to other nodes? Libp2p handles this already
-		//message := message_.Message(self.p2p.socket, message_.MessageType.TRANSACTION, transaction)
-		//encoded_message := []byte(Encoding)
-		//self.p2p.broadcast_message(encoded_message)
-		//if self.memory_pool.is_transaction_threshold_reached() {
-		//	self.forge()
-		//}
 	}
 }
