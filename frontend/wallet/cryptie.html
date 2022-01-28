@@ -24,29 +24,31 @@
         <!-- Get a Placeholder image initially, this will change according to the data entered later -->
         <img src="https://chart.googleapis.com/chart?cht=qr&chl=m4Rt1jN-1000&chs=160x160&chld=L|0" class="qr-code img-thumbnail img-responsive" />
         <div class="row">
-            <div class="col">
-            <input type="url" id="cryptielink" placeholder="https://chart.googleapis.com/chart?cht=qr&chl=m4Rt1jN-1000&chs=160x160&chld=L|0" readonly >
-                <button class="btn btn-info" onclick="copyLink()">Copy URL</button>
+            <div class="col" hidden id="sharelink">
+                <input type="url" id="cryptielink" placeholder="https://chart.googleapis.com/chart?cht=qr&chl=m4Rt1jN-1000&chs=160x160&chld=L|0" readonly >
+                <button class="btn btn-info" onclick="copyLink()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-share" style="margin-right: 5px" viewBox="0 0 16 16">
+                    <path d="M13.5 1a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM11 2.5a2.5 2.5 0 1 1 .603 1.628l-6.718 3.12a2.499 2.499 0 0 1 0 1.504l6.718 3.12a2.5 2.5 0 1 1-.488.876l-6.718-3.12a2.5 2.5 0 1 1 0-3.256l6.718-3.12A2.5 2.5 0 0 1 11 2.5zm-8.5 4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm11 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/>
+                </svg> | Copy URL</button>
             </div>
             <br> <br> <hr> <br>
-        <div class="col-sm form-floating text-dark">
-            <!-- Input box to enter the required data -->
-            <input type="text" class="form-control input-sm" id="accountnumber" placeholder="u89rjoiefoi" />
-            <label for="accountnumber">Account number</label>
+            <div class="col-sm form-floating text-dark">
+                <!-- Input box to enter the required data -->
+                <input type="text" class="form-control input-sm" id="accountnumber" placeholder="u89rjoiefoi" />
+                <label for="accountnumber">Account number</label>
+            </div>
         </div>
-    </div>
-    <br>
-    <div class="row">
-        <div class="col-sm form-floating text-dark">
-            <!-- Input box to enter the required data -->
-            <input type="number" class="form-control" id="amount" placeholder="1000000" />
-            <label for="amount">Amount</label>
+        <br>
+        <div class="row">
+            <div class="col-sm form-floating text-dark">
+                <!-- Input box to enter the required data -->
+                <input type="number" class="form-control" id="amount" placeholder="1000000" />
+                <label for="amount">Amount</label>
+            </div>
         </div>
+        <br>
+        <!-- Button to generate QR Code for the entered data -->
+        <button type="button" class= "btn btn-warning btn-lg font-weight-bold" id="generate">Generate Cryptie</button>
     </div>
-    <br>
-    <!-- Button to generate QR Code for the entered data -->
-    <button type="button" class= "btn btn-warning btn-lg font-weight-bold" id="generate">Generate Cryptie</button>
-</div>
 </div>
 
 <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
@@ -85,6 +87,7 @@
             // Replace the src of the image with the QR code image
             $('.qr-code').attr('src', finalURL);
             document.getElementById("cryptielink").value = cryptielink;
+            document.getElementById('sharelink').hidden = false
         });
     });
 </script>
