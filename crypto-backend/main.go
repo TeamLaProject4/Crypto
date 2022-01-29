@@ -37,13 +37,9 @@ func tempWriteToTopic(node networking.CryptoNode) {
 
 		fmt.Println("writing to topic..." + sendData)
 
-		transaction := blockchain.CreateTransaction(blockchain.Transaction{
-			SenderPublicKey:   "lars",
-			ReceiverPublicKey: "jeroen",
-			Amount:            15,
-			Type:              blockchain.TRANSFER,
-		})
-		transaction.Sign("TEST_SIGNATURE")
+		//api -> key/mnemonic -> wallet
+		wallet := blockchain.CreateWallet()
+		transaction := wallet.CreateTransaction("jeroen", 20, blockchain.TRANSFER)
 
 		node.WriteToTopic(transaction.ToJson(), networking.TRANSACTION)
 	}

@@ -2,9 +2,7 @@ package blockchain
 
 import (
 	"encoding/json"
-	"github.com/google/uuid"
 	"github.com/mitchellh/hashstructure"
-	"time"
 )
 
 type Transaction struct {
@@ -15,18 +13,6 @@ type Transaction struct {
 	Id                string          `json:"id"`
 	Timestamp         int64           `json:"timestamp"`
 	Signature         string          `json:"signature"`
-}
-
-func CreateTransaction(transaction Transaction) Transaction {
-	//check and fill variables if they are empty
-	if transaction.Id == "" {
-		transaction.Id = uuid.New().String()
-	}
-	if transaction.Timestamp == 0 {
-		transaction.Timestamp = time.Now().Unix()
-	}
-
-	return transaction
 }
 
 func (transaction *Transaction) hash() uint64 {

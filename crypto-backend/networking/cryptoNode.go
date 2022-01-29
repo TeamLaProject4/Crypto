@@ -148,6 +148,14 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 	}
 }
 
+//TODO: getBlockchainMetaData, getMissingBLocks, getEntireBlockchain
+//TODO: consensus over the network \w bad actor
+//TODO: timing, new forged block transaction not in memory pool then wait a few seconds
+
+func (cryptoNode *CryptoNode) handleBlockForged() {
+	//block forged on other node
+}
+
 func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transaction) {
 	payload := transaction.Payload()
 	signature := transaction.Signature

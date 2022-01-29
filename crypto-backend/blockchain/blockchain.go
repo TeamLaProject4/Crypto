@@ -4,6 +4,7 @@ import (
 	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
 	"encoding/json"
+	"fmt"
 	//"github.com/btcsuite/btcd/blockchain"
 )
 
@@ -148,4 +149,50 @@ func (blockchain *Blockchain) IsTransactionInBlockchain(transaction Transaction)
 		}
 	}
 	return false
+}
+
+func (blockchain *Blockchain) GetAllAccountTransactions(publicKey string) []Transaction {
+	//var wg sync.WaitGroup
+	//blocksTransactions := make(chan Transaction)
+	//blocksTransactions := make([]Transaction, 1)
+	blocksTransactions := *new([]Transaction)
+	for _, block := range blockchain.Blocks {
+		//wg.Add(1)
+		//go func(block Block) {
+		//	defer wg.Done()
+		//	go getAccountTransactionsFromBlock(block, blocksTransactions, publicKey)
+		//}(block)
+		for _, transaction := range block.Transactions {
+			fmt.Println(transaction)
+			if transaction.SenderPublicKey == publicKey || transaction.ReceiverPublicKey == publicKey {
+				//blocksTransactions <- transaction
+				blocksTransactions = append(blocksTransactions, transaction)
+			}
+		}
+	}
+	//wg.Wait()
+
+	//transactions := *new([]Transaction)
+	////combine blocksTransactions to one balance
+	//blockBalancesIndex := 0
+	//for transaction := range blocksTransactions {
+	//	fmt.Println("Test", transaction)
+	//	transactions = append(transactions, transaction)
+	//
+	//	//if len(blockchain.Blocks)-1 == blockBalancesIndex {
+	//	//	close(blocksTransactions)
+	//	//}
+	//	blockBalancesIndex++
+	//}
+
+	return blocksTransactions
+}
+
+func getAccountTransactionsFromBlock(block Block, transactions chan Transaction, publicKey string) {
+	for _, transaction := range block.Transactions {
+		fmt.Println(transaction)
+		if transaction.SenderPublicKey == publicKey || transaction.ReceiverPublicKey == publicKey {
+			transactions <- transaction
+		}
+	}
 }

@@ -2,6 +2,7 @@ package integration_test
 
 import (
 	"cryptomunt/blockchain"
+	"fmt"
 	"testing"
 )
 
@@ -19,10 +20,10 @@ func constructTransactions() []blockchain.Transaction {
 	transaction3 := constructTransaction("martijn", "lars", 32)
 	return []blockchain.Transaction{transaction1, transaction2, transaction3}
 }
-func constructBlock(prev_hash string) blockchain.Block {
+func constructBlock(prevHash string) blockchain.Block {
 	block := new(blockchain.Block)
 	block.Transactions = constructTransactions()
-	block.PreviousHash = prev_hash
+	block.PreviousHash = prevHash
 	block.Forger = "forger"
 	block.Height = 1
 	return *block
@@ -31,12 +32,15 @@ func constructBlock(prev_hash string) blockchain.Block {
 func TestWhenSetBalancesFromBlockchainThenBalanceHasCorrectAmount(t *testing.T) {
 	chain := blockchain.CreateBlockchain()
 	chain.Blocks = []blockchain.Block{constructBlock(chain.LatestPreviousHash())}
-
-	got := 30
+	fmt.Println("BLOCKS", chain.Blocks)
 
 	//create balances using the transactions in the blockchain
 	chain.AccountModel.SetBalancesFromBlockChain(chain)
+	got := 30
 	want := chain.AccountModel.Balances["jeroen"]
+
+	transactions := chain.GetAllAccountTransactions("lars")
+	fmt.Println("transactions from lars", transactions)
 
 	if got != want {
 		t.Errorf("Expected '%d', but got '%d'", want, got)

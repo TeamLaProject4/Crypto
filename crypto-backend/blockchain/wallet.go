@@ -8,7 +8,9 @@ import (
 	"cryptomunt/utils"
 	"encoding/hex"
 	"fmt"
+	"github.com/google/uuid"
 	"os"
+	"time"
 )
 
 var KEY_LENGTH_BITS = 2048
@@ -64,24 +66,23 @@ func (wallet *Wallet) GetPublicKeyHex() string {
 	return utils.GetRsaPublicKeyHexValue(&wallet.key.PublicKey)
 }
 
-func (wallet *Wallet) createTransaction(
+func (wallet *Wallet) CreateTransaction(
 	receiverPublicKey string,
 	amount int,
 	transactionType TransactionType,
 ) Transaction {
-	transaction := CreateTransaction(
-		Transaction{
-			SenderPublicKey:   wallet.GetPublicKeyHex(),
-			ReceiverPublicKey: receiverPublicKey,
-			Amount:            amount,
-			Type:              transactionType,
-			Id:                "",
-			Timestamp:         0,
-			Signature:         "",
-		})
+	transaction := Transaction{
+		SenderPublicKey:   wallet.GetPublicKeyHex(),
+		ReceiverPublicKey: receiverPublicKey,
+		Amount:            amount,
+		Type:              transactionType,
+		Id:                uuid.New().String(),
+		Timestamp:         time.Now().Unix(),
+	}
 
 	signature := wallet.sign(transaction.ToJson())
 	transaction.Sign(signature)
+
 	return transaction
 }
 
