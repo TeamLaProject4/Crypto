@@ -14,13 +14,10 @@ func main() {
 
 	node := networking.CreateCryptoNode()
 
-	//node.WriteToTopic("STRING", networking.BLOCKCHAIN)
-
-	//api := startRestApi()
-	//listens to api calls
-	//when api call x then write to topic
-	//
 	go tempWriteToTopic(node)
+
+	//go startRestApi
+	//when api call x then write to topic
 
 	//infinite loop
 	select {}

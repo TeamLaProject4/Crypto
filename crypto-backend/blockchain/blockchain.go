@@ -5,6 +5,7 @@ import (
 	"cryptomunt/utils"
 	"encoding/json"
 	"fmt"
+	"sync"
 	//"github.com/btcsuite/btcd/blockchain"
 )
 
@@ -152,47 +153,39 @@ func (blockchain *Blockchain) IsTransactionInBlockchain(transaction Transaction)
 }
 
 func (blockchain *Blockchain) GetAllAccountTransactions(publicKey string) []Transaction {
-	//var wg sync.WaitGroup
-	//blocksTransactions := make(chan Transaction)
-	//blocksTransactions := make([]Transaction, 1)
-	blocksTransactions := *new([]Transaction)
-	for _, block := range blockchain.Blocks {
-		//wg.Add(1)
-		//go func(block Block) {
-		//	defer wg.Done()
-		//	go getAccountTransactionsFromBlock(block, blocksTransactions, publicKey)
-		//}(block)
-		for _, transaction := range block.Transactions {
-			fmt.Println(transaction)
-			if transaction.SenderPublicKey == publicKey || transaction.ReceiverPublicKey == publicKey {
-				//blocksTransactions <- transaction
-				blocksTransactions = append(blocksTransactions, transaction)
-			}
-		}
+	var wg sync.WaitGroup
+	blocksTransactions := make(chan []Transaction)
+	for index, block := range blockchain.Blocks {
+		wg.Add(1)
+		go func(block Block, index int) {
+			defer wg.Done()
+			go getAccountTransactionsFromBlock(block, blocksTransactions, publicKey, index)
+		}(block, index)
 	}
-	//wg.Wait()
+	wg.Wait()
 
-	//transactions := *new([]Transaction)
-	////combine blocksTransactions to one balance
-	//blockBalancesIndex := 0
-	//for transaction := range blocksTransactions {
-	//	fmt.Println("Test", transaction)
-	//	transactions = append(transactions, transaction)
-	//
-	//	//if len(blockchain.Blocks)-1 == blockBalancesIndex {
-	//	//	close(blocksTransactions)
-	//	//}
-	//	blockBalancesIndex++
-	//}
+	transactions := *new([]Transaction)
+	blockBalancesIndex := 0
+	for transaction := range blocksTransactions {
+		transactions = append(transactions, transaction...)
 
-	return blocksTransactions
+		if len(blockchain.Blocks)-1 == blockBalancesIndex {
+			close(blocksTransactions)
+		}
+		blockBalancesIndex++
+	}
+
+	return transactions
 }
 
-func getAccountTransactionsFromBlock(block Block, transactions chan Transaction, publicKey string) {
+func getAccountTransactionsFromBlock(block Block, transactions chan []Transaction, publicKey string, index int) {
+	transactionsFromBlock := *new([]Transaction)
 	for _, transaction := range block.Transactions {
-		fmt.Println(transaction)
+		fmt.Printf("Goroutine: %d  trans: %v  \n", index, transaction)
 		if transaction.SenderPublicKey == publicKey || transaction.ReceiverPublicKey == publicKey {
-			transactions <- transaction
+			transactionsFromBlock = append(transactionsFromBlock, transaction)
 		}
 	}
+
+	transactions <- transactionsFromBlock
 }
