@@ -16,7 +16,7 @@ func main() {
 
 	go tempWriteToTopic(node)
 
-	//go startRestApi
+	//go startRestApi()
 	//when api call x then write to topic
 
 	//infinite loop

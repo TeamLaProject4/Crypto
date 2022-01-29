@@ -54,7 +54,6 @@ func (memoryPool *MemoryPool) GetTransactionIndex(transaction Transaction) (int,
 }
 
 func (memoryPool *MemoryPool) RemoveTransaction(transaction Transaction) {
-
 	index, err := memoryPool.GetTransactionIndex(transaction)
 	if err != nil {
 		utils.Logger.Error(err)

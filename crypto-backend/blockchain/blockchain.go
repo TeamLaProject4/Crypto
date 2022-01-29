@@ -82,11 +82,11 @@ func (blockchain *Blockchain) IsValidPreviousBlockHash(block Block) bool {
 	return blockchain.LatestPreviousHash() == block.PreviousHash
 }
 
-func (blockchain *Blockchain) isValidForger(block Block) bool {
+func (blockchain *Blockchain) IsValidForger(block Block) bool {
 	return block.Forger == blockchain.getNextForger()
 }
 
-func (blockchain *Blockchain) isBlockTransactionsValid(block Block) bool {
+func (blockchain *Blockchain) IsBlockTransactionsValid(block Block) bool {
 	transactions := block.Transactions
 	coveredTransactions := blockchain.GetCoveredTransactions(transactions)
 	return len(transactions) == len(coveredTransactions)

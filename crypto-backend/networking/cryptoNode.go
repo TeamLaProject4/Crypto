@@ -152,8 +152,30 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 //TODO: consensus over the network \w bad actor
 //TODO: timing, new forged block transaction not in memory pool then wait a few seconds
 
-func (cryptoNode *CryptoNode) handleBlockForged() {
-	//block forged on other node
+//block forged on other node
+func (cryptoNode *CryptoNode) handleBlockForged(block blockchain.Block) {
+
+	//TODO: cryptoNode.request_missing_blocks()
+	//if !blockCountValid {
+	//	cryptoNode.request_missing_blocks()
+	//}
+	if cryptoNode.isForgedBlockValid(block) {
+		cryptoNode.Blockchain.AddBlock(block)
+		cryptoNode.MemoryPool.RemoveTransactions(block.Transactions)
+	}
+}
+func (cryptoNode *CryptoNode) isForgedBlockValid(block blockchain.Block) bool {
+	payload := block.Payload()
+	signature := block.Signature
+	forgerPublicKey := block.Forger
+
+	blockCountValid := cryptoNode.Blockchain.IsValidBlockHeight(block)
+	previousBlockHashValid := cryptoNode.Blockchain.IsValidPreviousBlockHash(block)
+	signatureValid := blockchain.IsValidSignature(payload, signature, forgerPublicKey)
+	forgerValid := cryptoNode.Blockchain.IsValidForger(block)
+	blockTransactionsValid := cryptoNode.Blockchain.IsBlockTransactionsValid(block)
+
+	return blockTransactionsValid && forgerValid && signatureValid && previousBlockHashValid && blockCountValid
 }
 
 func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transaction) {
