@@ -5,7 +5,6 @@
    2. 1x genesis?
    3. if new node comes to network
       1. copy existing blockchain from node(bootnode?)
-   4. check python code
 3. give wallet starting amount of coins(testing purposes)
    1. no amount in wallet then cannot make transaction
 4. check if blockchain is equal across nodes
@@ -14,8 +13,16 @@
 7. create new block
 8. check if blockchain is equal across nodes
 
-MEMORYPOOL!
 
 ## Situation 2
 1. consensus across network
    1. if consensus not reached then revert to previous state blockchain
+
+
+
+## ICO
+1. founder wallet in genesis block
+2. stuur transacties naar gemaakte wallets
+
+
+## Mnumonic...

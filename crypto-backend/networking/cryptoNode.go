@@ -14,9 +14,9 @@ const RANDEVOUS_STRING = "cryptomunt-randevous"
 type TopicType string
 
 const (
-	TRANSACTION TopicType = "TRANSACTION" //transaction
-	BLOCKCHAIN            = "BLOCKCHAIN"
-	ETC                   = "ETC"
+	TRANSACTION     TopicType = "TRANSACTION" //transaction
+	BLOCK_FORGED              = "BLOCK_FORGED"
+	CONSENSUS_ERROR           = "CONSENSUS_ERROR"
 )
 
 type Config struct {
@@ -32,6 +32,8 @@ type CryptoNode struct {
 	ctx           context.Context
 	subscriptions []Subscription
 	Blockchain    blockchain.Blockchain
+	MemoryPool    blockchain.MemoryPool
+	Wallet        blockchain.Wallet
 	//sub map[TopicType]Subscription
 }
 
@@ -40,16 +42,23 @@ func CreateCryptoNode() CryptoNode {
 	ctx := context.Background()
 	config := parseFlags()
 
+	//p2p
 	node := initHost(ctx, config.BootNodes)
-
+	//init
 	cryptoNode := CryptoNode{
 		Libp2pNode: node,
 		ctx:        ctx,
 	}
 
+	//pubsub
 	cryptoNode.logNodeAddr()
 	cryptoNode.subscriptions = cryptoNode.subscribeToTopics()
-	//cryptoNode.readSubscriptions() //log incomin messages
+	cryptoNode.readSubscriptions()
+
+	//blockchain
+	cryptoNode.Blockchain = blockchain.CreateBlockchain()
+	cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
+	cryptoNode.Wallet = blockchain.CreateWallet()
 
 	return cryptoNode
 }
@@ -77,11 +86,11 @@ func (cryptoNode *CryptoNode) WriteToTopic(data string, topicType TopicType) {
 	}
 }
 
-//func (cryptoNode *CryptoNode) readSubscriptions() {
-//	for _, subscription := range cryptoNode.subscriptions {
-//		go readSubscription(&subscription)
-//	}
-//}
+func (cryptoNode *CryptoNode) readSubscriptions() {
+	for _, subscription := range cryptoNode.subscriptions {
+		go cryptoNode.readSubscription(subscription)
+	}
+}
 
 func parseFlags() Config {
 	config := Config{}
@@ -104,20 +113,52 @@ func (cryptoNode *CryptoNode) subscribeToTopics() []Subscription {
 
 	//subscribtion topics
 	transactionSub, err := subscribeToTopic(cryptoNode.ctx, gossipPubSub, cryptoNode.Libp2pNode.ID(), TRANSACTION)
-	blockChainSub, err := subscribeToTopic(cryptoNode.ctx, gossipPubSub, cryptoNode.Libp2pNode.ID(), BLOCKCHAIN)
+	blockForgedSub, err := subscribeToTopic(cryptoNode.ctx, gossipPubSub, cryptoNode.Libp2pNode.ID(), BLOCK_FORGED)
 
 	if err != nil {
 		panic(err)
 	}
 
-	go readSubscription(transactionSub)
-	go readSubscription(blockChainSub)
+	//go readSubscription(transactionSub)
+	//go readSubscription(blockChainSub)
 
-	return []Subscription{*transactionSub, *blockChainSub}
+	return []Subscription{*transactionSub, *blockForgedSub}
 }
 
-func readSubscription(sub *Subscription) {
+func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 	for message := range sub.Messages {
 		utils.Logger.Info(message.Message, sub.TopicName)
+
+		topicType := TopicType(sub.TopicName)
+
+		switch topicType {
+		case TRANSACTION:
+			utils.Logger.Info("Transaction received from the network")
+			var transaction blockchain.Transaction
+			transaction = utils.GetStructFromJson(message.Message, transaction).(blockchain.Transaction)
+			cryptoNode.handleTransaction(transaction)
+
+		case BLOCK_FORGED:
+			utils.Logger.Info("Forged block received from the network")
+			var block blockchain.Block
+			block = utils.GetStructFromJson(message.Message, block).(blockchain.Block)
+			//handleBlock
+
+		}
+	}
+}
+
+func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transaction) {
+	payload := transaction.Payload()
+	signature := transaction.Signature
+	senderPublicKey := transaction.SenderPublicKey
+
+	transactionInMemoryPool := cryptoNode.MemoryPool.IsTransactionInPool(transaction)
+	signatureValid := blockchain.IsValidSignature(payload, signature, senderPublicKey)
+	transactionInBlockchain := cryptoNode.Blockchain.IsTransactionInBlockchain(transaction)
+
+	if !transactionInMemoryPool && signatureValid && !transactionInBlockchain {
+		cryptoNode.MemoryPool.AddTransaction(transaction)
+		utils.Logger.Info("Transaction added to memory pool")
 	}
 }

@@ -15,12 +15,11 @@ var KEY_LENGTH_BITS = 2048
 var PRIVATE_KEY_PATH = "../keys/walletPrivateKey.hex"
 var PUBLIC_KEY_PATH = "../keys/walletPublicKey.hex"
 
-//Keep wallet keys private
 type Wallet struct {
-	key rsa.PrivateKey //contains private and public keys
+	key rsa.PrivateKey //contains private and public keys, keep private!
 }
 
-//// NewWallet TODO: mnumonic?
+// CreateWallet TODO: mnumonic?
 func CreateWallet() Wallet {
 	return Wallet{key: GetKeyPair()}
 }
@@ -31,11 +30,14 @@ func GetKeyPair() rsa.PrivateKey {
 	var privateKey rsa.PrivateKey
 
 	//get from file
-	privateKey = utils.ReadRsaKeyFile("../keys/wallet.rsa")
+	privateKey = utils.ReadRsaKeyFile("./keys/wallet.rsa")
 
 	//generate key
 	if privateKey.Size() < 1 {
-		key, _ := rsa.GenerateKey(rand.Reader, KEY_LENGTH_BITS)
+		key, err := rsa.GenerateKey(rand.Reader, KEY_LENGTH_BITS)
+		if err != nil {
+			utils.Logger.Error("generate rsa error", err)
+		}
 		privateKey = *key
 		//TODO: error handling
 		utils.WriteRsaKeyToFile(privateKey)
@@ -78,7 +80,7 @@ func (wallet *Wallet) createTransaction(
 			Signature:         "",
 		})
 
-	signature := wallet.sign(transaction.toJson())
+	signature := wallet.sign(transaction.ToJson())
 	transaction.Sign(signature)
 	return transaction
 }
