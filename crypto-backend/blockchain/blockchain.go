@@ -22,7 +22,7 @@ func CreateBlockchain() Blockchain {
 	blocks = append(blocks, genesisBlock)
 	pos := proofOfStake.NewProofOfStake()
 
-	accountModel := NewAccountModel()
+	accountModel := CreateAccountModel()
 
 	return Blockchain{
 		Blocks:       blocks,
@@ -61,7 +61,7 @@ func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 	receiver := transaction.ReceiverPublicKey
 	amount := transaction.Amount
 
-	if transaction.TxType == STAKE {
+	if transaction.Type == STAKE {
 		if sender == receiver {
 
 			blockchain.proofOfStake.UpdateStake(sender, amount)
@@ -112,7 +112,7 @@ func (blockchain *Blockchain) GetCoveredTransactions(transactions []Transaction)
 }
 
 func (blockchain *Blockchain) IsTransactionCovered(transaction Transaction) bool {
-	if transaction.TxType == EXCHANGE {
+	if transaction.Type == EXCHANGE {
 		return true
 	}
 	senderBalance := blockchain.accountModel.GetBalance(transaction.SenderPublicKey)
@@ -140,7 +140,7 @@ func (blockchain *Blockchain) getNextForger() string {
 //	return block
 //}
 
-func (blockchain *Blockchain) isTransactionInBlockchain(transaction Transaction) bool {
+func (blockchain *Blockchain) IsTransactionInBlockchain(transaction Transaction) bool {
 	for _, block := range blockchain.Blocks {
 		for _, blockTransaction := range block.Transactions {
 			if blockTransaction == transaction {

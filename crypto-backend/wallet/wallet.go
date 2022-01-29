@@ -6,7 +6,6 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"cryptomunt/utils"
-	"crypto/ecdsa"
 	"encoding/hex"
 	"fmt"
 	"os"
@@ -38,11 +37,14 @@ func GetKeyPair() rsa.PrivateKey {
 	var privateKey rsa.PrivateKey
 
 	//get from file
-	privateKey = utils.ReadRsaKeyFile("../keys/wallet.rsa")
+	privateKey = utils.ReadRsaKeyFile("./keys/wallet.rsa")
 
 	//generate key
 	if privateKey.Size() < 1 {
-		key, _ := rsa.GenerateKey(rand.Reader, KEY_LENGTH_BITS)
+		key, err := rsa.GenerateKey(rand.Reader, KEY_LENGTH_BITS)
+		if err != nil {
+			utils.Logger.Error("generate rsa error", err)
+		}
 		privateKey = *key
 		//TODO: error handling
 		utils.WriteRsaKeyToFile(privateKey)
@@ -74,18 +76,18 @@ func (wallet *Wallet) createTransaction(
 	amount int,
 	transactionType TransactionType,
 ) Transaction {
-	transaction := NewTransaction(
+	transaction := CreateTransaction(
 		Transaction{
 			SenderPublicKey:   wallet.GetPublicKeyHex(),
 			ReceiverPublicKey: receiverPublicKey,
 			Amount:            amount,
-			TxType:            transactionType,
+			Type:              transactionType,
 			Id:                "",
 			Timestamp:         0,
 			Signature:         "",
 		})
 
-	signature := wallet.sign(transaction.toJson())
+	signature := wallet.sign(transaction.ToJson())
 	transaction.Sign(signature)
 	return transaction
 }

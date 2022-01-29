@@ -21,7 +21,7 @@ func pickWinner(lots []Lot, seed string) Lot {
 }
 
 func getOffset(lot Lot, seedInt big.Int) big.Int {
-	lotHash := lot.GetHash()
+	lotHash := lot.Hash()
 	lotHashInt := utils.GetBigIntHash(lotHash)
 
 	var difference = new(big.Int)
