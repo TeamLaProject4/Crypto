@@ -45,7 +45,7 @@ func TestWhenSetBalancesFromBlockchainThenBalanceHasCorrectAmount(t *testing.T) 
 	}
 }
 
-func TestWhen(t *testing.T) {
+func TestWhenGettingAllAccountLarsTransactionsThenIsSix(t *testing.T) {
 	chain := blockchain.CreateBlockchain()
 	block1 := constructBlock(chain.LatestPreviousHash())
 	block2 := constructBlock(chain.LatestPreviousHash())
@@ -53,14 +53,12 @@ func TestWhen(t *testing.T) {
 	chain.Blocks = []blockchain.Block{block1, block2, block3}
 
 	//create balances using the transactions in the blockchain
-	chain.AccountModel.SetBalancesFromBlockChain(chain)
-	got := 90
-	want := chain.AccountModel.Balances["jeroen"]
+	got := chain.GetAllAccountTransactions("lars")
+	want := 6
 
-	transactions := chain.GetAllAccountTransactions("lars")
-	fmt.Println("transactions from henk", transactions)
+	fmt.Println("transactions from lars: ", got)
 
-	if got != want {
-		t.Errorf("Expected '%d', but got '%d'", want, got)
+	if len(got) != want {
+		t.Errorf("Expected '%v' \n but got '%v'", want, got)
 	}
 }
