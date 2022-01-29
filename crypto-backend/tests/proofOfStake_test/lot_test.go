@@ -1,12 +1,12 @@
 package proofofstaketest_test
 
 import (
-	pos "cryptomunt/proofOfStake"
+	"cryptomunt/proofOfStake"
 	"testing"
 )
 
 func TestWhenLotHashedThenHasIsCorrect(t *testing.T) {
-	lot := new(pos.Lot)
+	lot := new(proofOfStake.Lot)
 	lot.PublicKey = "alice"
 	lot.Iteration = 1
 	lot.PreviousBlockHash = "prev_hash"
