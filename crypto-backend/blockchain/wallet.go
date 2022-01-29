@@ -15,12 +15,11 @@ var KEY_LENGTH_BITS = 2048
 var PRIVATE_KEY_PATH = "../keys/walletPrivateKey.hex"
 var PUBLIC_KEY_PATH = "../keys/walletPublicKey.hex"
 
-//Keep wallet keys private
 type Wallet struct {
-	key rsa.PrivateKey //contains private and public keys
+	key rsa.PrivateKey //contains private and public keys, keep private!
 }
 
-//// NewWallet TODO: mnumonic?
+// CreateWallet TODO: mnumonic?
 func CreateWallet() Wallet {
 	return Wallet{key: GetKeyPair()}
 }
