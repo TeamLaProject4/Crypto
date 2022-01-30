@@ -3,10 +3,9 @@ package api
 import (
 	"cryptomunt/networking"
 	"cryptomunt/utils"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-
-	"github.com/gin-gonic/gin"
 )
 
 // album represents data about a record album.

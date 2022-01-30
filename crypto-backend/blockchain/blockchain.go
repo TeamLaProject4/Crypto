@@ -136,7 +136,7 @@ func (blockchain *Blockchain) GetBlocksFromRange(start int, end int) []Block {
 		return nil
 	}
 	if end > len(blockchain.Blocks) {
-		return blockchain.Blocks
+		return blockchain.Blocks[start:len(blockchain.Blocks)]
 	}
 
 	blocks := blockchain.Blocks[start:end]
