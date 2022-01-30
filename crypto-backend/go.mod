@@ -3,17 +3,31 @@ module cryptomunt
 go 1.17
 
 require (
+	github.com/gdamore/tcell/v2 v2.1.0
 	github.com/google/uuid v1.3.0
 	github.com/ipfs/go-log/v2 v2.5.0
+	github.com/libp2p/go-libp2p v0.17.0
+	github.com/libp2p/go-libp2p-core v0.13.0
 	github.com/libp2p/go-libp2p-discovery v0.6.0
 	github.com/libp2p/go-libp2p-kad-dht v0.15.0
+	github.com/libp2p/go-libp2p-pubsub v0.6.0
 	github.com/mitchellh/hashstructure v1.1.0
 	github.com/multiformats/go-multiaddr v0.4.0
-	github.com/gdamore/tcell/v2 v2.1.0
-    github.com/libp2p/go-libp2p v0.17.0
-    github.com/libp2p/go-libp2p-core v0.13.0
-    github.com/libp2p/go-libp2p-pubsub v0.6.0
-    github.com/rivo/tview v0.0.0-20210125085121-dbc1f32bb1d0
+	github.com/rivo/tview v0.0.0-20210125085121-dbc1f32bb1d0
+)
+
+require (
+	github.com/gin-contrib/sse v0.1.0 // indirect
+	github.com/gin-gonic/gin v1.7.7 // indirect
+	github.com/go-playground/locales v0.13.0 // indirect
+	github.com/go-playground/universal-translator v0.17.0 // indirect
+	github.com/go-playground/validator/v10 v10.4.1 // indirect
+	github.com/json-iterator/go v1.1.11 // indirect
+	github.com/leodido/go-urn v1.2.0 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.1 // indirect
+	github.com/ugorji/go/codec v1.1.7 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
 require (
@@ -30,7 +44,6 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/gopacket v1.1.19 // indirect
-	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
@@ -95,7 +108,6 @@ require (
 	github.com/mikioh/tcpopt v0.0.0-20190314235656-172688c1accc // indirect
 	github.com/minio/blake2b-simd v0.0.0-20160723061019-3f5f724cb5b1 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
-	github.com/mitchellh/hashstructure v1.1.0
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/multiformats/go-base32 v0.0.3 // indirect
 	github.com/multiformats/go-base36 v0.1.0 // indirect
