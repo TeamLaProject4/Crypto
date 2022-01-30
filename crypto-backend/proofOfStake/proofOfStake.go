@@ -6,28 +6,101 @@ import (
 	"math/big"
 )
 
-func pickWinner(lots []Lot, seed string) Lot {
-	winner := lots[0]
-	leastOffset := utils.HexToBigInt(MAX_256_INT_VALUE)
-	seedInt := utils.GetBigIntHash(seed)
+const MAX_256_INT_VALUE = "10000000000000000000000000000000000000000000000000000000000000000"
 
-	for _, lot := range lots {
-		if isOffsetSmaller(lot, seedInt, leastOffset) {
-			leastOffset = getOffset(lot, seedInt)
-			winner = lot
-		}
-	}
-	return winner
+type ProofOfStake struct {
+	Stakers          map[string]int
+	genesisPublicKey string
 }
 
-func getOffset(lot Lot, seedInt big.Int) big.Int {
-	lotHash := lot.Hash()
-	lotHashInt := utils.GetBigIntHash(lotHash)
+type NegativeBalanceError struct {
+	account        string
+	currentBalance int
+	withdrawAmount int
+	Msg            string
+}
 
-	var difference = new(big.Int)
-	difference.Sub(&lotHashInt, &seedInt)
+func (e *NegativeBalanceError) Error() string {
+	return e.Msg
+}
 
-	return utils.GetAbsolutBigInt(*difference)
+func NewProofOfStake() ProofOfStake {
+	pos := new(ProofOfStake)
+	pos.Stakers = make(map[string]int)
+	pos.genesisPublicKey = "key" // TODO: load key from file/config
+	return *pos
+}
+
+func (proofOfStake *ProofOfStake) PickForger(previousBlockHash string) string {
+	lots := proofOfStake.generateLots(previousBlockHash)
+	winner := pickWinner(lots, previousBlockHash)
+	return winner.PublicKey
+}
+
+func (proofOfStake *ProofOfStake) GetStake(publicKey string) int {
+	proofOfStake.AddAccountToStakers(publicKey)
+	return proofOfStake.Stakers[publicKey]
+}
+
+func (proofOfStake *ProofOfStake) AddAccountToStakers(publicKey string) {
+	if !proofOfStake.IsAccountInStakers(publicKey) {
+		proofOfStake.Stakers[publicKey] = 0
+	}
+}
+
+func (proofOfStake *ProofOfStake) IsAccountInStakers(publicKey string) bool {
+	_, accountInStakers := proofOfStake.Stakers[publicKey]
+	return accountInStakers
+}
+
+func (proofOfStake *ProofOfStake) UpdateStake(publicKey string, stake int) error {
+	proofOfStake.AddAccountToStakers(publicKey)
+	err := validateNegativeStake(proofOfStake, publicKey, stake)
+	if err != nil {
+		return err
+	}
+	proofOfStake.Stakers[publicKey] += stake
+	return nil
+}
+
+func validateNegativeStake(proofOfStake *ProofOfStake, publicKey string, stake int) error {
+	if stake < 0 && !proofOfStake.balanceIsSufficient(publicKey, -stake) {
+		currentBalance := proofOfStake.GetStake(publicKey)
+		return &NegativeBalanceError{
+			account: publicKey,
+			currentBalance: currentBalance,
+			withdrawAmount: stake,
+			Msg: fmt.Sprintf("Unstake amount (%d) cannot be greater than balance (%d)", stake, currentBalance),
+		}
+	}
+	return nil
+}
+
+func (proofOfStake *ProofOfStake) balanceIsSufficient(publicKey string, withdrawAmount int) bool {
+	return  proofOfStake.GetStake(publicKey) >= withdrawAmount
+}
+
+func (proofOfStake *ProofOfStake) generateLots(seed string) []Lot {
+	lots := generateLotsFromStakers(proofOfStake, seed)
+
+	if len(lots) == 0 {
+		lots = generateLotFromGenesis(proofOfStake, seed)
+	}
+
+	return lots
+}
+
+func generateLotsFromStakers(proofOfStake *ProofOfStake, seed string) []Lot {
+	var lots []Lot
+	for stakePublicKey, stakeAmount := range proofOfStake.Stakers {
+		lots = append(lots, generateStakerLots(stakePublicKey, stakeAmount, seed)...)
+	}
+	return lots
+}
+
+func generateLotFromGenesis(proofOfStake *ProofOfStake, seed string) []Lot {
+	lots := generateStakerLots(proofOfStake.genesisPublicKey, 1, seed)
+	return lots
 }
 
 func generateStakerLots(stakePublicKey string, stakeAmount int, seed string) []Lot {
@@ -43,6 +116,20 @@ func generateStakerLots(stakePublicKey string, stakeAmount int, seed string) []L
 	return lots
 }
 
+func pickWinner(lots []Lot, seed string) Lot {
+	winner := lots[0]
+	leastOffset := utils.HexToBigInt(MAX_256_INT_VALUE)
+	seedInt := utils.GetBigIntHash(seed)
+
+	for _, lot := range lots {
+		if isOffsetSmaller(lot, seedInt, leastOffset) {
+			leastOffset = getOffset(lot, seedInt)
+			winner = lot
+		}
+	}
+	return winner
+}
+
 func isOffsetSmaller(lot Lot, seedInt big.Int, leastOffset big.Int) bool {
 	offset := getOffset(lot, seedInt)
 	compareOffset := offset.Cmp(&leastOffset)
@@ -50,64 +137,12 @@ func isOffsetSmaller(lot Lot, seedInt big.Int, leastOffset big.Int) bool {
 	return compareOffset == -1
 }
 
-type ProofOfStake struct {
-	Stakers map[string]int
-}
+func getOffset(lot Lot, seedInt big.Int) big.Int {
+	lotHash := lot.Hash()
+	lotHashInt := utils.GetBigIntHash(lotHash)
 
-const MAX_256_INT_VALUE = "10000000000000000000000000000000000000000000000000000000000000000"
+	var difference = new(big.Int)
+	difference.Sub(&lotHashInt, &seedInt)
 
-//func GetProofOfStake() *ProofOfStake {
-//	return proofOfStake
-//}
-
-func CreateProofOfStake() ProofOfStake {
-	return ProofOfStake{Stakers: map[string]int{}}
-}
-
-func (proofOfStake *ProofOfStake) PrintStakers() {
-	fmt.Println(proofOfStake.Stakers)
-}
-
-// SetGenesisNodeStake TODO: unit test
-//TODO: remove hardcoded path and add more generic solution
-// TODO: after others stake, then genesis can no longer be forger, if everyone unstaked, then genesis can be forger
-func (proofOfStake *ProofOfStake) SetGenesisNodeStake() {
-	genesisPublicKey := utils.GetFileContents("../keys/genesisPublicKey.pem")
-	proofOfStake.Stakers[genesisPublicKey] = 1
-}
-
-func (proofOfStake *ProofOfStake) IsAccountInStakers(publicKey string) bool {
-	_, accountInStakers := proofOfStake.Stakers[publicKey]
-	return accountInStakers
-}
-
-func (proofOfStake *ProofOfStake) AddAccountToStakers(publicKey string) {
-	if !proofOfStake.IsAccountInStakers(publicKey) {
-		proofOfStake.Stakers[publicKey] = 0
-	}
-}
-
-func (proofOfStake *ProofOfStake) UpdateStake(publicKey string, stake int) {
-	proofOfStake.AddAccountToStakers(publicKey)
-	proofOfStake.Stakers[publicKey] += stake
-}
-
-func (proofOfStake *ProofOfStake) GetStake(publicKey string) int {
-	//TODO: addAccount to Stakers not logical here, remove?
-	proofOfStake.AddAccountToStakers(publicKey)
-	return proofOfStake.Stakers[publicKey]
-}
-
-func (proofOfStake *ProofOfStake) GenerateLots(seed string) []Lot {
-	var lots []Lot
-	for stakePublicKey, stakeAmount := range proofOfStake.Stakers {
-		lots = append(lots, generateStakerLots(stakePublicKey, stakeAmount, seed)...)
-	}
-	return lots
-}
-
-func (proofOfStake *ProofOfStake) PickForger(previousBlockHash string) string {
-	lots := proofOfStake.GenerateLots(previousBlockHash)
-	winner := pickWinner(lots, previousBlockHash)
-	return winner.PublicKey
+	return utils.GetAbsolutBigInt(*difference)
 }

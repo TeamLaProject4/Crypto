@@ -7,6 +7,8 @@ import (
 	"testing"
 )
 
+const GENESIS_PUBLIC_KEY = `key`
+
 func generateRandomString(length int) string {
 	var letters bytes.Buffer
 	for i := 0; i <= length; i++ {
@@ -57,6 +59,27 @@ func TestWhenStakeUpdatedThenStakeOfAccountUpdated(t *testing.T) {
 	want := 50
 	if got != want {
 		t.Errorf("Expected '%d', but got '%d'", want, got)
+	}
+}
+
+func TestWhenNoStakersAddedThenGenesisIsForger(t *testing.T) {
+	pos := proofOfStake.NewProofOfStake()
+
+	got := pos.PickForger("prev_hash")
+	want := GENESIS_PUBLIC_KEY
+	if got != want {
+		t.Errorf("Expected '%s', but got '%s'", want, got)
+	}
+}
+
+func TestWhenStakerWithZeroStakeAddedThenGenesisIsForger(t *testing.T) {
+	pos := proofOfStake.NewProofOfStake()
+	pos.AddAccountToStakers("barrie")
+
+	got := pos.PickForger("prev_hash")
+	want := GENESIS_PUBLIC_KEY
+	if got != want {
+		t.Errorf("Expected '%s', but got '%s'", want, got)
 	}
 }
 
@@ -135,5 +158,24 @@ func TestGivenUnequalStakeWhenForgerPickedThenItRepresentsStake(t *testing.T) {
 	want := true
 	if got != want {
 		t.Errorf("Expected '%v', but got '%v'", want, got)
+	}
+}
+
+func TestGivenBalanceOfStakerInsufficientWhenUnstakingThenNegativeBalanceError(t *testing.T) {
+	pos := proofOfStake.NewProofOfStake()
+
+	err := pos.UpdateStake("barrie", -10)
+	if err == nil {
+		t.Errorf("Expected 'NegativeBalanceError', but got '%v'", err)
+	}
+}
+
+func TestGivenBalanceOfStakerSufficientWhenUnstakingThenNoError(t *testing.T) {
+	pos := proofOfStake.NewProofOfStake()
+	pos.UpdateStake("barrie", 10)
+
+	err := pos.UpdateStake("barrie", -10)
+	if err != nil {
+		t.Errorf("Expected 'nil', but got 'NegativeBalanceError: %v'", err)
 	}
 }
