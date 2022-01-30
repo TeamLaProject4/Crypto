@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"flag"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"io/ioutil"
 	"net/http"
@@ -79,19 +80,45 @@ func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() []string {
 	peerstore := cryptoNode.Libp2pNode.Peerstore()
 	peers := peerstore.PeersWithAddrs()
 
-	utils.Logger.Info("peers", peers)
-	peerIpAdresses := make([]string, 5)
+	peerIpAdresses := make([]string, 1)
 	for _, peer := range peers {
 		peerInfo := peerstore.PeerInfo(peer)
-		peerIpAdresses = append(peerIpAdresses, strings.Split(peerInfo.Addrs[0].String(), "/")[2])
+		peerIpAdresses = append(peerIpAdresses, getIpv4AddrFromAddrInfo(peerInfo))
 	}
 
+	for index, peerIp := range peerIpAdresses {
+		if peerIp == "" {
+			//remove empty peerIp
+			peerIpAdresses = append(peerIpAdresses[:index], peerIpAdresses[index+1:]...)
+		}
+
+	}
+
+	utils.Logger.Info("peerIpAdresses", peerIpAdresses)
 	return peerIpAdresses
+}
+
+func getIpv4AddrFromAddrInfo(addrInfo peer.AddrInfo) string {
+	for _, addr := range addrInfo.Addrs {
+		if strings.Contains(addr.String(), "ip4") && !strings.Contains(addr.String(), "127.0.0") {
+			multiAddrIp4 := strings.Split(addr.String(), "/")
+			port, _ := strconv.Atoi(multiAddrIp4[4])
+			port = port - 1
+			return multiAddrIp4[2] + ":" + strconv.Itoa(port)
+			//return strings.Split(addr.String(), "/")[2]
+		}
+	}
+	return ""
 }
 
 func (cryptoNode *CryptoNode) GetOwnIpAddr() string {
 	utils.Logger.Info(cryptoNode.Libp2pNode.Addrs())
-	return strings.Split(cryptoNode.Libp2pNode.Addrs()[0].String(), "/")[2]
+	multiAddrIp4 := strings.Split(cryptoNode.Libp2pNode.Addrs()[0].String(), "/")
+	port, _ := strconv.Atoi(multiAddrIp4[4])
+
+	//different port number from pubsub to use for api
+	port = port - 1
+	return multiAddrIp4[2] + ":" + strconv.Itoa(port)
 }
 
 func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
@@ -113,8 +140,15 @@ func (cryptoNode *CryptoNode) GetAllBlocksFromNetwork() []blockchain.Block {
 	blocksFromPeersChan := make(chan []blockchain.Block, 4)
 	peerIps := cryptoNode.getIpAddrsFromConnectedPeers()
 
-	utils.Logger.Info(peerIps)
+	//cryptoNode.Libp2pNode.
+
+	utils.Logger.Info("peerIps", peerIps)
+
 	blockHeight := cryptoNode.getBlockHeightFromPeer(peerIps[0])
+
+	if blockHeight == -1 {
+		blockHeight = cryptoNode.getBlockHeightFromPeer(peerIps[1])
+	}
 
 	step := blockHeight / len(peerIps)
 	start := 0
@@ -165,6 +199,7 @@ func (cryptoNode *CryptoNode) getBlockHeightFromPeer(peerIp string) int {
 	response, err := http.Get("http://" + peerIp + "/blockchain/block-length")
 	if err != nil {
 		utils.Logger.Error("GetBlocksFromNetwork", err)
+		return -1
 	}
 	defer response.Body.Close()
 

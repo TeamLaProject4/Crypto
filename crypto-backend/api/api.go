@@ -3,7 +3,6 @@ package api
 import (
 	"cryptomunt/networking"
 	"cryptomunt/utils"
-	"math/rand"
 	"net/http"
 	"strconv"
 
@@ -87,10 +86,9 @@ func StartApi() {
 	router.GET("/blockchain/block-length", getBlockHeight)
 	router.GET("/blockchain/blocks", getBlocks)
 
-	port := strconv.Itoa(rand.Intn(8999-8000) + 8000)
 	nodeIpAddr := networking.Node.GetOwnIpAddr()
-	utils.Logger.Infof("Rest API %s:%s", nodeIpAddr, port)
-	err := router.Run(networking.Node.GetOwnIpAddr() + ":" + port)
+	utils.Logger.Infof("Rest API %s", nodeIpAddr)
+	err := router.Run(networking.Node.GetOwnIpAddr())
 	if err != nil {
 		utils.Logger.Fatal("Failed to start rest api", err)
 		return
