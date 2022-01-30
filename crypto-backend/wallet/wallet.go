@@ -1,4 +1,4 @@
-package blockchain
+package wallet
 
 import (
 	"crypto"
@@ -12,6 +12,12 @@ import (
 	"os"
 	"time"
 )
+
+
+func generateMnemonic() {
+	ecdsa.
+}
+
 
 var KEY_LENGTH_BITS = 2048
 var PRIVATE_KEY_PATH = "../keys/walletPrivateKey.hex"
