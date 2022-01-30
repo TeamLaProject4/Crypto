@@ -21,8 +21,8 @@ func CreateBlockchain() Blockchain {
 	genesisBlock := CreateGenesisBlock()
 	var blocks []Block
 	blocks = append(blocks, genesisBlock)
-	blocks = append(blocks, genesisBlock)
-	blocks = append(blocks, genesisBlock)
+	//blocks = append(blocks, genesisBlock)
+	//blocks = append(blocks, genesisBlock)
 	pos := proofOfStake.CreateProofOfStake()
 
 	accountModel := CreateAccountModel()

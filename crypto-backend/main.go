@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"cryptomunt/api"
 	"cryptomunt/blockchain"
 	"cryptomunt/networking"
 	"cryptomunt/proofOfStake"
@@ -36,17 +35,6 @@ func parseFlags() Config {
 type Config struct {
 	nodesToBoot int
 	BootNodes   networking.AddrList
-}
-
-func nodeFactory(config Config) {
-	for i := 0; i < config.nodesToBoot; i++ {
-		go startNode(config.BootNodes)
-	}
-}
-
-func startNode(bootnodes networking.AddrList) {
-	node := networking.CreateAndInitCryptoNode(bootnodes)
-	go api.StartApi(node)
 }
 
 func tempWriteToTopic(node networking.CryptoNode) {

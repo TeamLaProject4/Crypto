@@ -40,6 +40,11 @@ var seedphrases = []seedphrase{}
 
 // postAlbums adds an album from JSON received in the request body.
 func postAlbums(c *gin.Context) {
+	c.JSON(200, gin.H{
+		"start": "ERROR: no parameters 'start' and/or 'end' found",
+	})
+	return
+
 	var newSeedphrase seedphrase
 
 	// Call BindJSON to bind the received JSON to
@@ -54,7 +59,7 @@ func postAlbums(c *gin.Context) {
 }
 
 //return blockchain blocks with start and end index
-func getBlocks(c *gin.Context) {
+func getBlocks(c *gin.Context, cryptoNode networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
 	start := queryParameters["start"]
 	end := queryParameters["end"]
@@ -62,7 +67,7 @@ func getBlocks(c *gin.Context) {
 	if start != nil && end != nil {
 		startInt, _ := strconv.Atoi(start[0])
 		endInt, _ := strconv.Atoi(end[0])
-		blocks := networking.Node.Blockchain.GetBlocksFromRange(startInt, endInt)
+		blocks := cryptoNode.Blockchain.GetBlocksFromRange(startInt, endInt)
 
 		c.JSON(200, blocks)
 		return
@@ -73,15 +78,15 @@ func getBlocks(c *gin.Context) {
 	})
 }
 
-func getBlockHeight(c *gin.Context) {
-	c.JSON(200, len(networking.Node.Blockchain.Blocks))
+func getBlockHeight(c *gin.Context, cryptoNode networking.CryptoNode) {
+	c.JSON(200, len(cryptoNode.Blockchain.Blocks))
 }
 
-func getAccountBalance(c *gin.Context) {
+func getAccountBalance(c *gin.Context, cryptoNode networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
 	publicKey := queryParameters["publicKey"]
 	if publicKey != nil {
-		balance := networking.Node.Blockchain.AccountModel.GetBalance(publicKey[0])
+		balance := cryptoNode.Blockchain.AccountModel.GetBalance(publicKey[0])
 		c.JSON(200, balance)
 		return
 	}
@@ -90,11 +95,11 @@ func getAccountBalance(c *gin.Context) {
 	})
 }
 
-func getAccountTransactions(c *gin.Context) {
+func getAccountTransactions(c *gin.Context, cryptoNode networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
 	publicKey := queryParameters["publicKey"]
 	if publicKey != nil {
-		balance := networking.Node.Blockchain.GetAllAccountTransactions(publicKey[0])
+		balance := cryptoNode.Blockchain.GetAllAccountTransactions(publicKey[0])
 		c.JSON(200, balance)
 		return
 	}
@@ -103,22 +108,32 @@ func getAccountTransactions(c *gin.Context) {
 	})
 }
 
-func StartApi() {
+func StartApi(cryptoNode networking.CryptoNode) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+
 	router.POST("/albums", postAlbums)
 
 	//routes for frontend communication
-	router.GET("/frontend/balance", getAccountBalance)
-	router.GET("/frontend/transactions", getAccountTransactions)
+	router.GET("/frontend/balance", func(context *gin.Context) {
+		getAccountBalance(context, cryptoNode)
+	})
+	router.GET("/frontend/transactions", func(context *gin.Context) {
+		getAccountTransactions(context, cryptoNode)
+	})
 
 	//routes for node communication
-	router.GET("/blockchain/block-length", getBlockHeight)
-	router.GET("/blockchain/blocks", getBlocks)
+	router.GET("/blockchain/block-length", func(context *gin.Context) {
+		getBlockHeight(context, cryptoNode)
+	})
 
-	nodeIpAddr := networking.Node.GetOwnIpAddr()
+	router.GET("/blockchain/blocks", func(context *gin.Context) {
+		getBlocks(context, cryptoNode)
+	})
+
+	nodeIpAddr := cryptoNode.GetOwnIpAddr()
 	utils.Logger.Infof("Rest API %s", nodeIpAddr)
-	err := router.Run(networking.Node.GetOwnIpAddr())
+	err := router.Run(cryptoNode.GetOwnIpAddr())
 	if err != nil {
 		utils.Logger.Fatal("Failed to start rest api", err)
 		return
