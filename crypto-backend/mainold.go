@@ -34,6 +34,7 @@ func tempWriteToTopic(node networking.CryptoNode) {
 			fmt.Println("Error reading from stdin")
 			panic(err)
 		}
+
 		fmt.Println("writing to topic..." + sendData)
 
 		transaction := blockchain.CreateTransaction(blockchain.Transaction{

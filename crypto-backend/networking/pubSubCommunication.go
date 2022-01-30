@@ -9,7 +9,7 @@ import (
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
 )
 
-// ChatRoomBufSize is the number of incoming messages to buffer for each topic.
+// CHANNEL_SIZE  is the number of incoming messages to buffer for each topic.
 const CHANNEL_SIZE = 128
 
 // Subscription represents a subscription to a single Subscription topic. Messages

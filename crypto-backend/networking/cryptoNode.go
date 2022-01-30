@@ -4,7 +4,6 @@ import (
 	"context"
 	"cryptomunt/blockchain"
 	"cryptomunt/utils"
-	"encoding/json"
 	"flag"
 	"github.com/libp2p/go-libp2p-core/host"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
@@ -135,20 +134,15 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 		switch topicType {
 		case TRANSACTION:
 			utils.Logger.Info("Transaction received from the network")
-			utils.Logger.Info("transaction length", cryptoNode.MemoryPool.GetTransactionsLength())
-
 			var transaction blockchain.Transaction
-			err := json.Unmarshal([]byte(message.Message), &transaction)
-			if err != nil {
-				utils.Logger.Error("unmarshal error ", err)
-				return
-			}
-			utils.Logger.Info("transaction unmarshaled", transaction)
+			transaction = utils.GetStructFromJson(message.Message, transaction).(blockchain.Transaction)
 			cryptoNode.handleTransaction(transaction)
-			utils.Logger.Info("new transaction length", cryptoNode.MemoryPool.GetTransactionsLength())
 
 		case BLOCK_FORGED:
 			utils.Logger.Info("Forged block received from the network")
+			var block blockchain.Block
+			block = utils.GetStructFromJson(message.Message, block).(blockchain.Block)
+			//handleBlock
 
 		}
 	}
@@ -165,5 +159,6 @@ func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transacti
 
 	if !transactionInMemoryPool && signatureValid && !transactionInBlockchain {
 		cryptoNode.MemoryPool.AddTransaction(transaction)
+		utils.Logger.Info("Transaction added to memory pool")
 	}
 }

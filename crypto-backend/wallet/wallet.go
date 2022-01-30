@@ -1,32 +1,74 @@
-package wallet
+package main
 
 import (
+	"bufio"
+    mathRand "math/rand"
+    "time"
 	"crypto"
-	"crypto/rand"
+	cryptoRand "crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"cryptomunt/utils"
+	"github.com/tyler-smith/go-bip39"
+	"github.com/tyler-smith/go-bip32"
 	"encoding/hex"
 	"fmt"
 	"os"
 )
 
-
 func generateMnemonic() {
-	ecdsa.
+	//Generate a mnemonic for memorization or user-friendly seeds
+	
+	entropy, _ := bip39.NewEntropy(256)
+	mnemonic, _ := bip39.NewMnemonic(entropy)
+
+	// Generate a Bip32 HD wallet for the mnemonic and a user supplied password
+	seed := bip39.NewSeed(mnemonic, "secret")
+
+	masterKey, _ := bip32.NewMasterKey(seed)
+	publicKey := masterKey.PublicKey()
+
+	writePrivateKeyFile(masterKey)
+	writePublicKeyFile(publicKey)
 }
 
+func writePrivateKeyFile(private *bip32.Key){
+    file, err := os.OpenFile("../keys/private.key", os.O_WRONLY|os.O_CREATE, 0666)
+	
+    if err != nil {
+        fmt.Println("File does not exists or cannot be created")
+        os.Exit(1)
+    }
+
+    defer file.Close()
+	w := bufio.NewWriter(file)
+    fmt.Fprintf(w, "%v\n", private)
+    w.Flush()
+}
+
+func writePublicKeyFile(public *bip32.Key){
+    file, err := os.OpenFile("../keys/public.key", os.O_WRONLY|os.O_CREATE, 0666)
+	
+    if err != nil {
+        fmt.Println("File does not exists or cannot be created")
+        os.Exit(1)
+    }
+
+    defer file.Close()
+	w := bufio.NewWriter(file)
+    fmt.Fprintf(w, "%v\n", public)
+    w.Flush()
+}
 
 var KEY_LENGTH_BITS = 2048
 var PRIVATE_KEY_PATH = "../keys/walletPrivateKey.hex"
 var PUBLIC_KEY_PATH = "../keys/walletPublicKey.hex"
 
-//Keep wallet keys private
 type Wallet struct {
-	key rsa.PrivateKey //contains private and public keys
+	key rsa.PrivateKey //contains private and public keys, keep private!
 }
 
-//// NewWallet TODO: mnumonic?
+// CreateWallet TODO: mnumonic?
 func CreateWallet() Wallet {
 	return Wallet{key: GetKeyPair()}
 }
@@ -41,7 +83,7 @@ func GetKeyPair() rsa.PrivateKey {
 
 	//generate key
 	if privateKey.Size() < 1 {
-		key, err := rsa.GenerateKey(rand.Reader, KEY_LENGTH_BITS)
+		key, err := rsa.GenerateKey(cryptoRand.Reader, KEY_LENGTH_BITS)
 		if err != nil {
 			utils.Logger.Error("generate rsa error", err)
 		}
@@ -58,7 +100,7 @@ func (wallet *Wallet) sign(data string) string {
 	//Sign hash of message because only small messages can be signed
 	hashed := sha256.Sum256(message)
 
-	signature, err := rsa.SignPKCS1v15(rand.Reader, &wallet.key, crypto.SHA256, hashed[:])
+	signature, err := rsa.SignPKCS1v15(cryptoRand.Reader, &wallet.key, crypto.SHA256, hashed[:])
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error from signing: %s\n", err)
 		return ""

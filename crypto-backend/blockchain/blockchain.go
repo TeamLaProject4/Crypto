@@ -9,7 +9,7 @@ import (
 
 type Blockchain struct {
 	Blocks       []Block                    `json:"blocks"`
-	accountModel *AccountModel              `json:"-"`
+	AccountModel *AccountModel              `json:"-"`
 	proofOfStake *proofOfStake.ProofOfStake `json:"-"`
 }
 
@@ -26,7 +26,7 @@ func CreateBlockchain() Blockchain {
 
 	return Blockchain{
 		Blocks:       blocks,
-		accountModel: &accountModel,
+		AccountModel: &accountModel,
 		proofOfStake: &pos,
 	}
 }
@@ -63,13 +63,12 @@ func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 
 	if transaction.Type == STAKE {
 		if sender == receiver {
-
 			blockchain.proofOfStake.UpdateStake(sender, amount)
-			blockchain.accountModel.UpdateBalance(sender, -amount)
+			blockchain.AccountModel.UpdateBalance(sender, -amount)
 		}
 	} else {
-		blockchain.accountModel.UpdateBalance(sender, -amount)
-		blockchain.accountModel.UpdateBalance(receiver, amount)
+		blockchain.AccountModel.UpdateBalance(sender, -amount)
+		blockchain.AccountModel.UpdateBalance(receiver, amount)
 	}
 }
 
@@ -115,12 +114,12 @@ func (blockchain *Blockchain) IsTransactionCovered(transaction Transaction) bool
 	if transaction.Type == EXCHANGE {
 		return true
 	}
-	senderBalance := blockchain.accountModel.GetBalance(transaction.SenderPublicKey)
+	senderBalance := blockchain.AccountModel.GetBalance(transaction.SenderPublicKey)
 	return senderBalance >= transaction.Amount
 }
 
 func (blockchain *Blockchain) GetAccountBalance(publicKey string) int {
-	return blockchain.accountModel.GetBalance(publicKey)
+	return blockchain.AccountModel.GetBalance(publicKey)
 }
 
 func (blockchain *Blockchain) getNextForger() string {
