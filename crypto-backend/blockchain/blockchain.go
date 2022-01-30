@@ -47,6 +47,7 @@ func (blockchain *Blockchain) AddBlock(block Block) {
 	}
 }
 
+
 func (blockchain *Blockchain) ExecuteTransactions(transactions []Transaction) {
 	for _, transaction := range transactions {
 		blockchain.executeTransaction(transaction)
@@ -57,15 +58,18 @@ func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 	sender := transaction.SenderPublicKey
 	receiver := transaction.ReceiverPublicKey
 	amount := transaction.Amount
+	amountWithoutFee := CalculateInitialAmount(amount)
 
 	if transaction.Type == STAKE {
 		if sender == receiver {
-			blockchain.ProofOfStake.UpdateStake(sender, amount)
+			blockchain.ProofOfStake.UpdateStake(sender, amountWithoutFee)
 			blockchain.AccountModel.UpdateBalance(sender, -amount)
 		}
+	} else if transaction.Type == REWARD {
+		blockchain.AccountModel.UpdateBalance(receiver, amount)
 	} else {
 		blockchain.AccountModel.UpdateBalance(sender, -amount)
-		blockchain.AccountModel.UpdateBalance(receiver, amount)
+		blockchain.AccountModel.UpdateBalance(receiver, amountWithoutFee)
 	}
 }
 

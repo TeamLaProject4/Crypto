@@ -139,17 +139,18 @@ func (wallet *Wallet) CreateTransaction(
 func (wallet *Wallet) CreateBlock(
 	transactions []blockchain.Transaction,
 	previousHash string,
-	blockCount int,
+	blockHeight int,
 ) blockchain.Block {
 	block := blockchain.CreateBlock(
 		blockchain.Block{
 			Transactions: transactions,
 			PreviousHash: previousHash,
-			Forger:       "",
-			Height:       blockCount,
+			Forger:       wallet.GetPublicKeyHex(),
+			Height:       blockHeight,
 			Timestamp:    0,
-			Signature:    wallet.GetPublicKeyHex(),
-		})
+	})
+	rewardTransaction := blockchain.CreateRewardTransaction(wallet.GetPublicKeyHex(), transactions)
+	block.Transactions = append(block.Transactions, rewardTransaction)
 	signature := wallet.sign(block.Payload())
 	block.Sign(signature)
 	return block
