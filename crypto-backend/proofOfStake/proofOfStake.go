@@ -6,18 +6,6 @@ import (
 	"math/big"
 )
 
-const MAX_256_INT_VALUE = "10000000000000000000000000000000000000000000000000000000000000000"
-
-type ProofOfStake struct {
-	Stakers map[string]int
-}
-
-func NewProofOfStake() ProofOfStake {
-	pos := new(ProofOfStake)
-	pos.Stakers = make(map[string]int)
-	return *pos
-}
-
 func pickWinner(lots []Lot, seed string) Lot {
 	winner := lots[0]
 	leastOffset := utils.HexToBigInt(MAX_256_INT_VALUE)
@@ -61,9 +49,20 @@ func isOffsetSmaller(lot Lot, seedInt big.Int, leastOffset big.Int) bool {
 
 	return compareOffset == -1
 }
+
+type ProofOfStake struct {
+	Stakers map[string]int
+}
+
+const MAX_256_INT_VALUE = "10000000000000000000000000000000000000000000000000000000000000000"
+
 //func GetProofOfStake() *ProofOfStake {
 //	return proofOfStake
 //}
+
+func CreateProofOfStake() ProofOfStake {
+	return ProofOfStake{Stakers: map[string]int{}}
+}
 
 func (proofOfStake *ProofOfStake) PrintStakers() {
 	fmt.Println(proofOfStake.Stakers)

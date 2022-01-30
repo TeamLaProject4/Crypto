@@ -4,13 +4,14 @@ import (
 	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
 	"encoding/json"
+	"sync"
 	//"github.com/btcsuite/btcd/blockchain"
 )
 
 type Blockchain struct {
 	Blocks       []Block                    `json:"blocks"`
 	AccountModel *AccountModel              `json:"-"`
-	proofOfStake *proofOfStake.ProofOfStake `json:"-"`
+	ProofOfStake *proofOfStake.ProofOfStake `json:"-"`
 }
 
 //func GetBlockChain() *Blockchain {
@@ -20,14 +21,14 @@ func CreateBlockchain() Blockchain {
 	genesisBlock := CreateGenesisBlock()
 	var blocks []Block
 	blocks = append(blocks, genesisBlock)
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 
 	accountModel := CreateAccountModel()
 
 	return Blockchain{
 		Blocks:       blocks,
 		AccountModel: &accountModel,
-		proofOfStake: &pos,
+		ProofOfStake: &pos,
 	}
 }
 
@@ -63,7 +64,7 @@ func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 
 	if transaction.Type == STAKE {
 		if sender == receiver {
-			blockchain.proofOfStake.UpdateStake(sender, amount)
+			blockchain.ProofOfStake.UpdateStake(sender, amount)
 			blockchain.AccountModel.UpdateBalance(sender, -amount)
 		}
 	} else {
@@ -81,11 +82,11 @@ func (blockchain *Blockchain) IsValidPreviousBlockHash(block Block) bool {
 	return blockchain.LatestPreviousHash() == block.PreviousHash
 }
 
-func (blockchain *Blockchain) isValidForger(block Block) bool {
+func (blockchain *Blockchain) IsValidForger(block Block) bool {
 	return block.Forger == blockchain.getNextForger()
 }
 
-func (blockchain *Blockchain) isBlockTransactionsValid(block Block) bool {
+func (blockchain *Blockchain) IsBlockTransactionsValid(block Block) bool {
 	transactions := block.Transactions
 	coveredTransactions := blockchain.GetCoveredTransactions(transactions)
 	return len(transactions) == len(coveredTransactions)
@@ -124,7 +125,11 @@ func (blockchain *Blockchain) GetAccountBalance(publicKey string) int {
 
 func (blockchain *Blockchain) getNextForger() string {
 	prevBlockHash := blockchain.LatestPreviousHash()
-	return blockchain.proofOfStake.PickForger(prevBlockHash)
+	return blockchain.ProofOfStake.PickForger(prevBlockHash)
+}
+
+func (blockchain *Blockchain) GetBlocksFromRange(start int, end int) []Block {
+	return blockchain.Blocks[start:end]
 }
 
 //func createBlock(transactions []Transaction, forgerWallet interface{}) Block {
@@ -148,4 +153,42 @@ func (blockchain *Blockchain) IsTransactionInBlockchain(transaction Transaction)
 		}
 	}
 	return false
+}
+
+func (blockchain *Blockchain) GetAllAccountTransactions(publicKey string) []Transaction {
+	var wg sync.WaitGroup
+	blocksTransactions := make(chan []Transaction)
+	for index, block := range blockchain.Blocks {
+		wg.Add(1)
+		go func(block Block, index int) {
+			defer wg.Done()
+			go getAccountTransactionsFromBlock(block, blocksTransactions, publicKey, index)
+		}(block, index)
+	}
+	wg.Wait()
+
+	transactions := *new([]Transaction)
+	blockBalancesIndex := 0
+	for transaction := range blocksTransactions {
+		transactions = append(transactions, transaction...)
+
+		if len(blockchain.Blocks)-1 == blockBalancesIndex {
+			close(blocksTransactions)
+		}
+		blockBalancesIndex++
+	}
+
+	return transactions
+}
+
+func getAccountTransactionsFromBlock(block Block, transactions chan []Transaction, publicKey string, index int) {
+	transactionsFromBlock := *new([]Transaction)
+	for _, transaction := range block.Transactions {
+		//fmt.Printf("Goroutine: %d  trans: %v  \n", index, transaction)
+		if transaction.SenderPublicKey == publicKey || transaction.ReceiverPublicKey == publicKey {
+			transactionsFromBlock = append(transactionsFromBlock, transaction)
+		}
+	}
+
+	transactions <- transactionsFromBlock
 }

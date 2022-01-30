@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"cryptomunt/utils"
 	"encoding/json"
 	"reflect"
 	"time"
@@ -20,6 +21,15 @@ func CreateBlock(newBlock Block) Block {
 		newBlock.Timestamp = time.Now().Unix()
 	}
 	return newBlock
+}
+
+func GetBlockFromJson(jsonData string) Block {
+	var block Block
+	err := json.Unmarshal([]byte(jsonData), &block)
+	if err != nil {
+		utils.Logger.Error("unmarshal error ", err)
+	}
+	return block
 }
 
 func CreateGenesisBlock() Block {
