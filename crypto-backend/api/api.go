@@ -2,6 +2,7 @@ package api
 
 import (
 	"cryptomunt/networking"
+	"cryptomunt/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -76,19 +77,50 @@ func getBlockHeight(c *gin.Context) {
 	c.JSON(200, len(networking.Node.Blockchain.Blocks))
 }
 
+func getAccountBalance(c *gin.Context) {
+	queryParameters := c.Request.URL.Query()
+	publicKey := queryParameters["publicKey"]
+	if publicKey != nil {
+		balance := networking.Node.Blockchain.AccountModel.GetBalance(publicKey[0])
+		c.JSON(200, balance)
+		return
+	}
+	c.JSON(419, gin.H{
+		"start": "ERROR: no parameters 'start' and/or 'end' found",
+	})
+}
+
+func getAccountTransactions(c *gin.Context) {
+	queryParameters := c.Request.URL.Query()
+	publicKey := queryParameters["publicKey"]
+	if publicKey != nil {
+		balance := networking.Node.Blockchain.GetAllAccountTransactions(publicKey[0])
+		c.JSON(200, balance)
+		return
+	}
+	c.JSON(419, gin.H{
+		"start": "ERROR: no parameters 'start' and/or 'end' found",
+	})
+}
+
 func StartApi() {
-	//gin.SetMode(gin.ReleaseMode)
-	//router := gin.Default()
-	//router.POST("/albums", postAlbums)
-	//
-	//router.GET("/blockchain/block-length", getBlockHeight)
-	//router.GET("/blockchain/blocks", getBlocks)
-	//
-	//nodeIpAddr := networking.Node.GetOwnIpAddr()
-	//utils.Logger.Infof("Rest API %s", nodeIpAddr)
-	//err := router.Run(networking.Node.GetOwnIpAddr())
-	//if err != nil {
-	//	utils.Logger.Fatal("Failed to start rest api", err)
-	//	return
-	//}
+	gin.SetMode(gin.ReleaseMode)
+	router := gin.Default()
+	router.POST("/albums", postAlbums)
+
+	//routes for frontend communication
+	router.GET("/frontend/balance", getAccountBalance)
+	router.GET("/frontend/transactions", getAccountTransactions)
+
+	//routes for node communication
+	router.GET("/blockchain/block-length", getBlockHeight)
+	router.GET("/blockchain/blocks", getBlocks)
+
+	nodeIpAddr := networking.Node.GetOwnIpAddr()
+	utils.Logger.Infof("Rest API %s", nodeIpAddr)
+	err := router.Run(networking.Node.GetOwnIpAddr())
+	if err != nil {
+		utils.Logger.Fatal("Failed to start rest api", err)
+		return
+	}
 }

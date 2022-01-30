@@ -3,6 +3,7 @@ package networking
 import (
 	"context"
 	"cryptomunt/blockchain"
+	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
 	"cryptomunt/wallet"
 	"encoding/json"
@@ -29,6 +30,7 @@ const (
 	TRANSACTION     TopicType = "TRANSACTION" //transaction
 	BLOCK_FORGED              = "BLOCK_FORGED"
 	CONSENSUS_ERROR           = "CONSENSUS_ERROR"
+	NODE_
 )
 
 type Config struct {
@@ -134,11 +136,13 @@ func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
 	cryptoNode.Blockchain.Blocks = blocks
 
 	//TODO: proof of stake? remember stakers?? should it not be removed after stake completed?
-	//pos := proofOfStake.CreateProofOfStake()
-	//cryptoNode.Blockchain.ProofOfStake = &pos
-	//
-	////calculate and set account balances
-	//cryptoNode.Blockchain.AccountModel.SetBalancesFromBlockChain(cryptoNode.Blockchain)
+	pos := proofOfStake.CreateProofOfStake()
+	cryptoNode.Blockchain.ProofOfStake = &pos
+
+	//calculate and set account balances
+	am := blockchain.CreateAccountModel()
+	cryptoNode.Blockchain.AccountModel = &am
+	cryptoNode.Blockchain.AccountModel.SetBalancesFromBlockChain(cryptoNode.Blockchain)
 }
 
 //get blockchain blocks from directly connected peers

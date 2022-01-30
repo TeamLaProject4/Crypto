@@ -5,6 +5,7 @@ import (
 	"cryptomunt/api"
 	"cryptomunt/blockchain"
 	"cryptomunt/networking"
+	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
 	"fmt"
 	"os"
@@ -37,10 +38,13 @@ func tempWriteToTopic(node networking.CryptoNode) {
 		fmt.Println("performing actions...")
 
 		//reset blockchain
-		node.Blockchain = *new(blockchain.Blockchain)
+		node.Blockchain.Blocks = *new([]blockchain.Block)
+		node.Blockchain.AccountModel = new(blockchain.AccountModel)
+		node.Blockchain.ProofOfStake = new(proofOfStake.ProofOfStake)
 		//get from network
 		node.SetBlockchainUsingNetwork()
-		utils.Logger.Info("blockchain", node.Blockchain)
+		utils.Logger.Info("blockchain", node.Blockchain.AccountModel)
+		utils.Logger.Info("blockchain", node.Blockchain.ProofOfStake)
 		//api -> key/mnemonic -> wallet
 		//wallet := blockchain.CreateWallet()
 		//transaction := wallet.CreateTransaction("jeroen", 20, blockchain.TRANSFER)

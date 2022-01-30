@@ -61,7 +61,9 @@ const MAX_256_INT_VALUE = "10000000000000000000000000000000000000000000000000000
 //}
 
 func CreateProofOfStake() ProofOfStake {
-	return ProofOfStake{Stakers: map[string]int{}}
+	pos := ProofOfStake{Stakers: map[string]int{}}
+	pos.SetGenesisNodeStake()
+	return pos
 }
 
 func (proofOfStake *ProofOfStake) PrintStakers() {
