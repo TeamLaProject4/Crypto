@@ -79,10 +79,11 @@ func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() []string {
 	peerstore := cryptoNode.Libp2pNode.Peerstore()
 	peers := peerstore.PeersWithAddrs()
 
+	utils.Logger.Info("peers", peers)
 	peerIpAdresses := make([]string, 5)
-	for index, peer := range peers {
+	for _, peer := range peers {
 		peerInfo := peerstore.PeerInfo(peer)
-		peerIpAdresses[index] = strings.Split(peerInfo.Addrs[0].String(), "/")[2]
+		peerIpAdresses = append(peerIpAdresses, strings.Split(peerInfo.Addrs[0].String(), "/")[2])
 	}
 
 	return peerIpAdresses
@@ -112,6 +113,7 @@ func (cryptoNode *CryptoNode) GetAllBlocksFromNetwork() []blockchain.Block {
 	blocksFromPeersChan := make(chan []blockchain.Block, 4)
 	peerIps := cryptoNode.getIpAddrsFromConnectedPeers()
 
+	utils.Logger.Info(peerIps)
 	blockHeight := cryptoNode.getBlockHeightFromPeer(peerIps[0])
 
 	step := blockHeight / len(peerIps)
@@ -160,7 +162,7 @@ func (cryptoNode *CryptoNode) getBlocksFromPeer(peerIp string, start int, end in
 }
 
 func (cryptoNode *CryptoNode) getBlockHeightFromPeer(peerIp string) int {
-	response, err := http.Get(peerIp + "/blockchain/blocks")
+	response, err := http.Get("http://" + peerIp + "/blockchain/block-length")
 	if err != nil {
 		utils.Logger.Error("GetBlocksFromNetwork", err)
 	}

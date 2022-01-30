@@ -14,9 +14,9 @@ func main() {
 	utils.InitLogger()
 
 	networking.CreateAndInitCryptoNode()
-	api.StartApi()
+	go api.StartApi()
 
-	//go tempWriteToTopic(node)
+	go tempWriteToTopic(networking.Node)
 
 	//go startRestApi()
 	//when api call x then write to topic
@@ -40,7 +40,7 @@ func tempWriteToTopic(node networking.CryptoNode) {
 		node.Blockchain = *new(blockchain.Blockchain)
 		//get from network
 		node.SetBlockchainUsingNetwork()
-		utils.Logger.Info(node.Blockchain)
+		utils.Logger.Info("blockchain", node.Blockchain)
 		//api -> key/mnemonic -> wallet
 		//wallet := blockchain.CreateWallet()
 		//transaction := wallet.CreateTransaction("jeroen", 20, blockchain.TRANSFER)
