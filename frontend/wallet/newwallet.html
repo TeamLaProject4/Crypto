@@ -8,6 +8,24 @@
           integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 
 </head>
+<script>
+window.onload = function(){
+    var url = "https://reqbin.com/echo";
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", url);
+
+    xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4) {
+        console.log(xhr.status);
+        console.log(xhr.responseText);
+    }};
+
+    document.getElementById('seed').innerHTML = xhr.responseText;
+
+    xhr.send();
+}
+</script>
 <body class="d-flex h-100 text-center text-white bg-dark">
 
 <div class="container col-xl-10 col-xxl-8 px-4 py-5">
@@ -16,7 +34,7 @@
     <br>
     <hr class="my-4">
 
-    <p class="lead">able merge orchard dilemma snap bulb rapid brass obey because foil fuel city torch dice cash game
+    <p id="seed" class="lead">able merge orchard dilemma snap bulb rapid brass obey because foil fuel city torch dice cash game
         parent torch bracket </p>
     <hr class="my-4">
 
