@@ -160,3 +160,22 @@ func TestGivenUnequalStakeWhenForgerPickedThenItRepresentsStake(t *testing.T) {
 		t.Errorf("Expected '%v', but got '%v'", want, got)
 	}
 }
+
+func TestGivenBalanceOfStakerInsufficientWhenUnstakingThenNegativeBalanceError(t *testing.T) {
+	pos := proofOfStake.NewProofOfStake()
+
+	err := pos.UpdateStake("barrie", -10)
+	if err == nil {
+		t.Errorf("Expected 'NegativeBalanceError', but got '%v'", err)
+	}
+}
+
+func TestGivenBalanceOfStakerSufficientWhenUnstakingThenNoError(t *testing.T) {
+	pos := proofOfStake.NewProofOfStake()
+	pos.UpdateStake("barrie", 10)
+
+	err := pos.UpdateStake("barrie", -10)
+	if err != nil {
+		t.Errorf("Expected 'nil', but got 'NegativeBalanceError: %v'", err)
+	}
+}

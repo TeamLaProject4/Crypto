@@ -9,8 +9,19 @@ import (
 const MAX_256_INT_VALUE = "10000000000000000000000000000000000000000000000000000000000000000"
 
 type ProofOfStake struct {
-	Stakers map[string]int
+	Stakers          map[string]int
 	genesisPublicKey string
+}
+
+type NegativeBalanceError struct {
+	account        string
+	currentBalance int
+	withdrawAmount int
+	Msg            string
+}
+
+func (e *NegativeBalanceError) Error() string {
+	return e.Msg
 }
 
 func NewProofOfStake() ProofOfStake {
@@ -42,21 +53,38 @@ func (proofOfStake *ProofOfStake) IsAccountInStakers(publicKey string) bool {
 	return accountInStakers
 }
 
-func (proofOfStake *ProofOfStake) UpdateStake(publicKey string, stake int) {
+func (proofOfStake *ProofOfStake) UpdateStake(publicKey string, stake int) error {
 	proofOfStake.AddAccountToStakers(publicKey)
+	err := validateNegativeStake(proofOfStake, publicKey, stake)
+	if err != nil {
+		return err
+	}
 	proofOfStake.Stakers[publicKey] += stake
+	return nil
 }
 
-// func (proofOfStake *ProofOfStake) setGenesisNodeStake() {
-// 	proofOfStake.Stakers[proofOfStake.genesisPublicKey] = 1
-// }
+func validateNegativeStake(proofOfStake *ProofOfStake, publicKey string, stake int) error {
+	if stake < 0 && !proofOfStake.balanceIsSufficient(publicKey, -stake) {
+		currentBalance := proofOfStake.GetStake(publicKey)
+		return &NegativeBalanceError{
+			account: publicKey,
+			currentBalance: currentBalance,
+			withdrawAmount: stake,
+			Msg: fmt.Sprintf("Unstake amount (%d) cannot be greater than balance (%d)", stake, currentBalance),
+		}
+	}
+	return nil
+}
+
+func (proofOfStake *ProofOfStake) balanceIsSufficient(publicKey string, withdrawAmount int) bool {
+	return  proofOfStake.GetStake(publicKey) >= withdrawAmount
+}
 
 func (proofOfStake *ProofOfStake) generateLots(seed string) []Lot {
 	lots := generateLotsFromStakers(proofOfStake, seed)
 
 	if len(lots) == 0 {
 		lots = generateLotFromGenesis(proofOfStake, seed)
-		fmt.Println(lots[0])
 	}
 
 	return lots
@@ -71,7 +99,7 @@ func generateLotsFromStakers(proofOfStake *ProofOfStake, seed string) []Lot {
 }
 
 func generateLotFromGenesis(proofOfStake *ProofOfStake, seed string) []Lot {
-	lots := generateStakerLots(proofOfStake.genesisPublicKey, 1 , seed)
+	lots := generateStakerLots(proofOfStake.genesisPublicKey, 1, seed)
 	return lots
 }
 
