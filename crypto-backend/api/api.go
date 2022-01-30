@@ -1,7 +1,10 @@
-package main
+package api
 
 import (
+	"cryptomunt/networking"
+	"cryptomunt/utils"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -51,10 +54,34 @@ func postAlbums(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, seedphrases)
 }
 
-func main_router() {
-	router := gin.Default()
-	// router.GET("/albums", getAlbums)
-	router.POST("/albums", postAlbums)
+//return blockchain blocks with start and end index
+func getBlocks(c *gin.Context) {
+	queryParameters := c.Request.URL.Query()
+	start := queryParameters["start"]
+	end := queryParameters["end"]
 
-	router.Run("localhost:8080")
+	if start != nil && end != nil {
+		startInt, _ := strconv.Atoi(start[0])
+		endInt, _ := strconv.Atoi(end[0])
+		blocks := networking.Node.Blockchain.GetBlocksFromRange(startInt, endInt)
+
+		c.JSON(200, blocks)
+		return
+	}
+
+	c.JSON(419, gin.H{
+		"start": "ERROR: no parameters 'start' and/or 'end' found",
+	})
+}
+
+func StartApi() {
+	router := gin.Default()
+	router.POST("/albums", postAlbums)
+	router.GET("/blockchain/blocks", getBlocks)
+
+	err := router.Run("localhost:8080")
+	if err != nil {
+		utils.Logger.Fatal("Failed to start rest api", err)
+		return
+	}
 }

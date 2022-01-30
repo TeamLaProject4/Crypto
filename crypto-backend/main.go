@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"cryptomunt/api"
 	"cryptomunt/networking"
 	"cryptomunt/utils"
 	"fmt"
@@ -11,9 +12,10 @@ import (
 func main() {
 	utils.InitLogger()
 
-	node := networking.CreateCryptoNode()
+	networking.CreateAndInitCryptoNode()
+	api.StartApi()
 
-	go tempWriteToTopic(node)
+	//go tempWriteToTopic(node)
 
 	//go startRestApi()
 	//when api call x then write to topic

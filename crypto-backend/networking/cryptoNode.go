@@ -15,6 +15,9 @@ import (
 	"strings"
 )
 
+//ONLY USE IN API!
+var Node CryptoNode
+
 const RANDEVOUS_STRING = "cryptomunt-randevous"
 
 type TopicType string
@@ -43,7 +46,7 @@ type CryptoNode struct {
 	//sub map[TopicType]Subscription
 }
 
-func CreateCryptoNode() CryptoNode {
+func CreateAndInitCryptoNode() {
 	utils.Logger.Info("Starting network")
 	ctx := context.Background()
 	config := parseFlags()
@@ -66,7 +69,10 @@ func CreateCryptoNode() CryptoNode {
 	cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
 	cryptoNode.Wallet = wallet.CreateWallet()
 
-	return cryptoNode
+	//rest api
+
+	//return cryptoNode
+	Node = cryptoNode
 }
 
 func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() []string {

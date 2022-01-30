@@ -21,6 +21,8 @@ func CreateBlockchain() Blockchain {
 	genesisBlock := CreateGenesisBlock()
 	var blocks []Block
 	blocks = append(blocks, genesisBlock)
+	blocks = append(blocks, genesisBlock)
+	blocks = append(blocks, genesisBlock)
 	pos := proofOfStake.CreateProofOfStake()
 
 	accountModel := CreateAccountModel()
@@ -128,8 +130,17 @@ func (blockchain *Blockchain) getNextForger() string {
 	return blockchain.ProofOfStake.PickForger(prevBlockHash)
 }
 
+// GetBlocksFromRange, if end > len(blocks) then return all blocks
 func (blockchain *Blockchain) GetBlocksFromRange(start int, end int) []Block {
-	return blockchain.Blocks[start:end]
+	if len(blockchain.Blocks) <= 0 {
+		return nil
+	}
+	if end > len(blockchain.Blocks) {
+		return blockchain.Blocks
+	}
+
+	blocks := blockchain.Blocks[start:end]
+	return blocks
 }
 
 //func createBlock(transactions []Transaction, forgerWallet interface{}) Block {
