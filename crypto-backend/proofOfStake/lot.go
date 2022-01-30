@@ -10,7 +10,7 @@ type Lot struct {
 	PreviousBlockHash string
 }
 
-func NewLot(lot Lot) Lot {
+func CreateLot(lot Lot) Lot {
 	return lot
 }
 

@@ -154,3 +154,13 @@ func GetPublicKeyFromHex(hexValue string) (rsa.PublicKey, error) {
 
 	return *publicKey, nil
 }
+
+//
+//func GetStructFromJson(jsonData string, structData interface{}) interface{} {
+//	err := json.Unmarshal([]byte(jsonData), &structData)
+//	if err != nil {
+//		Logger.Error("unmarshal error ", err)
+//		return nil
+//	}
+//	return structData
+//}

@@ -3,11 +3,15 @@ package networking
 import (
 	"context"
 	"cryptomunt/blockchain"
+	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
 	"encoding/json"
 	"flag"
 	"github.com/libp2p/go-libp2p-core/host"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"io/ioutil"
+	"net/http"
+	"strings"
 )
 
 const RANDEVOUS_STRING = "cryptomunt-randevous"
@@ -64,16 +68,56 @@ func CreateCryptoNode() CryptoNode {
 	return cryptoNode
 }
 
-func (cryptoNode *CryptoNode) GetBlockChainFromNetwork() {
+func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() []string {
 	peerstore := cryptoNode.Libp2pNode.Peerstore()
-
 	peers := peerstore.PeersWithAddrs()
-	utils.Logger.Error("0th peer", peers[0])
 
-	//get  ipaddr from peer info
-	ipADRESS := peerstore.PeerInfo(peers[2])
-	utils.Logger.Error("ipaddr 1", ipADRESS)
-	utils.Logger.Error("ipaddr 2t ", ipADRESS.Addrs)
+	peerIpAdresses := make([]string, 5)
+	for index, peer := range peers {
+		peerInfo := peerstore.PeerInfo(peer)
+		peerIpAdresses[index] = strings.Split(peerInfo.Addrs[0].String(), "/")[2]
+	}
+
+	return peerIpAdresses
+}
+
+func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
+	//set blocks
+	blocks := cryptoNode.GetBlocksFromNetwork()
+	cryptoNode.Blockchain.Blocks = blocks
+
+	//TODO: proof of stake? remember stakers?? should it not be removed after stake completed?
+	pos := proofOfStake.CreateProofOfStake()
+	cryptoNode.Blockchain.ProofOfStake = &pos
+
+	//calculate and set account balances
+	cryptoNode.Blockchain.AccountModel.SetBalancesFromBlockChain(cryptoNode.Blockchain)
+}
+
+//get blockchain blocks from directly connected peers
+func (cryptoNode *CryptoNode) GetBlocksFromNetwork() []blockchain.Block {
+	blocks := *new([]blockchain.Block)
+	peerIps := cryptoNode.getIpAddrsFromConnectedPeers()
+
+	//TODO: make go routing
+	for _, peerIp := range peerIps {
+		response, err := http.Get(peerIp + "/blockchain/blocks")
+		if err != nil {
+			utils.Logger.Error("GetBlocksFromNetwork", err)
+			return nil
+		}
+		defer response.Body.Close()
+
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			utils.Logger.Warn(err)
+		}
+		blockJson := string(body)
+		block := blockchain.GetBlockFromJson(blockJson)
+		blocks = append(blocks, block)
+	}
+
+	return blocks
 }
 
 func (cryptoNode *CryptoNode) WriteToTopic(data string, topicType TopicType) {
@@ -135,23 +179,51 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 		switch topicType {
 		case TRANSACTION:
 			utils.Logger.Info("Transaction received from the network")
-			utils.Logger.Info("transaction length", cryptoNode.MemoryPool.GetTransactionsLength())
-
 			var transaction blockchain.Transaction
 			err := json.Unmarshal([]byte(message.Message), &transaction)
 			if err != nil {
 				utils.Logger.Error("unmarshal error ", err)
-				return
 			}
-			utils.Logger.Info("transaction unmarshaled", transaction)
 			cryptoNode.handleTransaction(transaction)
-			utils.Logger.Info("new transaction length", cryptoNode.MemoryPool.GetTransactionsLength())
 
 		case BLOCK_FORGED:
 			utils.Logger.Info("Forged block received from the network")
+			//var block blockchain.Block
+			//block = utils.GetStructFromJson(message.Message, block).(blockchain.Block)
+			//handleBlock
 
 		}
 	}
+}
+
+//TODO: getBlockchainMetaData, getMissingBLocks, getEntireBlockchain
+//TODO: consensus over the network \w bad actor
+//TODO: timing, new forged block transaction not in memory pool then wait a few seconds
+
+//block forged on other node
+func (cryptoNode *CryptoNode) handleBlockForged(block blockchain.Block) {
+
+	//TODO: cryptoNode.request_missing_blocks()
+	//if !blockCountValid {
+	//	cryptoNode.request_missing_blocks()
+	//}
+	if cryptoNode.isForgedBlockValid(block) {
+		cryptoNode.Blockchain.AddBlock(block)
+		cryptoNode.MemoryPool.RemoveTransactions(block.Transactions)
+	}
+}
+func (cryptoNode *CryptoNode) isForgedBlockValid(block blockchain.Block) bool {
+	payload := block.Payload()
+	signature := block.Signature
+	forgerPublicKey := block.Forger
+
+	blockCountValid := cryptoNode.Blockchain.IsValidBlockHeight(block)
+	previousBlockHashValid := cryptoNode.Blockchain.IsValidPreviousBlockHash(block)
+	signatureValid := blockchain.IsValidSignature(payload, signature, forgerPublicKey)
+	forgerValid := cryptoNode.Blockchain.IsValidForger(block)
+	blockTransactionsValid := cryptoNode.Blockchain.IsBlockTransactionsValid(block)
+
+	return blockTransactionsValid && forgerValid && signatureValid && previousBlockHashValid && blockCountValid
 }
 
 func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transaction) {
@@ -165,5 +237,6 @@ func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transacti
 
 	if !transactionInMemoryPool && signatureValid && !transactionInBlockchain {
 		cryptoNode.MemoryPool.AddTransaction(transaction)
+		utils.Logger.Info("Transaction added to memory pool")
 	}
 }

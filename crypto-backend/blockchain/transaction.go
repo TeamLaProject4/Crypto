@@ -1,10 +1,9 @@
 package blockchain
 
 import (
+	"cryptomunt/utils"
 	"encoding/json"
-	"github.com/google/uuid"
 	"github.com/mitchellh/hashstructure"
-	"time"
 )
 
 type Transaction struct {
@@ -17,15 +16,12 @@ type Transaction struct {
 	Signature         string          `json:"signature"`
 }
 
-func CreateTransaction(transaction Transaction) Transaction {
-	//check and fill variables if they are empty
-	if transaction.Id == "" {
-		transaction.Id = uuid.New().String()
+func GetTransactionFromJson(jsonData string) Transaction {
+	var transaction Transaction
+	err := json.Unmarshal([]byte(jsonData), &transaction)
+	if err != nil {
+		utils.Logger.Error("unmarshal error ", err)
 	}
-	if transaction.Timestamp == 0 {
-		transaction.Timestamp = time.Now().Unix()
-	}
-
 	return transaction
 }
 
