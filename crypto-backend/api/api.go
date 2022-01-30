@@ -2,7 +2,6 @@ package api
 
 import (
 	"cryptomunt/networking"
-	"cryptomunt/utils"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
@@ -78,18 +77,18 @@ func getBlockHeight(c *gin.Context) {
 }
 
 func StartApi() {
-	gin.SetMode(gin.ReleaseMode)
-	router := gin.Default()
-	router.POST("/albums", postAlbums)
-
-	router.GET("/blockchain/block-length", getBlockHeight)
-	router.GET("/blockchain/blocks", getBlocks)
-
-	nodeIpAddr := networking.Node.GetOwnIpAddr()
-	utils.Logger.Infof("Rest API %s", nodeIpAddr)
-	err := router.Run(networking.Node.GetOwnIpAddr())
-	if err != nil {
-		utils.Logger.Fatal("Failed to start rest api", err)
-		return
-	}
+	//gin.SetMode(gin.ReleaseMode)
+	//router := gin.Default()
+	//router.POST("/albums", postAlbums)
+	//
+	//router.GET("/blockchain/block-length", getBlockHeight)
+	//router.GET("/blockchain/blocks", getBlocks)
+	//
+	//nodeIpAddr := networking.Node.GetOwnIpAddr()
+	//utils.Logger.Infof("Rest API %s", nodeIpAddr)
+	//err := router.Run(networking.Node.GetOwnIpAddr())
+	//if err != nil {
+	//	utils.Logger.Fatal("Failed to start rest api", err)
+	//	return
+	//}
 }

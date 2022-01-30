@@ -10,6 +10,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -75,15 +76,16 @@ func CreateAndInitCryptoNode() {
 	Node = cryptoNode
 }
 
-func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() []string {
+func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() ([]string, []peer.ID) {
 	peerstore := cryptoNode.Libp2pNode.Peerstore()
 	peers := peerstore.PeersWithAddrs()
-
 	peerIpAdresses := make([]string, 1)
+	peerIds := make([]peer.ID, 1)
 	for _, peer := range peers {
 		if peer != cryptoNode.Libp2pNode.ID() {
 			peerInfo := peerstore.PeerInfo(peer)
 			peerIpAdresses = append(peerIpAdresses, getIpv4AddrFromAddrInfo(peerInfo))
+			peerIds = append(peerIds, peer)
 		}
 	}
 
@@ -96,7 +98,7 @@ func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() []string {
 	}
 
 	utils.Logger.Info("peerIpAdresses", peerIpAdresses)
-	return peerIpAdresses
+	return peerIpAdresses, peerIds
 }
 
 func getIpv4AddrFromAddrInfo(addrInfo peer.AddrInfo) string {
@@ -142,8 +144,8 @@ func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
 //get blockchain blocks from directly connected peers
 func (cryptoNode *CryptoNode) GetAllBlocksFromNetwork() []blockchain.Block {
 	blocks := *new([]blockchain.Block)
-	blocksFromPeersChan := *new(chan []blockchain.Block)
-	peerIps := cryptoNode.getIpAddrsFromConnectedPeers()
+	blocksFromPeersChan := make(chan []blockchain.Block)
+	peerIps, peerIds := cryptoNode.getIpAddrsFromConnectedPeers()
 
 	//cryptoNode.Libp2pNode.
 
@@ -151,7 +153,10 @@ func (cryptoNode *CryptoNode) GetAllBlocksFromNetwork() []blockchain.Block {
 
 	blockHeight := cryptoNode.getBlockHeightFromPeer(peerIps[0])
 	if blockHeight == -1 {
-		blockHeight = cryptoNode.getBlockHeightFromPeer(peerIps[1])
+		utils.Logger.Error("No ")
+		cryptoNode.Libp2pNode.Network().ClosePeer(peerIds[0])
+		//cryptoNode.GetAllBlocksFromNetwork()
+		//blockHeight = cryptoNode.getBlockHeightFromPeer(peerIps[1])
 	}
 
 	step := blockHeight / len(peerIps)
@@ -159,27 +164,30 @@ func (cryptoNode *CryptoNode) GetAllBlocksFromNetwork() []blockchain.Block {
 	start := 0
 	end := step
 
-	utils.Logger.Infof("start: %d, end: %d, step: %d", start, end, step)
-
+	numOfGoRoutines := 0
 	var wg sync.WaitGroup
 	for _, peerIp := range peerIps {
 		wg.Add(1)
-		go func(peerIp string, start int, end int, blocksFromPeersChan chan []blockchain.Block) {
+		go func(peerIp string, start int, end int) {
 			defer wg.Done()
-			cryptoNode.getBlocksFromPeer(peerIp, start, end, blocksFromPeersChan)
-		}(peerIp, start, end, blocksFromPeersChan)
-
+			go cryptoNode.getBlocksFromPeer(peerIp, start, end, blocksFromPeersChan)
+		}(peerIp, start, end)
+		numOfGoRoutines++
 		start = end //including
 		end += step //excluding
 	}
+	utils.Logger.Info("reached before wg.wait")
+	//wg.Done()
 	wg.Wait()
+	utils.Logger.Info("reached after wg.wait")
 
 	//combine blocks
 	blockFromPeersIndex := 0
 	for blocksFromPeer := range blocksFromPeersChan {
+		utils.Logger.Info("reaced range")
 		blocks = append(blocks, blocksFromPeer...)
 
-		if len(peerIps)-1 == blockFromPeersIndex {
+		if numOfGoRoutines-1 == blockFromPeersIndex {
 			close(blocksFromPeersChan)
 		}
 
@@ -194,7 +202,12 @@ func (cryptoNode *CryptoNode) getBlocksFromPeer(peerIp string, start int, end in
 	if err != nil {
 		utils.Logger.Error("GetBlocksFromNetwork", err)
 	}
-	defer response.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			utils.Logger.Warn(err)
+		}
+	}(response.Body)
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
