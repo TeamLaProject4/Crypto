@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"cryptomunt/api"
+	"cryptomunt/blockchain"
 	"cryptomunt/networking"
 	"cryptomunt/utils"
 	"fmt"
@@ -34,9 +35,12 @@ func tempWriteToTopic(node networking.CryptoNode) {
 		}
 
 		fmt.Println("performing actions...")
+
+		//reset blockchain
+		node.Blockchain = *new(blockchain.Blockchain)
+		//get from network
 		node.SetBlockchainUsingNetwork()
 		utils.Logger.Info(node.Blockchain)
-
 		//api -> key/mnemonic -> wallet
 		//wallet := blockchain.CreateWallet()
 		//transaction := wallet.CreateTransaction("jeroen", 20, blockchain.TRANSFER)

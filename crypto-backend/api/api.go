@@ -3,6 +3,7 @@ package api
 import (
 	"cryptomunt/networking"
 	"cryptomunt/utils"
+	"math/rand"
 	"net/http"
 	"strconv"
 
@@ -74,12 +75,22 @@ func getBlocks(c *gin.Context) {
 	})
 }
 
+func getBlockHeight(c *gin.Context) {
+	c.JSON(200, len(networking.Node.Blockchain.Blocks))
+}
+
 func StartApi() {
+	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.POST("/albums", postAlbums)
+
+	router.GET("/blockchain/block-length", getBlockHeight)
 	router.GET("/blockchain/blocks", getBlocks)
 
-	err := router.Run("localhost:8080")
+	port := strconv.Itoa(rand.Intn(8999-8000) + 8000)
+	nodeIpAddr := networking.Node.GetOwnIpAddr()
+	utils.Logger.Infof("Rest API %s:%s", nodeIpAddr, port)
+	err := router.Run(networking.Node.GetOwnIpAddr() + ":" + port)
 	if err != nil {
 		utils.Logger.Fatal("Failed to start rest api", err)
 		return
