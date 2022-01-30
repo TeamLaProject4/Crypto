@@ -10,7 +10,7 @@ import (
 	"reflect"
 )
 
-func main() {
+func main_mnemonic() {
 	// // Generate a mnemonic for memorization or user-friendly seeds
 	// entropy, _ := bip39.NewEntropy(256)
 	// mnemonic, _ := bip39.NewMnemonic(entropy)

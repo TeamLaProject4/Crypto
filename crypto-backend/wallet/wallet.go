@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"cryptomunt/blockchain"
 	"cryptomunt/utils"
 	"encoding/hex"
 	"fmt"
@@ -13,11 +14,9 @@ import (
 	"time"
 )
 
-
 func generateMnemonic() {
-	ecdsa.
+	//ecdsa.
 }
-
 
 var KEY_LENGTH_BITS = 2048
 var PRIVATE_KEY_PATH = "../keys/walletPrivateKey.hex"
@@ -75,9 +74,9 @@ func (wallet *Wallet) GetPublicKeyHex() string {
 func (wallet *Wallet) CreateTransaction(
 	receiverPublicKey string,
 	amount int,
-	transactionType TransactionType,
-) Transaction {
-	transaction := Transaction{
+	transactionType blockchain.TransactionType,
+) blockchain.Transaction {
+	transaction := blockchain.Transaction{
 		SenderPublicKey:   wallet.GetPublicKeyHex(),
 		ReceiverPublicKey: receiverPublicKey,
 		Amount:            amount,
@@ -93,12 +92,12 @@ func (wallet *Wallet) CreateTransaction(
 }
 
 func (wallet *Wallet) CreateBlock(
-	transactions []Transaction,
+	transactions []blockchain.Transaction,
 	previousHash string,
 	blockCount int,
-) Block {
-	block := CreateBlock(
-		Block{
+) blockchain.Block {
+	block := blockchain.CreateBlock(
+		blockchain.Block{
 			Transactions: transactions,
 			PreviousHash: previousHash,
 			Forger:       "",

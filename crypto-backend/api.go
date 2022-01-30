@@ -51,7 +51,7 @@ func postAlbums(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, seedphrases)
 }
 
-func main() {
+func main_router() {
 	router := gin.Default()
 	// router.GET("/albums", getAlbums)
 	router.POST("/albums", postAlbums)

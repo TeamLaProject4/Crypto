@@ -1,14 +1,13 @@
 package integration_test
 
 import (
-	"cryptomunt/networking"
 	"testing"
 )
 
 func TestGetBlockChainFromNetwork(t *testing.T) {
 	//utils.InitLogger()
 	//
-	networking.CreateCryptoNode()
+	//networking.CreateCryptoNode()
 	//
 	//node.GetBlockChainFromNetwork()
 
