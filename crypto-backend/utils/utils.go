@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
-	"encoding/json"
 	"encoding/pem"
 	"io/ioutil"
 	"math/big"
@@ -156,11 +155,12 @@ func GetPublicKeyFromHex(hexValue string) (rsa.PublicKey, error) {
 	return *publicKey, nil
 }
 
-func GetStructFromJson(jsonData string, structData interface{}) interface{} {
-	err := json.Unmarshal([]byte(jsonData), &structData)
-	if err != nil {
-		Logger.Error("unmarshal error ", err)
-		return nil
-	}
-	return structData
-}
+//
+//func GetStructFromJson(jsonData string, structData interface{}) interface{} {
+//	err := json.Unmarshal([]byte(jsonData), &structData)
+//	if err != nil {
+//		Logger.Error("unmarshal error ", err)
+//		return nil
+//	}
+//	return structData
+//}
