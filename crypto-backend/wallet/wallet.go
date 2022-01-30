@@ -1,4 +1,4 @@
-package main
+package wallet
 
 import (
 	"bufio"
@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func generateMnemonic() {
+func GenerateMnemonic() {
 	//Generate a mnemonic for memorization or user-friendly seeds
 
 	entropy, _ := bip39.NewEntropy(256)
