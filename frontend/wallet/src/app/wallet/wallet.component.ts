@@ -9,7 +9,8 @@ import { APIService } from '../api.service';
 })
 export class WalletComponent implements OnInit {
 
-  public mnemonic = [];
+  //public mnemonic = [];
+  mnemonic = String();
 
   constructor(private http: HttpClient,
               private api: APIService) { }
@@ -20,6 +21,16 @@ export class WalletComponent implements OnInit {
 
   getMnemonic() {
     this.api.getMnemonic()
-    .subscribe((data: never[]) => this.mnemonic = data)
+    .subscribe(data => {
+     this.mnemonic = data
+     console.log(this.mnemonic);
+    });
+  }
+
+  confirmWallet(){
+    this.api.confirmMnemonic(this.mnemonic)
+    .subscribe(data => {
+      console.log(data);
+    });
   }
 }

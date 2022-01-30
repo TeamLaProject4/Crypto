@@ -1,11 +1,12 @@
-package main
+package wallet
 
 import (
 	"bufio"
-    mathRand "math/rand"
-    "time"
+    // mathRand "math/rand"
+    // "time"
 	"crypto"
 	cryptoRand "crypto/rand"
+	"cryptomunt/blockchain"
 	"crypto/rsa"
 	"crypto/sha256"
 	"cryptomunt/utils"
@@ -16,14 +17,17 @@ import (
 	"os"
 )
 
-func generateMnemonic() {
+func GenerateMnemonic() string {
 	//Generate a mnemonic for memorization or user-friendly seeds
-	
 	entropy, _ := bip39.NewEntropy(256)
 	mnemonic, _ := bip39.NewMnemonic(entropy)
 
+	return mnemonic
+}
+
+func ConvertMnemonicToKeys(mnemonic string, secret string){
 	// Generate a Bip32 HD wallet for the mnemonic and a user supplied password
-	seed := bip39.NewSeed(mnemonic, "secret")
+	seed := bip39.NewSeed(mnemonic, secret)
 
 	masterKey, _ := bip32.NewMasterKey(seed)
 	publicKey := masterKey.PublicKey()
@@ -116,10 +120,10 @@ func (wallet *Wallet) GetPublicKeyHex() string {
 func (wallet *Wallet) createTransaction(
 	receiverPublicKey string,
 	amount int,
-	transactionType TransactionType,
-) Transaction {
-	transaction := CreateTransaction(
-		Transaction{
+	transactionType blockchain.TransactionType,
+) blockchain.Transaction {
+	transaction := blockchain.CreateTransaction(
+		blockchain.Transaction{
 			SenderPublicKey:   wallet.GetPublicKeyHex(),
 			ReceiverPublicKey: receiverPublicKey,
 			Amount:            amount,
@@ -135,12 +139,12 @@ func (wallet *Wallet) createTransaction(
 }
 
 func (wallet *Wallet) CreateBlock(
-	transactions []Transaction,
+	transactions []blockchain.Transaction,
 	previousHash string,
 	blockCount int,
-) Block {
-	block := CreateBlock(
-		Block{
+) blockchain.Block {
+	block := blockchain.CreateBlock(
+		blockchain.Block{
 			Transactions: transactions,
 			PreviousHash: previousHash,
 			Forger:       "",

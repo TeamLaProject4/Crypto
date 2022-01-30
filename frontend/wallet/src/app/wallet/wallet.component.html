@@ -98,7 +98,7 @@
           integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
 
 </head>
-<body class="d-flex h-100 text-center text-white bg-dark">
+<body class="d-flex text-center text-white bg-dark">
 
 <div class="container col-xl-10 col-xxl-8 px-4 py-5">
     <header class="mb-auto"></header>
@@ -106,15 +106,14 @@
     <br>
     <hr class="my-4">
 
-    <p class="lead">able merge orchard dilemma snap bulb rapid brass obey because foil fuel city torch dice cash game
-        parent torch bracket </p>
+    <p class="lead"> {{mnemonic}} </p>
     <hr class="my-4">
 
     <small>Don't forget to write this seedphrase down. You'll need it when you've lost your keys</small>
     <br><br><br>
 
     <p class="lead">
-        <a href="wallet.html" class="btn btn-lg btn-secondary fw-bold border-white ">Go to your wallet 🚀</a>
+        <a (click)="confirmWallet()" class="btn btn-lg btn-secondary fw-bold border-white ">Go to your wallet 🚀</a>
     </p>
 
 </div>

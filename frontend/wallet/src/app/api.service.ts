@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -7,9 +7,24 @@ import { Observable } from 'rxjs';
 })
 export class APIService {
 
+
   constructor(private httpClient: HttpClient) { }
 
   getMnemonic(): Observable<any>{
-    return this.httpClient.get("http://localhost:8080/mnemonic")
+    return this.httpClient.get("http://localhost:8080/getMnemonic")
   }
+
+  
+  confirmMnemonic(mnemonic: string): Observable<any>{
+    const httpOptions = {headers: new HttpHeaders({ 
+      'Access-Control-Allow-Origin':'*',
+    })}
+
+    return this.httpClient.post("http://localhost:8080/confirmMnemonic", //+ `/credentials`, 
+    {
+      "mnemonic": mnemonic,
+    }, httpOptions);
+
+
+}
 }
