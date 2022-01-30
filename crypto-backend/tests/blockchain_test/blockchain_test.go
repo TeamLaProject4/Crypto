@@ -176,17 +176,18 @@ func TestWhenTransactionIsExchangeTypeThenTransactionCovered(t *testing.T) {
 // TODO remove test when exchange transaction type removed
 func TestWhenExchangeTransactionExecutedThenReceiverHasCorrectBalance(t *testing.T) {
 	chain := blockchain.CreateBlockchain()
+	amount := 10
 
 	exchangeTx := new(blockchain.Transaction)
 	exchangeTx.SenderPublicKey = "exchange"
 	exchangeTx.ReceiverPublicKey = "alice"
-	exchangeTx.Amount = 10
+	exchangeTx.Amount = amount
 	exchangeTx.Type = blockchain.EXCHANGE
 	coveredTransactions := chain.GetCoveredTransactions([]blockchain.Transaction{*exchangeTx})
 	chain.ExecuteTransactions(coveredTransactions)
 
 	got := chain.GetAccountBalance("alice")
-	want := 10
+	want := amount - blockchain.CalculateFee(amount)
 	if want != got {
 		t.Errorf("Expected '%d', but got '%d'", want, got)
 	}
@@ -202,17 +203,18 @@ func TestWhenTransferTransactionExecutedThenReceiverHasCorrectBalance(t *testing
 	exchangeTx.Type = blockchain.EXCHANGE
 	coveredTransactions := chain.GetCoveredTransactions([]blockchain.Transaction{*exchangeTx})
 	chain.ExecuteTransactions(coveredTransactions)
+	amount := 5
 
 	transferTx := new(blockchain.Transaction)
 	transferTx.SenderPublicKey = "alice"
 	transferTx.ReceiverPublicKey = "bob"
-	transferTx.Amount = 5
+	transferTx.Amount = amount
 	transferTx.Type = blockchain.TRANSFER
 	coveredTransactions = chain.GetCoveredTransactions([]blockchain.Transaction{*transferTx})
 	chain.ExecuteTransactions(coveredTransactions)
 
 	got := chain.GetAccountBalance("bob")
-	want := 5
+	want := amount - blockchain.CalculateFee(amount)
 	if want != got {
 		t.Errorf("Expected '%d', but got '%d'", want, got)
 	}
