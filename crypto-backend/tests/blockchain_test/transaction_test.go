@@ -1,7 +1,7 @@
 package blockchain_test
 
 import (
-	blockchain "cryptomunt/blockchain"
+	"cryptomunt/blockchain"
 	"encoding/json"
 	"github.com/google/uuid"
 	"testing"

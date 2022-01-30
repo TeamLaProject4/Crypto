@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -22,7 +23,7 @@ func CalculateInitialAmount(amountIncludingFee int) int {
 }
 
 func CreateRewardTransaction(forger string, transactions []Transaction) Transaction {
-	reward := calculateTotalReward(transactions)
+	reward := CalculateTotalReward(transactions)
 	transaction := new(Transaction)
 	transaction.ReceiverPublicKey = forger
 	transaction.Amount = reward
@@ -32,9 +33,10 @@ func CreateRewardTransaction(forger string, transactions []Transaction) Transact
 	return *transaction
 }
 
-func calculateTotalReward(transactions []Transaction) int {
+func CalculateTotalReward(transactions []Transaction) int {
 	reward := 0
 	for _, transaction := range transactions {
+		fmt.Println("||", CalculateFee(CalculateInitialAmount(transaction.Amount)))
 		fee := CalculateFee(CalculateInitialAmount(transaction.Amount))
 		reward += fee
 	}

@@ -4,6 +4,7 @@ import (
 	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
 	"encoding/json"
+	"errors"
 	"sync"
 )
 
@@ -92,6 +93,49 @@ func (blockchain *Blockchain) IsBlockTransactionsValid(block Block) bool {
 	return len(transactions) == len(coveredTransactions)
 }
 
+func (blockchain *Blockchain) IsBlockRewardTransactionValid(block Block) bool {
+	if !blockHasOneRewardTransaction(block) {
+		return false
+	}
+
+	rewardTx, _ := getRewardTransactionFromBlock(block)
+	return rewardTransactionHasCorrectReceiver(block, rewardTx) && rewardTransactionHasCorrectAmount(block, rewardTx)
+}
+
+func blockHasOneRewardTransaction(block Block) bool {
+	rewardTxFound := false
+
+	for _, transaction := range block.Transactions {
+		if transaction.Type == REWARD && rewardTxFound {
+			return false
+		}
+		if transaction.Type == REWARD {
+			rewardTxFound = true
+		}
+	}
+
+	return rewardTxFound
+}
+
+func getRewardTransactionFromBlock(block Block) (Transaction, error) {
+	for _, transaction := range block.Transactions {
+		if transaction.Type == REWARD {
+			return transaction, nil
+		}
+	}
+	return *new(Transaction), errors.New("No reward transaction in block")
+}
+
+func rewardTransactionHasCorrectReceiver(block Block, rewardTx Transaction) bool {
+	return block.Forger == rewardTx.ReceiverPublicKey
+}
+
+func rewardTransactionHasCorrectAmount(block Block, rewardTx Transaction) bool {
+	transactionsLength := len(block.Transactions)
+	totalReward := CalculateTotalReward(block.Transactions[:transactionsLength-1])
+	return rewardTx.Amount == totalReward
+}
+
 func (blockchain *Blockchain) LatestPreviousHash() string {
 	blockLenght := len(blockchain.Blocks)
 	latestBlock := blockchain.Blocks[blockLenght-1]
@@ -112,7 +156,7 @@ func (blockchain *Blockchain) GetCoveredTransactions(transactions []Transaction)
 }
 
 func (blockchain *Blockchain) IsTransactionCovered(transaction Transaction) bool {
-	if transaction.Type == EXCHANGE {
+	if transaction.Type == EXCHANGE || transaction.Type == REWARD {
 		return true
 	}
 	senderBalance := blockchain.AccountModel.GetBalance(transaction.SenderPublicKey)
@@ -172,7 +216,6 @@ func (blockchain *Blockchain) GetAllAccountTransactions(publicKey string) []Tran
 func getAccountTransactionsFromBlock(block Block, transactions chan []Transaction, publicKey string, index int) {
 	transactionsFromBlock := *new([]Transaction)
 	for _, transaction := range block.Transactions {
-		//fmt.Printf("Goroutine: %d  trans: %v  \n", index, transaction)
 		if transaction.SenderPublicKey == publicKey || transaction.ReceiverPublicKey == publicKey {
 			transactionsFromBlock = append(transactionsFromBlock, transaction)
 		}

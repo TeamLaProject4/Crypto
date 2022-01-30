@@ -1,9 +1,17 @@
 package blockchain_test
 
 import (
-	blockchain "cryptomunt/blockchain"
+	"cryptomunt/blockchain"
 	"testing"
 )
+
+func constructRewardTransaction() blockchain.Transaction {
+	rewardTx := new(blockchain.Transaction)
+	rewardTx.ReceiverPublicKey = "alice"
+	rewardTx.Amount = 20
+	rewardTx.Type = blockchain.REWARD
+	return *rewardTx
+}
 
 func TestWhenNewBlockchainCreatedThenFirstBlockIsGenesis(t *testing.T) {
 	chain := blockchain.CreateBlockchain()
@@ -195,14 +203,7 @@ func TestWhenExchangeTransactionExecutedThenReceiverHasCorrectBalance(t *testing
 
 func TestWhenTransferTransactionExecutedThenReceiverHasCorrectBalance(t *testing.T) {
 	chain := blockchain.CreateBlockchain()
-
-	exchangeTx := new(blockchain.Transaction)
-	exchangeTx.SenderPublicKey = "exchange"
-	exchangeTx.ReceiverPublicKey = "alice"
-	exchangeTx.Amount = 10
-	exchangeTx.Type = blockchain.EXCHANGE
-	coveredTransactions := chain.GetCoveredTransactions([]blockchain.Transaction{*exchangeTx})
-	chain.ExecuteTransactions(coveredTransactions)
+	chain.AccountModel.Balances["alice"] = 10
 	amount := 5
 
 	transferTx := new(blockchain.Transaction)
@@ -210,12 +211,68 @@ func TestWhenTransferTransactionExecutedThenReceiverHasCorrectBalance(t *testing
 	transferTx.ReceiverPublicKey = "bob"
 	transferTx.Amount = amount
 	transferTx.Type = blockchain.TRANSFER
-	coveredTransactions = chain.GetCoveredTransactions([]blockchain.Transaction{*transferTx})
+	coveredTransactions := chain.GetCoveredTransactions([]blockchain.Transaction{*transferTx})
 	chain.ExecuteTransactions(coveredTransactions)
 
 	got := chain.GetAccountBalance("bob")
 	want := amount - blockchain.CalculateFee(amount)
 	if want != got {
 		t.Errorf("Expected '%d', but got '%d'", want, got)
+	}
+}
+
+func TestWhenRewardTransactionExecutedThenReceiverHasCorrectBalance(t *testing.T) {
+	chain := blockchain.CreateBlockchain()
+	rewardTx := constructRewardTransaction()
+	coveredTransactions := chain.GetCoveredTransactions([]blockchain.Transaction{rewardTx})
+	chain.ExecuteTransactions(coveredTransactions)
+
+	got := chain.GetAccountBalance("alice")
+	want := rewardTx.Amount
+	if want != got {
+		t.Errorf("Expected '%d', but got '%d'", want, got)
+	}
+}
+
+func TestWhenNoRewardTransactionInBlockThenBlockIsInvalid(t *testing.T) {
+	chain := blockchain.CreateBlockchain()
+	block := constructBlock()
+
+	got := chain.IsBlockRewardTransactionValid(block)
+	want := false
+	if want != got {
+		t.Errorf("Expected '%v', but got '%v'", want, got)
+	}
+}
+
+func TestWhenMultipleRewardTransactionsInBlockThenBlockIsInvalid(t *testing.T) {
+	chain := blockchain.CreateBlockchain()
+	block := constructBlock()
+	rewardTxs := []blockchain.Transaction{
+		constructRewardTransaction(),
+		constructRewardTransaction(),
+	}
+	block.Transactions = append(block.Transactions, rewardTxs...)
+
+	got := chain.IsBlockRewardTransactionValid(block)
+	want := false
+	if want != got {
+		t.Errorf("Expected '%v', but got '%v'", want, got)
+	}
+}
+
+func TestWhenRewardTransactionHasForgerAsReceiverAndCorrectAmountThenBlockIsValid(t *testing.T) {
+	chain := blockchain.CreateBlockchain()
+	block := constructBlock()
+	block.Transactions[0].Amount = 11
+	rewardTx := constructRewardTransaction()
+	rewardTx.Amount = 1
+	block.Forger = rewardTx.ReceiverPublicKey
+	block.Transactions = append(block.Transactions, rewardTx)
+
+	got := chain.IsBlockRewardTransactionValid(block)
+	want := true
+	if want != got {
+		t.Errorf("Expected '%v', but got '%v'", want, got)
 	}
 }

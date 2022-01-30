@@ -50,7 +50,6 @@ func (memoryPool *MemoryPool) GetTransactionIndex(transaction Transaction) (int,
 	}
 	err := errors.New("transaction not found in memory pool")
 	return -1, err
-	//panic("Transaction not found in memory pool!")
 }
 
 func (memoryPool *MemoryPool) RemoveTransaction(transaction Transaction) {
