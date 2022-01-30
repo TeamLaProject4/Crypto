@@ -7,6 +7,7 @@ import (
 	"cryptomunt/networking"
 	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
+	"flag"
 	"fmt"
 	"os"
 )
@@ -14,16 +15,38 @@ import (
 func main() {
 	utils.InitLogger()
 
-	networking.CreateAndInitCryptoNode()
-	go api.StartApi()
-
-	go tempWriteToTopic(networking.Node)
-
-	//go startRestApi()
-	//when api call x then write to topic
+	config := parseFlags()
+	if config.nodesToBoot != 0 {
+		nodeFactory(config)
+	} else {
+		go startNode(config.BootNodes)
+	}
 
 	//infinite loop
 	select {}
+}
+func parseFlags() Config {
+	config := Config{}
+	flag.Var(&config.BootNodes, "peer", "Peer multiaddress for peer discovery")
+	flag.IntVar(&config.nodesToBoot, "amount", 0, "amount of nodesToBoot using a factory, 0 is for making a bootnode")
+	flag.Parse()
+	return config
+}
+
+type Config struct {
+	nodesToBoot int
+	BootNodes   networking.AddrList
+}
+
+func nodeFactory(config Config) {
+	for i := 0; i < config.nodesToBoot; i++ {
+		go startNode(config.BootNodes)
+	}
+}
+
+func startNode(bootnodes networking.AddrList) {
+	node := networking.CreateAndInitCryptoNode(bootnodes)
+	go api.StartApi(node)
 }
 
 func tempWriteToTopic(node networking.CryptoNode) {

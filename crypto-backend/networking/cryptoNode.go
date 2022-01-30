@@ -19,9 +19,6 @@ import (
 	"sync"
 )
 
-//ONLY USE IN API!
-var Node CryptoNode
-
 const RANDEVOUS_STRING = "cryptomunt-randevous"
 
 type TopicType string
@@ -38,7 +35,7 @@ type Config struct {
 	//ProtocolID     string
 	//Rendezvous     string
 	//Seed           int64
-	BootNodes addrList
+	BootNodes AddrList
 }
 
 type CryptoNode struct {
@@ -51,13 +48,13 @@ type CryptoNode struct {
 	//sub map[TopicType]Subscription
 }
 
-func CreateAndInitCryptoNode() {
+func CreateAndInitCryptoNode(bootnodes AddrList) CryptoNode {
 	utils.Logger.Info("Starting network")
 	ctx := context.Background()
-	config := parseFlags()
+	//config := parseFlags()
 
 	//p2p
-	node := initHost(ctx, config.BootNodes)
+	node := initHost(ctx, bootnodes)
 	//init
 	cryptoNode := CryptoNode{
 		Libp2pNode: node,
@@ -75,7 +72,7 @@ func CreateAndInitCryptoNode() {
 	cryptoNode.Wallet = wallet.CreateWallet()
 
 	//return cryptoNode
-	Node = cryptoNode
+	return cryptoNode
 }
 
 func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() ([]string, []peer.ID) {
