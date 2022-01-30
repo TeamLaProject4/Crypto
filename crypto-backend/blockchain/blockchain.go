@@ -5,7 +5,6 @@ import (
 	"cryptomunt/utils"
 	"encoding/json"
 	"sync"
-	//"github.com/btcsuite/btcd/blockchain"
 )
 
 type Blockchain struct {
@@ -14,14 +13,11 @@ type Blockchain struct {
 	ProofOfStake *proofOfStake.ProofOfStake `json:"-"`
 }
 
-//func GetBlockChain() *Blockchain {
-//	return blockchain
-//}
 func CreateBlockchain() Blockchain {
 	genesisBlock := CreateGenesisBlock()
 	var blocks []Block
 	blocks = append(blocks, genesisBlock)
-	pos := proofOfStake.CreateProofOfStake()
+	pos := proofOfStake.NewProofOfStake()
 
 	accountModel := CreateAccountModel()
 
@@ -131,18 +127,6 @@ func (blockchain *Blockchain) getNextForger() string {
 func (blockchain *Blockchain) GetBlocksFromRange(start int, end int) []Block {
 	return blockchain.Blocks[start:end]
 }
-
-//func createBlock(transactions []Transaction, forgerWallet interface{}) Block {
-//	covered_transactions := self.get_covered_transactions(transactions)
-//	self.execute_transactions(covered_transactions)
-//	block := forgerWallet.create_block(
-//		covered_transactions,
-//		self.latest_previous_hash(),
-//		self.latest_block_height()+1,
-//	)
-//	self.add_block(block)
-//	return block
-//}
 
 func (blockchain *Blockchain) IsTransactionInBlockchain(transaction Transaction) bool {
 	for _, block := range blockchain.Blocks {

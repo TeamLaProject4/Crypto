@@ -88,7 +88,7 @@ func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
 	//cryptoNode.Blockchain.Blocks = blocks
 
 	//TODO: proof of stake? remember stakers?? should it not be removed after stake completed?
-	pos := proofOfStake.CreateProofOfStake()
+	pos := proofOfStake.NewProofOfStake()
 	cryptoNode.Blockchain.ProofOfStake = &pos
 
 	//calculate and set account balances
