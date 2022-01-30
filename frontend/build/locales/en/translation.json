@@ -1,9 +1,0 @@
-{
-  "login": {
-    "description": "This is the login page"
-  },
-  "home": {
-    "description": "This is the home page"
-  },
-  "test": "This is a test"
-}
