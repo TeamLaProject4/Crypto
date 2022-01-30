@@ -36,10 +36,30 @@
                 <input type="text" class="form-control input-sm" id="accountnumber" placeholder="u89rjoiefoi"/>
                 <label for="accountnumber">Account number</label>
             </div>
+            <br><br><br>
+            <div class="row">
+                <div class="col">
+                    <input type="radio" class="btn-check" name="options" id="10_transactions" autocomplete="off" checked>
+                    <label class="btn btn-secondary" for="10_transactions">10x</label>
+                </div>
+                <div class="col">
+                    <input type="radio" class="btn-check" name="options" id="100_transactions" autocomplete="off">
+                    <label class="btn btn-secondary" for="100_transactions">100x</label>
+                </div>
+                <div class="col">
+                    <input type="radio" class="btn-check" name="options" id="1000_transactions" autocomplete="off">
+                    <label class="btn btn-secondary" for="1000_transactions">1000x</label>
+                </div>
+                <div class="col">
+                    <input type="radio" class="btn-check" name="options" id="all_transactions" autocomplete="off">
+                    <label class="btn btn-secondary" for="all_transactions">All</label>
+                </div>
+            </div>
         </div>
         <br>
         <button type="button" class="btn btn-warning btn-lg font-weight-bold" id="generate">Get ledger</button>
     </div>
+    <hr>
     <br><br><br>
 
     <form action="wallet.html" class="p-4 p-md-5 border rounded-3 bg-dark" data-bitwarden-watching="1">
