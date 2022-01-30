@@ -9,7 +9,7 @@ import (
 
 type Blockchain struct {
 	Blocks       []Block                    `json:"blocks"`
-	accountModel *AccountModel              `json:"-"`
+	AccountModel *AccountModel              `json:"-"`
 	proofOfStake *proofOfStake.ProofOfStake `json:"-"`
 }
 
@@ -22,11 +22,11 @@ func CreateBlockchain() Blockchain {
 	blocks = append(blocks, genesisBlock)
 	pos := proofOfStake.NewProofOfStake()
 
-	accountModel := NewAccountModel()
+	accountModel := CreateAccountModel()
 
 	return Blockchain{
 		Blocks:       blocks,
-		accountModel: &accountModel,
+		AccountModel: &accountModel,
 		proofOfStake: &pos,
 	}
 }
@@ -61,15 +61,14 @@ func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 	receiver := transaction.ReceiverPublicKey
 	amount := transaction.Amount
 
-	if transaction.TxType == STAKE {
+	if transaction.Type == STAKE {
 		if sender == receiver {
-
 			blockchain.proofOfStake.UpdateStake(sender, amount)
-			blockchain.accountModel.UpdateBalance(sender, -amount)
+			blockchain.AccountModel.UpdateBalance(sender, -amount)
 		}
 	} else {
-		blockchain.accountModel.UpdateBalance(sender, -amount)
-		blockchain.accountModel.UpdateBalance(receiver, amount)
+		blockchain.AccountModel.UpdateBalance(sender, -amount)
+		blockchain.AccountModel.UpdateBalance(receiver, amount)
 	}
 }
 
@@ -112,15 +111,15 @@ func (blockchain *Blockchain) GetCoveredTransactions(transactions []Transaction)
 }
 
 func (blockchain *Blockchain) IsTransactionCovered(transaction Transaction) bool {
-	if transaction.TxType == EXCHANGE {
+	if transaction.Type == EXCHANGE {
 		return true
 	}
-	senderBalance := blockchain.accountModel.GetBalance(transaction.SenderPublicKey)
+	senderBalance := blockchain.AccountModel.GetBalance(transaction.SenderPublicKey)
 	return senderBalance >= transaction.Amount
 }
 
 func (blockchain *Blockchain) GetAccountBalance(publicKey string) int {
-	return blockchain.accountModel.GetBalance(publicKey)
+	return blockchain.AccountModel.GetBalance(publicKey)
 }
 
 func (blockchain *Blockchain) getNextForger() string {
@@ -140,7 +139,7 @@ func (blockchain *Blockchain) getNextForger() string {
 //	return block
 //}
 
-func (blockchain *Blockchain) isTransactionInBlockchain(transaction Transaction) bool {
+func (blockchain *Blockchain) IsTransactionInBlockchain(transaction Transaction) bool {
 	for _, block := range blockchain.Blocks {
 		for _, blockTransaction := range block.Transactions {
 			if blockTransaction == transaction {

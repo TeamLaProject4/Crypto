@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/hex"
+	"encoding/json"
 	"encoding/pem"
 	"io/ioutil"
 	"math/big"
@@ -94,9 +95,15 @@ func WriteRsaKeyToFile(key rsa.PrivateKey) {
 }
 
 func ReadRsaKeyFile(filePath string) rsa.PrivateKey {
+	//Logger.Info(os.Getwd())
+
 	privateKeyFile, err := os.Open(filePath)
 
-	pemFileInfo, _ := privateKeyFile.Stat()
+	pemFileInfo, err1 := privateKeyFile.Stat()
+	if err1 != nil {
+		Logger.Error("rsa error", err)
+		return rsa.PrivateKey{}
+	}
 	var size = pemFileInfo.Size()
 	pembytes := make([]byte, size)
 
@@ -106,10 +113,15 @@ func ReadRsaKeyFile(filePath string) rsa.PrivateKey {
 	data, _ := pem.Decode(pembytes)
 	err = privateKeyFile.Close()
 	if err != nil {
+		Logger.Error("rsa error", err)
 		return rsa.PrivateKey{}
 	}
 
 	privateKeyImported, err := x509.ParsePKCS1PrivateKey(data.Bytes)
+	if err != nil {
+		Logger.Error("rsa error", err)
+		return rsa.PrivateKey{}
+	}
 
 	return *privateKeyImported
 }
@@ -142,4 +154,13 @@ func GetPublicKeyFromHex(hexValue string) (rsa.PublicKey, error) {
 	}
 
 	return *publicKey, nil
+}
+
+func GetStructFromJson(jsonData string, structData interface{}) interface{} {
+	err := json.Unmarshal([]byte(jsonData), &structData)
+	if err != nil {
+		Logger.Error("unmarshal error ", err)
+		return nil
+	}
+	return structData
 }

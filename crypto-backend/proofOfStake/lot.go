@@ -10,11 +10,11 @@ type Lot struct {
 	PreviousBlockHash string
 }
 
-func NewLot(lot Lot) Lot {
+func CreateLot(lot Lot) Lot {
 	return lot
 }
 
-func (lot *Lot) GetHash() string {
+func (lot *Lot) Hash() string {
 	hash := lot.PublicKey + lot.PreviousBlockHash
 	for i := lot.Iteration; i > 0; i-- {
 		hash = utils.GetHexadecimalHash(hash)
