@@ -5,6 +5,7 @@ import (
 	"cryptomunt/blockchain"
 	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
+	"cryptomunt/wallet"
 	"encoding/json"
 	"flag"
 	"github.com/libp2p/go-libp2p-core/host"
@@ -38,7 +39,7 @@ type CryptoNode struct {
 	subscriptions []Subscription
 	Blockchain    blockchain.Blockchain
 	MemoryPool    blockchain.MemoryPool
-	Wallet        blockchain.Wallet
+	Wallet        wallet.Wallet
 	//sub map[TopicType]Subscription
 }
 
@@ -63,7 +64,7 @@ func CreateCryptoNode() CryptoNode {
 	//blockchain
 	cryptoNode.Blockchain = blockchain.CreateBlockchain()
 	cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
-	cryptoNode.Wallet = blockchain.CreateWallet()
+	cryptoNode.Wallet = wallet.CreateWallet()
 
 	return cryptoNode
 }
@@ -83,8 +84,8 @@ func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() []string {
 
 func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
 	//set blocks
-	blocks := cryptoNode.GetBlocksFromNetwork()
-	cryptoNode.Blockchain.Blocks = blocks
+	//blocks := cryptoNode.GetBlocksFromNetwork()
+	//cryptoNode.Blockchain.Blocks = blocks
 
 	//TODO: proof of stake? remember stakers?? should it not be removed after stake completed?
 	pos := proofOfStake.CreateProofOfStake()
@@ -219,7 +220,7 @@ func (cryptoNode *CryptoNode) isForgedBlockValid(block blockchain.Block) bool {
 
 	blockCountValid := cryptoNode.Blockchain.IsValidBlockHeight(block)
 	previousBlockHashValid := cryptoNode.Blockchain.IsValidPreviousBlockHash(block)
-	signatureValid := blockchain.IsValidSignature(payload, signature, forgerPublicKey)
+	signatureValid := wallet.IsValidSignature(payload, signature, forgerPublicKey)
 	forgerValid := cryptoNode.Blockchain.IsValidForger(block)
 	blockTransactionsValid := cryptoNode.Blockchain.IsBlockTransactionsValid(block)
 
@@ -232,7 +233,7 @@ func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transacti
 	senderPublicKey := transaction.SenderPublicKey
 
 	transactionInMemoryPool := cryptoNode.MemoryPool.IsTransactionInPool(transaction)
-	signatureValid := blockchain.IsValidSignature(payload, signature, senderPublicKey)
+	signatureValid := wallet.IsValidSignature(payload, signature, senderPublicKey)
 	transactionInBlockchain := cryptoNode.Blockchain.IsTransactionInBlockchain(transaction)
 
 	if !transactionInMemoryPool && signatureValid && !transactionInBlockchain {
