@@ -8,6 +8,8 @@ import { WalletComponent } from './wallet/wallet.component';
 import { PaymentComponent } from './payment/payment.component';
 import { LedgerComponent } from './ledger/ledger.component';
 import { LandingComponent } from './landing/landing.component';
+import { HttpClientModule } from '@angular/common/http';
+
 
 @NgModule({
   declarations: [
@@ -20,7 +22,8 @@ import { LandingComponent } from './landing/landing.component';
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule
+    AppRoutingModule,
+    HttpClientModule
   ],
   providers: [],
   bootstrap: [AppComponent]
