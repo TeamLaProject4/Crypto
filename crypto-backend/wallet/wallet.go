@@ -119,6 +119,8 @@ func (wallet *Wallet) CreateTransaction(
 	amount int,
 	transactionType blockchain.TransactionType,
 ) blockchain.Transaction {
+	amount += blockchain.CalculateFee(amount)
+
 	transaction := blockchain.Transaction{
 		SenderPublicKey:   wallet.GetPublicKeyHex(),
 		ReceiverPublicKey: receiverPublicKey,
