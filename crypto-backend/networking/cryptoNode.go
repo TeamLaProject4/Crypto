@@ -169,8 +169,8 @@ func (cryptoNode *CryptoNode) GetAllBlocksFromNetwork() []blockchain.Block {
 			cryptoNode.getBlocksFromPeer(peerIp, start, end, blocksFromPeersChan)
 		}(peerIp, start, end, blocksFromPeersChan)
 
-		start = end + 1 //including
-		end += step     //excluding
+		start = end //including
+		end += step //excluding
 	}
 	wg.Wait()
 
