@@ -11,7 +11,7 @@ import (
 type Blockchain struct {
 	Blocks       []Block                    `json:"blocks"`
 	AccountModel *AccountModel              `json:"-"`
-	proofOfStake *proofOfStake.ProofOfStake `json:"-"`
+	ProofOfStake *proofOfStake.ProofOfStake `json:"-"`
 }
 
 //func GetBlockChain() *Blockchain {
@@ -21,14 +21,14 @@ func CreateBlockchain() Blockchain {
 	genesisBlock := CreateGenesisBlock()
 	var blocks []Block
 	blocks = append(blocks, genesisBlock)
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 
 	accountModel := CreateAccountModel()
 
 	return Blockchain{
 		Blocks:       blocks,
 		AccountModel: &accountModel,
-		proofOfStake: &pos,
+		ProofOfStake: &pos,
 	}
 }
 
@@ -64,7 +64,7 @@ func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 
 	if transaction.Type == STAKE {
 		if sender == receiver {
-			blockchain.proofOfStake.UpdateStake(sender, amount)
+			blockchain.ProofOfStake.UpdateStake(sender, amount)
 			blockchain.AccountModel.UpdateBalance(sender, -amount)
 		}
 	} else {
@@ -125,7 +125,11 @@ func (blockchain *Blockchain) GetAccountBalance(publicKey string) int {
 
 func (blockchain *Blockchain) getNextForger() string {
 	prevBlockHash := blockchain.LatestPreviousHash()
-	return blockchain.proofOfStake.PickForger(prevBlockHash)
+	return blockchain.ProofOfStake.PickForger(prevBlockHash)
+}
+
+func (blockchain *Blockchain) GetBlocksFromRange(start int, end int) []Block {
+	return blockchain.Blocks[start:end]
 }
 
 //func createBlock(transactions []Transaction, forgerWallet interface{}) Block {

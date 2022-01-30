@@ -2,7 +2,6 @@ package integration_test
 
 import (
 	"cryptomunt/blockchain"
-	"fmt"
 	"testing"
 )
 
@@ -55,8 +54,7 @@ func TestWhenGettingAllAccountLarsTransactionsThenIsSix(t *testing.T) {
 	//create balances using the transactions in the blockchain
 	got := chain.GetAllAccountTransactions("lars")
 	want := 6
-
-	fmt.Println("transactions from lars: ", got)
+	//fmt.Println("transactions from lars: ", got)
 
 	if len(got) != want {
 		t.Errorf("Expected '%v' \n but got '%v'", want, got)

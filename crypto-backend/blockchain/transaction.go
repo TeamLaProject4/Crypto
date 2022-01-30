@@ -1,6 +1,7 @@
 package blockchain
 
 import (
+	"cryptomunt/utils"
 	"encoding/json"
 	"github.com/mitchellh/hashstructure"
 )
@@ -13,6 +14,15 @@ type Transaction struct {
 	Id                string          `json:"id"`
 	Timestamp         int64           `json:"timestamp"`
 	Signature         string          `json:"signature"`
+}
+
+func GetTransactionFromJson(jsonData string) Transaction {
+	var transaction Transaction
+	err := json.Unmarshal([]byte(jsonData), &transaction)
+	if err != nil {
+		utils.Logger.Error("unmarshal error ", err)
+	}
+	return transaction
 }
 
 func (transaction *Transaction) hash() uint64 {

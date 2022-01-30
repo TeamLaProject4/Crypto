@@ -3,10 +3,15 @@ package networking
 import (
 	"context"
 	"cryptomunt/blockchain"
+	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
+	"encoding/json"
 	"flag"
 	"github.com/libp2p/go-libp2p-core/host"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"io/ioutil"
+	"net/http"
+	"strings"
 )
 
 const RANDEVOUS_STRING = "cryptomunt-randevous"
@@ -63,16 +68,56 @@ func CreateCryptoNode() CryptoNode {
 	return cryptoNode
 }
 
-func (cryptoNode *CryptoNode) GetBlockChainFromNetwork() {
+func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() []string {
 	peerstore := cryptoNode.Libp2pNode.Peerstore()
-
 	peers := peerstore.PeersWithAddrs()
-	utils.Logger.Error("0th peer", peers[0])
 
-	//get  ipaddr from peer info
-	ipADRESS := peerstore.PeerInfo(peers[2])
-	utils.Logger.Error("ipaddr 1", ipADRESS)
-	utils.Logger.Error("ipaddr 2t ", ipADRESS.Addrs)
+	peerIpAdresses := make([]string, 5)
+	for index, peer := range peers {
+		peerInfo := peerstore.PeerInfo(peer)
+		peerIpAdresses[index] = strings.Split(peerInfo.Addrs[0].String(), "/")[2]
+	}
+
+	return peerIpAdresses
+}
+
+func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
+	//set blocks
+	blocks := cryptoNode.GetBlocksFromNetwork()
+	cryptoNode.Blockchain.Blocks = blocks
+
+	//TODO: proof of stake? remember stakers?? should it not be removed after stake completed?
+	pos := proofOfStake.CreateProofOfStake()
+	cryptoNode.Blockchain.ProofOfStake = &pos
+
+	//calculate and set account balances
+	cryptoNode.Blockchain.AccountModel.SetBalancesFromBlockChain(cryptoNode.Blockchain)
+}
+
+//get blockchain blocks from directly connected peers
+func (cryptoNode *CryptoNode) GetBlocksFromNetwork() []blockchain.Block {
+	blocks := *new([]blockchain.Block)
+	peerIps := cryptoNode.getIpAddrsFromConnectedPeers()
+
+	//TODO: make go routing
+	for _, peerIp := range peerIps {
+		response, err := http.Get(peerIp + "/blockchain/blocks")
+		if err != nil {
+			utils.Logger.Error("GetBlocksFromNetwork", err)
+			return nil
+		}
+		defer response.Body.Close()
+
+		body, err := ioutil.ReadAll(response.Body)
+		if err != nil {
+			utils.Logger.Warn(err)
+		}
+		blockJson := string(body)
+		block := blockchain.GetBlockFromJson(blockJson)
+		blocks = append(blocks, block)
+	}
+
+	return blocks
 }
 
 func (cryptoNode *CryptoNode) WriteToTopic(data string, topicType TopicType) {
@@ -135,13 +180,16 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 		case TRANSACTION:
 			utils.Logger.Info("Transaction received from the network")
 			var transaction blockchain.Transaction
-			transaction = utils.GetStructFromJson(message.Message, transaction).(blockchain.Transaction)
+			err := json.Unmarshal([]byte(message.Message), &transaction)
+			if err != nil {
+				utils.Logger.Error("unmarshal error ", err)
+			}
 			cryptoNode.handleTransaction(transaction)
 
 		case BLOCK_FORGED:
 			utils.Logger.Info("Forged block received from the network")
-			var block blockchain.Block
-			block = utils.GetStructFromJson(message.Message, block).(blockchain.Block)
+			//var block blockchain.Block
+			//block = utils.GetStructFromJson(message.Message, block).(blockchain.Block)
 			//handleBlock
 
 		}

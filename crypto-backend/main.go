@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"cryptomunt/blockchain"
 	"cryptomunt/networking"
 	"cryptomunt/utils"
 	"fmt"
@@ -28,16 +27,18 @@ func tempWriteToTopic(node networking.CryptoNode) {
 	for {
 		sendData, err := stdReader.ReadString('\n')
 		if err != nil {
-			fmt.Println("Error reading from stdin")
+			fmt.Println("Error reading from stdin", sendData)
 			panic(err)
 		}
 
-		fmt.Println("writing to topic..." + sendData)
+		fmt.Println("performing actions...")
+		node.SetBlockchainUsingNetwork()
+		utils.Logger.Info(node.Blockchain)
 
 		//api -> key/mnemonic -> wallet
-		wallet := blockchain.CreateWallet()
-		transaction := wallet.CreateTransaction("jeroen", 20, blockchain.TRANSFER)
-
-		node.WriteToTopic(transaction.ToJson(), networking.TRANSACTION)
+		//wallet := blockchain.CreateWallet()
+		//transaction := wallet.CreateTransaction("jeroen", 20, blockchain.TRANSFER)
+		//
+		//node.WriteToTopic(transaction.ToJson(), networking.TRANSACTION)
 	}
 }
