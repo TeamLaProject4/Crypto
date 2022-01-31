@@ -88,7 +88,7 @@ func indexHandler(c *gin.Context) {
 	c.IndentedJSON(http.StatusCreated, "key files created")
 }
 
-func main() {
+func main_router() {
 	router := gin.Default()
 
 	router.Use(cors.Default())

@@ -4,18 +4,15 @@ import (
 	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
 	"encoding/json"
-	//"github.com/btcsuite/btcd/blockchain"
+	"errors"
 )
 
 type Blockchain struct {
 	Blocks       []Block                    `json:"blocks"`
 	AccountModel *AccountModel              `json:"-"`
-	proofOfStake *proofOfStake.ProofOfStake `json:"-"`
+	ProofOfStake *proofOfStake.ProofOfStake `json:"-"`
 }
 
-//func GetBlockChain() *Blockchain {
-//	return blockchain
-//}
 func CreateBlockchain() Blockchain {
 	genesisBlock := CreateGenesisBlock()
 	var blocks []Block
@@ -27,7 +24,7 @@ func CreateBlockchain() Blockchain {
 	return Blockchain{
 		Blocks:       blocks,
 		AccountModel: &accountModel,
-		proofOfStake: &pos,
+		ProofOfStake: &pos,
 	}
 }
 
@@ -50,6 +47,7 @@ func (blockchain *Blockchain) AddBlock(block Block) {
 	}
 }
 
+
 func (blockchain *Blockchain) ExecuteTransactions(transactions []Transaction) {
 	for _, transaction := range transactions {
 		blockchain.executeTransaction(transaction)
@@ -60,15 +58,18 @@ func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
 	sender := transaction.SenderPublicKey
 	receiver := transaction.ReceiverPublicKey
 	amount := transaction.Amount
+	amountWithoutFee := CalculateInitialAmount(amount)
 
 	if transaction.Type == STAKE {
 		if sender == receiver {
-			blockchain.proofOfStake.UpdateStake(sender, amount)
+			blockchain.ProofOfStake.UpdateStake(sender, amountWithoutFee)
 			blockchain.AccountModel.UpdateBalance(sender, -amount)
 		}
+	} else if transaction.Type == REWARD {
+		blockchain.AccountModel.UpdateBalance(receiver, amount)
 	} else {
 		blockchain.AccountModel.UpdateBalance(sender, -amount)
-		blockchain.AccountModel.UpdateBalance(receiver, amount)
+		blockchain.AccountModel.UpdateBalance(receiver, amountWithoutFee)
 	}
 }
 
@@ -81,14 +82,57 @@ func (blockchain *Blockchain) IsValidPreviousBlockHash(block Block) bool {
 	return blockchain.LatestPreviousHash() == block.PreviousHash
 }
 
-func (blockchain *Blockchain) isValidForger(block Block) bool {
+func (blockchain *Blockchain) IsValidForger(block Block) bool {
 	return block.Forger == blockchain.getNextForger()
 }
 
-func (blockchain *Blockchain) isBlockTransactionsValid(block Block) bool {
+func (blockchain *Blockchain) IsBlockTransactionsValid(block Block) bool {
 	transactions := block.Transactions
 	coveredTransactions := blockchain.GetCoveredTransactions(transactions)
 	return len(transactions) == len(coveredTransactions)
+}
+
+func (blockchain *Blockchain) IsBlockRewardTransactionValid(block Block) bool {
+	if !blockHasOneRewardTransaction(block) {
+		return false
+	}
+
+	rewardTx, _ := getRewardTransactionFromBlock(block)
+	return rewardTransactionHasCorrectReceiver(block, rewardTx) && rewardTransactionHasCorrectAmount(block, rewardTx)
+}
+
+func blockHasOneRewardTransaction(block Block) bool {
+	rewardTxFound := false
+
+	for _, transaction := range block.Transactions {
+		if transaction.Type == REWARD && rewardTxFound {
+			return false
+		}
+		if transaction.Type == REWARD {
+			rewardTxFound = true
+		}
+	}
+
+	return rewardTxFound
+}
+
+func getRewardTransactionFromBlock(block Block) (Transaction, error) {
+	for _, transaction := range block.Transactions {
+		if transaction.Type == REWARD {
+			return transaction, nil
+		}
+	}
+	return *new(Transaction), errors.New("No reward transaction in block")
+}
+
+func rewardTransactionHasCorrectReceiver(block Block, rewardTx Transaction) bool {
+	return block.Forger == rewardTx.ReceiverPublicKey
+}
+
+func rewardTransactionHasCorrectAmount(block Block, rewardTx Transaction) bool {
+	transactionsLength := len(block.Transactions)
+	totalReward := CalculateTotalReward(block.Transactions[:transactionsLength-1])
+	return rewardTx.Amount == totalReward
 }
 
 func (blockchain *Blockchain) LatestPreviousHash() string {
@@ -111,7 +155,7 @@ func (blockchain *Blockchain) GetCoveredTransactions(transactions []Transaction)
 }
 
 func (blockchain *Blockchain) IsTransactionCovered(transaction Transaction) bool {
-	if transaction.Type == EXCHANGE {
+	if transaction.Type == EXCHANGE || transaction.Type == REWARD {
 		return true
 	}
 	senderBalance := blockchain.AccountModel.GetBalance(transaction.SenderPublicKey)
@@ -124,28 +168,5 @@ func (blockchain *Blockchain) GetAccountBalance(publicKey string) int {
 
 func (blockchain *Blockchain) getNextForger() string {
 	prevBlockHash := blockchain.LatestPreviousHash()
-	return blockchain.proofOfStake.PickForger(prevBlockHash)
-}
-
-//func createBlock(transactions []Transaction, forgerWallet interface{}) Block {
-//	covered_transactions := self.get_covered_transactions(transactions)
-//	self.execute_transactions(covered_transactions)
-//	block := forgerWallet.create_block(
-//		covered_transactions,
-//		self.latest_previous_hash(),
-//		self.latest_block_height()+1,
-//	)
-//	self.add_block(block)
-//	return block
-//}
-
-func (blockchain *Blockchain) IsTransactionInBlockchain(transaction Transaction) bool {
-	for _, block := range blockchain.Blocks {
-		for _, blockTransaction := range block.Transactions {
-			if blockTransaction == transaction {
-				return true
-			}
-		}
-	}
-	return false
+	return blockchain.ProofOfStake.PickForger(prevBlockHash)
 }
