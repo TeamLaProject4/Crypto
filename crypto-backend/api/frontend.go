@@ -77,9 +77,19 @@ func createTransaction(c *gin.Context, node networking.CryptoNode) {
 		amountInt, err := strconv.Atoi(amount[0])
 		if err != nil {
 			c.JSON(419, "Amount is not an integer")
+			return
 		}
 
-		node.Wallet.CreateTransaction(publicKey[0], amountInt, blockchain.TRANSFER)
+		transaction := node.Wallet.CreateTransaction(publicKey[0], amountInt, blockchain.TRANSFER)
+		if !node.IsTransactionValid(transaction) {
+			c.JSON(419, "Transaction is not valid")
+			return
+		}
+		//add transaction to mem pool
+		node.MemoryPool.AddTransaction(transaction)
+		//write to topic
+		node.WriteToTopic(transaction.ToJson(), networking.TRANSACTION)
+
 		c.JSON(200, "added transaction to memoryPool")
 		return
 	}

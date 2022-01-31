@@ -363,6 +363,7 @@ func (cryptoNode *CryptoNode) handleBlockForged(block blockchain.Block) {
 		cryptoNode.MemoryPool.RemoveTransactions(block.Transactions)
 	}
 }
+
 func (cryptoNode *CryptoNode) isForgedBlockValid(block blockchain.Block) bool {
 	payload := block.Payload()
 	signature := block.Signature
@@ -378,6 +379,13 @@ func (cryptoNode *CryptoNode) isForgedBlockValid(block blockchain.Block) bool {
 }
 
 func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transaction) {
+	if cryptoNode.IsTransactionValid(transaction) {
+		cryptoNode.MemoryPool.AddTransaction(transaction)
+		utils.Logger.Info("Transaction added to memory pool")
+	}
+}
+
+func (cryptoNode *CryptoNode) IsTransactionValid(transaction blockchain.Transaction) bool {
 	payload := transaction.Payload()
 	signature := transaction.Signature
 	senderPublicKey := transaction.SenderPublicKey
@@ -385,9 +393,12 @@ func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transacti
 	transactionInMemoryPool := cryptoNode.MemoryPool.IsTransactionInPool(transaction)
 	signatureValid := wallet.IsValidSignature(payload, signature, senderPublicKey)
 	transactionInBlockchain := cryptoNode.Blockchain.IsTransactionInBlockchain(transaction)
+	balanceNegative := cryptoNode.balanceNegativeAfterTransaction(transaction)
 
-	if !transactionInMemoryPool && signatureValid && !transactionInBlockchain {
-		cryptoNode.MemoryPool.AddTransaction(transaction)
-		utils.Logger.Info("Transaction added to memory pool")
-	}
+	return !transactionInMemoryPool && signatureValid && !transactionInBlockchain && !balanceNegative
+}
+
+func (cryptoNode *CryptoNode) balanceNegativeAfterTransaction(transaction blockchain.Transaction) bool {
+	balance := cryptoNode.Blockchain.AccountModel.GetBalance(cryptoNode.Wallet.GetPublicKeyHex())
+	return transaction.Amount > balance
 }
