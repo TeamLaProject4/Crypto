@@ -37,7 +37,12 @@ func ConvertMnemonicToKeys(mnemonic string, secret string){
 }
 
 func writePrivateKeyFile(private *bip32.Key){
-    file, err := os.OpenFile("../keys/private.key", os.O_WRONLY|os.O_CREATE, 0666)
+	path, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(path)  // for example /home/user
+    file, err := os.OpenFile("keys/private.key", os.O_WRONLY|os.O_CREATE, 0666)
 	
     if err != nil {
         fmt.Println("File does not exists or cannot be created")
@@ -51,7 +56,7 @@ func writePrivateKeyFile(private *bip32.Key){
 }
 
 func writePublicKeyFile(public *bip32.Key){
-    file, err := os.OpenFile("../keys/public.key", os.O_WRONLY|os.O_CREATE, 0666)
+    file, err := os.OpenFile("keys/public.key", os.O_WRONLY|os.O_CREATE, 0666)
 	
     if err != nil {
         fmt.Println("File does not exists or cannot be created")

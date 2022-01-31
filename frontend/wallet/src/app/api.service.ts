@@ -23,7 +23,7 @@ export class APIService {
     return this.httpClient.post("http://localhost:8080/confirmMnemonic", //+ `/credentials`, 
     {
       "mnemonic": mnemonic,
-    }, httpOptions);
+    });
 
 
 }

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"cryptomunt/wallet"
 	"github.com/gin-gonic/gin"
-	//"github.com/gin-contrib/cors"
+	"github.com/gin-contrib/cors"
 	"fmt"
 	//"io"
 )
@@ -51,28 +51,26 @@ func getMnemonic(c *gin.Context) {
 
 // postAlbums adds an album from JSON received in the request body.
 func confirmMnemonic(c *gin.Context) {
-	// var newSeedphrase seedphrase
 
-	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
-	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
-	c.Writer.Header().Set("Access-Control-Allow-Methods", "GET,POST,OPTIONS,DELETE,PUT")
+}
+
+
+func setupResponse(c *gin.Context) {
+	var w = c.Writer
 	
-	// jsonData, err := ioutil.ReadAll(c.Request.Body)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+    w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
 
-	// if err != nil {
-	// 	// Handle error
-	// }
-	// err = client.Set("id", jsonData, 0).Err()
-	
-	// // wallet.ConvertMnemonicToKeys()
+func indexHandler(c *gin.Context) {
+	var req = c.Request
 
-	// var requestBody Mnemonic
+	setupResponse(c)
+	if (*req).Method == "OPTIONS" {
+		return
+	}
 
-	// if err := c.BindJSON(&requestBody); err != nil {
-	// 	// DO SOMETHING WITH THE ERROR
-	// }
- 
 	var mnemonic Mnemonic
 
 	// Call BindJSON to bind the received JSON to
@@ -84,26 +82,20 @@ func confirmMnemonic(c *gin.Context) {
 	// Add the new album to the slice.
 	fmt.Println(mnemonic.Mnemonic)
 
+	wallet.ConvertMnemonicToKeys(mnemonic.Mnemonic, "secret")
+
 //    fmt.Println(requestBody.Mnemonic)
 	c.IndentedJSON(http.StatusCreated, "key files created")
 }
 
 func main() {
 	router := gin.Default()
-	// corsConfig := cors.DefaultConfig()
-	
-	// corsConfig.AllowOrigins = []string{"http://localhost"}
-	// // To be able to send tokens to the server.
-	// corsConfig.AllowCredentials = true
-	
-	// // OPTIONS method for ReactJS
-	// corsConfig.AddAllowMethods("OPTIONS")
-	
-	// // Register the middleware
-	// router.Use(cors.New(corsConfig))
+
+	router.Use(cors.Default())
 
 	router.GET("/getMnemonic", getMnemonic)
-	router.POST("/confirmMnemonic", confirmMnemonic)
+	router.POST("/confirmMnemonic", indexHandler)
+//	router.POST("/confirmMnemonic", confirmMnemonic)
 
 	router.Run("localhost:8080")
 }
