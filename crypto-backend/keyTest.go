@@ -4,10 +4,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	// "crypto/sha256"
 	"cryptomunt/wallet"
-	// "encoding/hex"
-	"fmt"
 )
 
 func main() {
@@ -17,14 +14,14 @@ func main() {
 	}
 
 	wallett := wallet.CreateWallet(*privateKey)
-	msg := "hello, world"
 
-	sig := wallett.Sign(msg)
+	pemEncodedPriv := wallet.EncodePrivateKey(&wallett.Key)
+	pemEncodedPub := wallet.EncodePublicKey(&wallett.Key.PublicKey)
 
-	fmt.Printf("signature: %s\n", sig)
-	valid := wallet.IsValidSignature(msg, sig, wallett.GetPublicKeyHex())
+	wallet.WriteKeyToFile(wallet.PRIVATE_KEY_PATH, pemEncodedPriv)
+	wallet.WriteKeyToFile(wallet.PUBLIC_KEY_PATH, pemEncodedPub)
 
-	fmt.Println(valid)
+
 
 	// hash := sha256.Sum256([]byte(msg))
 

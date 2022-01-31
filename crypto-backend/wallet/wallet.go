@@ -10,17 +10,17 @@ import (
 )
 
 type Wallet struct {
-	key ecdsa.PrivateKey
+	Key ecdsa.PrivateKey
 }
 
 func CreateWalletFromKeyFile() Wallet {
 	pemEncodedKey := ReadKeyFromFile(PRIVATE_KEY_PATH)
 	privateKey := DecodePrivateKey(pemEncodedKey)
-	return Wallet{key: *privateKey}
+	return Wallet{Key: *privateKey}
 }
 
 func CreateWallet(key ecdsa.PrivateKey) Wallet {
-	return Wallet{key: key}
+	return Wallet{Key: key}
 }
 
 func (wallet *Wallet) Sign(data string) string {
@@ -28,7 +28,7 @@ func (wallet *Wallet) Sign(data string) string {
 	//Sign hash of message because only small messages can be signed
 	hashed := sha256.Sum256(message)
 
-	signature, err := ecdsa.SignASN1(cryptoRand.Reader, &wallet.key, hashed[:])
+	signature, err := ecdsa.SignASN1(cryptoRand.Reader, &wallet.Key, hashed[:])
 	if err != nil {
 		utils.Logger.Errorf("Error from signing: %s\n", err)
 		return ""
@@ -38,7 +38,7 @@ func (wallet *Wallet) Sign(data string) string {
 }
 
 func (wallet *Wallet) GetPublicKeyHex() string {
-	pubKey := wallet.key.PublicKey
+	pubKey := wallet.Key.PublicKey
 	pubKeyBytes := elliptic.Marshal(pubKey, pubKey.X, pubKey.Y)
 
 	return hex.EncodeToString(pubKeyBytes)
