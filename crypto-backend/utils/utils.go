@@ -62,6 +62,14 @@ func WriteFile(filePath string, content string) {
 	}
 }
 
+func ReadFileBytes(filePath string) []byte {
+	content, err := ioutil.ReadFile(filePath)
+	if err != nil {
+		Logger.Info(err)
+	}
+	return content
+}
+
 func WriteRsaKeyToFile(key rsa.PrivateKey) {
 	// Extract public component.
 	publicKey := key.Public()

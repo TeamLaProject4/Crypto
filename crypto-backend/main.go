@@ -6,24 +6,38 @@ import (
 	"cryptomunt/networking"
 	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
+	"cryptomunt/wallet"
 	"flag"
 	"fmt"
 	"os"
 )
 
+//func main() {
+//	utils.InitLogger()
+//
+//	wallet.GenerateMnemonic()
+//	//config := parseFlags()
+//	//if config.nodesToBoot != 0 {
+//	//	nodeFactory(config)
+//	//} else {
+//	//	go startNode(config.BootNodes)
+//	//}
+//
+//	//infinite loop
+//	select {}
+//}
+
 func main() {
 	utils.InitLogger()
-
-	config := parseFlags()
-	if config.nodesToBoot != 0 {
-		nodeFactory(config)
-	} else {
-		go startNode(config.BootNodes)
+	wallet.GenerateMnemonic()
+	key, err := utils.ReadEDCSAFromtFile()
+	if err != nil {
+		return
 	}
+	utils.Logger.Info(key)
 
-	//infinite loop
-	select {}
 }
+
 func parseFlags() Config {
 	config := Config{}
 	flag.Var(&config.BootNodes, "peer", "Peer multiaddress for peer discovery")

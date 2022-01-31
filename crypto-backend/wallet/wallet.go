@@ -1,7 +1,6 @@
 package wallet
 
 import (
-	"bufio"
 	"crypto"
 	cryptoRand "crypto/rand"
 	"crypto/rsa"
@@ -10,7 +9,9 @@ import (
 	"cryptomunt/utils"
 	"encoding/hex"
 	"fmt"
+	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/google/uuid"
+	"github.com/jbenet/go-base58"
 	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
 	"os"
@@ -19,46 +20,33 @@ import (
 
 func GenerateMnemonic() {
 	//Generate a mnemonic for memorization or user-friendly seeds
-
 	entropy, _ := bip39.NewEntropy(256)
 	mnemonic, _ := bip39.NewMnemonic(entropy)
-
+	//
 	// Generate a Bip32 HD wallet for the mnemonic and a user supplied password
 	seed := bip39.NewSeed(mnemonic, "secret")
 
-	masterKey, _ := bip32.NewMasterKey(seed)
-	publicKey := masterKey.PublicKey()
-
-	writePrivateKeyFile(masterKey)
-	writePublicKeyFile(publicKey)
-}
-
-func writePrivateKeyFile(private *bip32.Key) {
-	file, err := os.OpenFile("../keys/private.key", os.O_WRONLY|os.O_CREATE, 0666)
-
+	master, err := bip32.NewMasterKey(seed)
 	if err != nil {
-		fmt.Println("File does not exists or cannot be created")
-		os.Exit(1)
+		utils.Logger.Fatal(err)
 	}
 
-	defer file.Close()
-	w := bufio.NewWriter(file)
-	fmt.Fprintf(w, "%v\n", private)
-	w.Flush()
-}
-
-func writePublicKeyFile(public *bip32.Key) {
-	file, err := os.OpenFile("../keys/public.key", os.O_WRONLY|os.O_CREATE, 0666)
-
+	// m/44'
+	key, err := master.NewChildKey(2147483648 + 44)
 	if err != nil {
-		fmt.Println("File does not exists or cannot be created")
-		os.Exit(1)
+		utils.Logger.Fatal(err)
 	}
 
-	defer file.Close()
-	w := bufio.NewWriter(file)
-	fmt.Fprintf(w, "%v\n", public)
-	w.Flush()
+	decoded := base58.Decode(key.B58Serialize())
+	privateKey := decoded[46:78]
+
+	//Hex private key to ECDSA private key
+	privateKeyECDSA, err := ethCrypto.ToECDSA(privateKey)
+	if err != nil {
+		utils.Logger.Fatal(err)
+	}
+
+	utils.WriteEDCSAToFile(privateKeyECDSA)
 }
 
 var KEY_LENGTH_BITS = 2048
