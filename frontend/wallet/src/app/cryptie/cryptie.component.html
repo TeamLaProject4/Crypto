@@ -22,7 +22,9 @@
     <div class="row">
       <div class="col">
         <form>
-          <button class="btn btn-dark">&larr; Back to wallet</button>
+          <button [routerLink]="['/wallet']" class="btn btn-dark">
+            &larr; Back to wallet
+          </button>
         </form>
       </div>
     </div>
@@ -107,51 +109,5 @@
         </div>
       </form>
     </div>
-
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
-
-    <script>
-      // Function to HTML encode the text This creates a new hidden element,
-      // inserts the given text into it and outputs it out as HTML
-      function htmlEncode(value) {
-        return $("<div/>").text(value).html();
-      }
-
-      function copyLink() {
-        /* Get the text field */
-        var copyText = document.getElementById("cryptielink");
-
-        /* Select the text field */
-        copyText.select();
-        copyText.setSelectionRange(0, 99999); /* For mobile devices */
-
-        /* Copy the text inside the text field */
-        navigator.clipboard.writeText(copyText.value);
-
-        /* Alert the copied text */
-        alert("Copied the text: " + copyText.value);
-      }
-
-      $(function () {
-        // Specify an onclick function for the generate button
-        $("#generate").click(function () {
-          // Generate the link that would be used to generate the QR Code with the given data
-          let cryptielink = htmlEncode(
-            "payment?to=" +
-              $("#accountnumber").val() +
-              "&amount=" +
-              $("#amount").val()
-          );
-          let finalURL =
-            "https://chart.googleapis.com/chart?cht=qr&chl=" +
-            cryptielink +
-            "&chs=160x160&chld=L|0";
-          // Replace the src of the image with the QR code image
-          $(".qr-code").attr("src", finalURL);
-          document.getElementById("cryptielink").value = cryptielink;
-          document.getElementById("sharelink").hidden = false;
-        });
-      });
-    </script>
   </body>
 </html>
