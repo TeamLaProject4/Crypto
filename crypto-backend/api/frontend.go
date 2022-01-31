@@ -62,7 +62,8 @@ func confirmMnemonic(c *gin.Context, node networking.CryptoNode) {
 	masterKey := wallet.NewMasterKey(mnemonic.Mnemonic)
 	ecdsaKey := wallet.ConvertBip32ToECDSA(masterKey)
 	node.Wallet = wallet.CreateWallet(ecdsaKey)
-	wallet.WriteKeyToFile(wallet.PRIVATE_KEY_PATH, ecdsaKey)
+	ecdsaKeyPemEncoded := wallet.EncodePrivateKey(&ecdsaKey)
+	wallet.WriteKeyToFile(wallet.PRIVATE_KEY_PATH, ecdsaKeyPemEncoded)
 
 	//    fmt.Println(requestBody.Mnemonic)
 	c.IndentedJSON(http.StatusCreated, "key files created")

@@ -1,11 +1,8 @@
 package utils
 
 import (
-	"crypto/rsa"
 	"crypto/sha256"
-	"crypto/x509"
 	"encoding/hex"
-	"encoding/pem"
 	"io/ioutil"
 	"math/big"
 	"os"
@@ -49,21 +46,4 @@ func ReadFileBytes(filePath string) []byte {
 		Logger.Info(err)
 	}
 	return content
-}
-
-func GetPublicKeyFromHex(hexValue string) (rsa.PublicKey, error) {
-	var publicKeyEmpty rsa.PublicKey
-	pubPem, _ := hex.DecodeString(hexValue)
-	block, _ := pem.Decode(pubPem)
-
-	if block == nil {
-		return publicKeyEmpty, nil
-	}
-
-	publicKey, err := x509.ParsePKCS1PublicKey(block.Bytes)
-	if err != nil {
-		return *publicKey, err
-	}
-
-	return *publicKey, nil
 }

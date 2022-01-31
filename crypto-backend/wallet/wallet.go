@@ -1,11 +1,9 @@
 package wallet
 
 import (
-	"crypto"
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	cryptoRand "crypto/rand"
-	"crypto/rsa"
 	"crypto/sha256"
 	"cryptomunt/utils"
 	"encoding/hex"
@@ -16,13 +14,9 @@ type Wallet struct {
 }
 
 func CreateWalletFromKeyFile() Wallet {
-	key, err := ReadKeyFromFile("./keys/privatekey.bytes")
-	if err != nil {
-		utils.Logger.Warn(err)
-		return Wallet{}
-	}
-
-	return Wallet{key: *key}
+	pemEncodedKey := ReadKeyFromFile(PRIVATE_KEY_PATH)
+	privateKey := DecodePrivateKey(pemEncodedKey)
+	return Wallet{key: *privateKey}
 }
 
 func CreateWallet(key ecdsa.PrivateKey) Wallet {
@@ -44,8 +38,8 @@ func (wallet *Wallet) Sign(data string) string {
 }
 
 func (wallet *Wallet) GetPublicKeyHex() string {
-	pubkey := wallet.key.PublicKey
-	pubKeyBytes := elliptic.Marshal(pubkey, pubkey.X, pubkey.Y)
+	pubKey := wallet.key.PublicKey
+	pubKeyBytes := elliptic.Marshal(pubKey, pubKey.X, pubKey.Y)
 
 	return hex.EncodeToString(pubKeyBytes)
 }
@@ -59,12 +53,14 @@ func IsValidSignature(data string, signature string, publicKey string) bool {
 	message := []byte(data)
 	hashed := sha256.Sum256(message)
 
-	pubKey, _ := utils.GetPublicKeyFromHex(publicKey)
-	err = rsa.VerifyPKCS1v15(&pubKey, crypto.SHA256, hashed[:], sig)
+	pubKeyBytes, _ := hex.DecodeString(publicKey)
+	x, y := elliptic.Unmarshal(elliptic.P256(), pubKeyBytes)
+	pubKey := new(ecdsa.PublicKey)
+	pubKey.Curve = elliptic.P256()
+	pubKey.X = x
+	pubKey.Y = y
 
-	if err != nil {
-		return false
-	}
+	valid := ecdsa.VerifyASN1(pubKey, hashed[:], sig)
 
-	return true
+	return valid
 }
