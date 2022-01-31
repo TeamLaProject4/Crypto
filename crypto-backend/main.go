@@ -2,8 +2,11 @@ package main
 
 import (
 	"bufio"
+	"cryptomunt/blockchain"
 	"cryptomunt/networking"
+	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
+	"flag"
 	"fmt"
 	"os"
 )
@@ -11,15 +14,38 @@ import (
 func main() {
 	utils.InitLogger()
 
-	node := networking.CreateCryptoNode()
-
-	go tempWriteToTopic(node)
-
-	//go startRestApi()
-	//when api call x then write to topic
+	config := parseFlags()
+	if config.nodesToBoot != 0 {
+		nodeFactory(config)
+	} else {
+		go startNode(config.BootNodes)
+	}
 
 	//infinite loop
 	select {}
+}
+
+//func main() {
+//	utils.InitLogger()
+//	wallet.GenerateMnemonic()
+//	key, err := utils.ReadEDCSAFromtFile()
+//	if err != nil {
+//		return
+//	}
+//	utils.Logger.Info(key)
+//}
+
+func parseFlags() Config {
+	config := Config{}
+	flag.Var(&config.BootNodes, "peer", "Peer multiaddress for peer discovery")
+	flag.IntVar(&config.nodesToBoot, "amount", 0, "amount of nodesToBoot using a factory, 0 is for making a bootnode")
+	flag.Parse()
+	return config
+}
+
+type Config struct {
+	nodesToBoot int
+	BootNodes   networking.AddrList
 }
 
 func tempWriteToTopic(node networking.CryptoNode) {
@@ -32,9 +58,15 @@ func tempWriteToTopic(node networking.CryptoNode) {
 		}
 
 		fmt.Println("performing actions...")
-		node.SetBlockchainUsingNetwork()
-		utils.Logger.Info(node.Blockchain)
 
+		//reset blockchain
+		node.Blockchain.Blocks = *new([]blockchain.Block)
+		node.Blockchain.AccountModel = new(blockchain.AccountModel)
+		node.Blockchain.ProofOfStake = new(proofOfStake.ProofOfStake)
+		//get from network
+		node.SetBlockchainUsingNetwork()
+		utils.Logger.Info("blockchain", node.Blockchain.AccountModel)
+		utils.Logger.Info("blockchain", node.Blockchain.ProofOfStake)
 		//api -> key/mnemonic -> wallet
 		//wallet := blockchain.CreateWallet()
 		//transaction := wallet.CreateTransaction("jeroen", 20, blockchain.TRANSFER)

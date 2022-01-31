@@ -1,72 +1,53 @@
 package wallet
 
 import (
-	"bufio"
-    // mathRand "math/rand"
-    // "time"
 	"crypto"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	cryptoRand "crypto/rand"
-	"cryptomunt/blockchain"
 	"crypto/rsa"
 	"crypto/sha256"
+	"cryptomunt/blockchain"
 	"cryptomunt/utils"
-	"github.com/tyler-smith/go-bip39"
-	"github.com/tyler-smith/go-bip32"
 	"encoding/hex"
-	"fmt"
-	"os"
+	ethCrypto "github.com/ethereum/go-ethereum/crypto"
+	"github.com/google/uuid"
+	"github.com/jbenet/go-base58"
+	"github.com/tyler-smith/go-bip32"
+	"github.com/tyler-smith/go-bip39"
+	"time"
 )
 
-func GenerateMnemonic() string {
+func GenerateMnemonic() *ecdsa.PrivateKey {
 	//Generate a mnemonic for memorization or user-friendly seeds
 	entropy, _ := bip39.NewEntropy(256)
 	mnemonic, _ := bip39.NewMnemonic(entropy)
-
-	return mnemonic
-}
-
-func ConvertMnemonicToKeys(mnemonic string, secret string){
+	//
 	// Generate a Bip32 HD wallet for the mnemonic and a user supplied password
-	seed := bip39.NewSeed(mnemonic, secret)
+	seed := bip39.NewSeed(mnemonic, "secret")
 
-	masterKey, _ := bip32.NewMasterKey(seed)
-	publicKey := masterKey.PublicKey()
-
-	writePrivateKeyFile(masterKey)
-	writePublicKeyFile(publicKey)
-}
-
-func writePrivateKeyFile(private *bip32.Key){
-	path, err := os.Getwd()
+	master, err := bip32.NewMasterKey(seed)
 	if err != nil {
-		fmt.Println(err)
+		utils.Logger.Fatal(err)
 	}
-	fmt.Println(path)  // for example /home/user
-    file, err := os.OpenFile("keys/private.key", os.O_WRONLY|os.O_CREATE, 0666)
-	
-    if err != nil {
-        fmt.Println("File does not exists or cannot be created")
-        os.Exit(1)
-    }
 
-    defer file.Close()
-	w := bufio.NewWriter(file)
-    fmt.Fprintf(w, "%v\n", private)
-    w.Flush()
-}
+	// m/44'
+	key, err := master.NewChildKey(2147483648 + 44)
+	if err != nil {
+		utils.Logger.Fatal(err)
+	}
 
-func writePublicKeyFile(public *bip32.Key){
-    file, err := os.OpenFile("keys/public.key", os.O_WRONLY|os.O_CREATE, 0666)
-	
-    if err != nil {
-        fmt.Println("File does not exists or cannot be created")
-        os.Exit(1)
-    }
+	decoded := base58.Decode(key.B58Serialize())
+	privateKey := decoded[46:78]
 
-    defer file.Close()
-	w := bufio.NewWriter(file)
-    fmt.Fprintf(w, "%v\n", public)
-    w.Flush()
+	//Hex private key to ECDSA private key
+	privateKeyECDSA, err := ethCrypto.ToECDSA(privateKey)
+	if err != nil {
+		utils.Logger.Fatal(err)
+	}
+
+	utils.WriteEDCSAToFile(privateKeyECDSA)
+	return privateKeyECDSA
 }
 
 var KEY_LENGTH_BITS = 2048
@@ -74,34 +55,13 @@ var PRIVATE_KEY_PATH = "../keys/walletPrivateKey.hex"
 var PUBLIC_KEY_PATH = "../keys/walletPublicKey.hex"
 
 type Wallet struct {
-	key rsa.PrivateKey //contains private and public keys, keep private!
+	//key rsa.PrivateKey //contains private and public keys, keep private!
+	key ecdsa.PrivateKey
 }
 
 // CreateWallet TODO: mnumonic?
 func CreateWallet() Wallet {
-	return Wallet{key: GetKeyPair()}
-}
-
-//get the keypair from a file or generate one
-//func GetKeyPair() (string, string) {
-func GetKeyPair() rsa.PrivateKey {
-	var privateKey rsa.PrivateKey
-
-	//get from file
-	privateKey = utils.ReadRsaKeyFile("./keys/wallet.rsa")
-
-	//generate key
-	if privateKey.Size() < 1 {
-		key, err := rsa.GenerateKey(cryptoRand.Reader, KEY_LENGTH_BITS)
-		if err != nil {
-			utils.Logger.Error("generate rsa error", err)
-		}
-		privateKey = *key
-		//TODO: error handling
-		utils.WriteRsaKeyToFile(privateKey)
-	}
-
-	return privateKey
+	return Wallet{key: *GenerateMnemonic()}
 }
 
 func (wallet *Wallet) sign(data string) string {
@@ -109,9 +69,9 @@ func (wallet *Wallet) sign(data string) string {
 	//Sign hash of message because only small messages can be signed
 	hashed := sha256.Sum256(message)
 
-	signature, err := rsa.SignPKCS1v15(cryptoRand.Reader, &wallet.key, crypto.SHA256, hashed[:])
+	signature, err := ecdsa.SignASN1(cryptoRand.Reader, &wallet.key, hashed[:])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error from signing: %s\n", err)
+		utils.Logger.Errorf("Error from signing: %s\n", err)
 		return ""
 	}
 
@@ -119,27 +79,29 @@ func (wallet *Wallet) sign(data string) string {
 }
 
 func (wallet *Wallet) GetPublicKeyHex() string {
-	return utils.GetRsaPublicKeyHexValue(&wallet.key.PublicKey)
+	utils.Logger.Info("pubkey", wallet.key.PublicKey)
+	pubkey := wallet.key.PublicKey
+	pubKeyBytes := elliptic.Marshal(pubkey, pubkey.X, pubkey.Y)
+	return hex.EncodeToString(pubKeyBytes)
 }
 
-func (wallet *Wallet) createTransaction(
+func (wallet *Wallet) CreateTransaction(
 	receiverPublicKey string,
 	amount int,
 	transactionType blockchain.TransactionType,
 ) blockchain.Transaction {
-	transaction := blockchain.CreateTransaction(
-		blockchain.Transaction{
-			SenderPublicKey:   wallet.GetPublicKeyHex(),
-			ReceiverPublicKey: receiverPublicKey,
-			Amount:            amount,
-			Type:              transactionType,
-			Id:                "",
-			Timestamp:         0,
-			Signature:         "",
-		})
+	transaction := blockchain.Transaction{
+		SenderPublicKey:   wallet.GetPublicKeyHex(),
+		ReceiverPublicKey: receiverPublicKey,
+		Amount:            amount,
+		Type:              transactionType,
+		Id:                uuid.New().String(),
+		Timestamp:         time.Now().Unix(),
+	}
 
 	signature := wallet.sign(transaction.ToJson())
 	transaction.Sign(signature)
+
 	return transaction
 }
 
@@ -152,10 +114,7 @@ func (wallet *Wallet) CreateBlock(
 		blockchain.Block{
 			Transactions: transactions,
 			PreviousHash: previousHash,
-			Forger:       "",
 			Height:       blockCount,
-			Timestamp:    0,
-			Signature:    wallet.GetPublicKeyHex(),
 		})
 	signature := wallet.sign(block.Payload())
 	block.Sign(signature)

@@ -9,10 +9,14 @@ import (
 	"encoding/json"
 	"flag"
 	"github.com/libp2p/go-libp2p-core/host"
+	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
+	"sync"
 )
 
 const RANDEVOUS_STRING = "cryptomunt-randevous"
@@ -23,6 +27,7 @@ const (
 	TRANSACTION     TopicType = "TRANSACTION" //transaction
 	BLOCK_FORGED              = "BLOCK_FORGED"
 	CONSENSUS_ERROR           = "CONSENSUS_ERROR"
+	NODE_
 )
 
 type Config struct {
@@ -30,7 +35,7 @@ type Config struct {
 	//ProtocolID     string
 	//Rendezvous     string
 	//Seed           int64
-	BootNodes addrList
+	BootNodes AddrList
 }
 
 type CryptoNode struct {
@@ -43,13 +48,13 @@ type CryptoNode struct {
 	//sub map[TopicType]Subscription
 }
 
-func CreateCryptoNode() CryptoNode {
+func CreateAndInitCryptoNode(bootnodes AddrList) CryptoNode {
 	utils.Logger.Info("Starting network")
 	ctx := context.Background()
-	config := parseFlags()
+	//config := parseFlags()
 
 	//p2p
-	node := initHost(ctx, config.BootNodes)
+	node := initHost(ctx, bootnodes)
 	//init
 	cryptoNode := CryptoNode{
 		Libp2pNode: node,
@@ -66,59 +71,176 @@ func CreateCryptoNode() CryptoNode {
 	cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
 	cryptoNode.Wallet = wallet.CreateWallet()
 
+	//return cryptoNode
 	return cryptoNode
 }
 
-func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() []string {
+func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() ([]string, []peer.ID) {
 	peerstore := cryptoNode.Libp2pNode.Peerstore()
 	peers := peerstore.PeersWithAddrs()
-
-	peerIpAdresses := make([]string, 5)
-	for index, peer := range peers {
-		peerInfo := peerstore.PeerInfo(peer)
-		peerIpAdresses[index] = strings.Split(peerInfo.Addrs[0].String(), "/")[2]
+	peerIpAdresses := make([]string, 1)
+	peerIds := make([]peer.ID, 1)
+	for _, peer := range peers {
+		if peer != cryptoNode.Libp2pNode.ID() {
+			peerInfo := peerstore.PeerInfo(peer)
+			peerIpAdresses = append(peerIpAdresses, getIpv4AddrFromAddrInfo(peerInfo))
+			peerIds = append(peerIds, peer)
+		}
 	}
 
-	return peerIpAdresses
+	for index, peerIp := range peerIpAdresses {
+		if peerIp == "" {
+			//remove empty peerIp
+			peerIpAdresses = append(peerIpAdresses[:index], peerIpAdresses[index+1:]...)
+		}
+
+	}
+
+	utils.Logger.Info("peerIpAdresses", peerIpAdresses)
+	return peerIpAdresses, peerIds
+}
+
+func getIpv4AddrFromAddrInfo(addrInfo peer.AddrInfo) string {
+	for _, addr := range addrInfo.Addrs {
+		if strings.Contains(addr.String(), "ip4") && !strings.Contains(addr.String(), "127.0.0") {
+			utils.Logger.Info("TEST", addr.String())
+			multiAddrIp4 := strings.Split(addr.String(), "/")
+			port, _ := strconv.Atoi(multiAddrIp4[4])
+			port = port - 1
+			return multiAddrIp4[2] + ":" + strconv.Itoa(port)
+			//return strings.Split(addr.String(), "/")[2]
+		}
+	}
+	return ""
+}
+
+func (cryptoNode *CryptoNode) GetOwnIpAddr() string {
+	for _, addr := range cryptoNode.Libp2pNode.Addrs() {
+		if strings.Contains(addr.String(), "ip4") && !strings.Contains(addr.String(), "127.0.0") {
+			utils.Logger.Info("TEST", addr.String())
+			multiAddrIp4 := strings.Split(addr.String(), "/")
+			port, _ := strconv.Atoi(multiAddrIp4[4])
+			port = port - 1
+			return multiAddrIp4[2] + ":" + strconv.Itoa(port)
+		}
+	}
+	return ""
 }
 
 func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
 	//set blocks
-	//blocks := cryptoNode.GetBlocksFromNetwork()
-	//cryptoNode.Blockchain.Blocks = blocks
+	blocks := cryptoNode.GetAllBlocksFromNetwork()
+	cryptoNode.Blockchain.Blocks = blocks
 
 	//TODO: proof of stake? remember stakers?? should it not be removed after stake completed?
 	pos := proofOfStake.NewProofOfStake()
 	cryptoNode.Blockchain.ProofOfStake = &pos
 
+	//cryptoNode.MemoryPool = creat
+
 	//calculate and set account balances
+	am := blockchain.CreateAccountModel()
+	cryptoNode.Blockchain.AccountModel = &am
 	cryptoNode.Blockchain.AccountModel.SetBalancesFromBlockChain(cryptoNode.Blockchain)
 }
 
 //get blockchain blocks from directly connected peers
-func (cryptoNode *CryptoNode) GetBlocksFromNetwork() []blockchain.Block {
+func (cryptoNode *CryptoNode) GetAllBlocksFromNetwork() []blockchain.Block {
 	blocks := *new([]blockchain.Block)
-	peerIps := cryptoNode.getIpAddrsFromConnectedPeers()
+	blocksFromPeersChan := make(chan []blockchain.Block)
+	peerIps, peerIds := cryptoNode.getIpAddrsFromConnectedPeers()
 
-	//TODO: make go routing
+	//cryptoNode.Libp2pNode.
+
+	utils.Logger.Info("peerIps", peerIps)
+
+	blockHeight := cryptoNode.getBlockHeightFromPeer(peerIps[0])
+	if blockHeight == -1 {
+		utils.Logger.Error("No ")
+		cryptoNode.Libp2pNode.Network().ClosePeer(peerIds[0])
+		//cryptoNode.GetAllBlocksFromNetwork()
+		//blockHeight = cryptoNode.getBlockHeightFromPeer(peerIps[1])
+	}
+
+	step := blockHeight / len(peerIps)
+	step++ //round up to not mis blocks
+	start := 0
+	end := step
+
+	numOfGoRoutines := 0
+	var wg sync.WaitGroup
 	for _, peerIp := range peerIps {
-		response, err := http.Get(peerIp + "/blockchain/blocks")
-		if err != nil {
-			utils.Logger.Error("GetBlocksFromNetwork", err)
-			return nil
-		}
-		defer response.Body.Close()
+		wg.Add(1)
+		go func(peerIp string, start int, end int) {
+			defer wg.Done()
+			go cryptoNode.getBlocksFromPeer(peerIp, start, end, blocksFromPeersChan)
+		}(peerIp, start, end)
+		numOfGoRoutines++
+		start = end //including
+		end += step //excluding
+	}
+	utils.Logger.Info("reached before wg.wait")
+	//wg.Done()
+	wg.Wait()
+	utils.Logger.Info("reached after wg.wait")
 
-		body, err := ioutil.ReadAll(response.Body)
-		if err != nil {
-			utils.Logger.Warn(err)
+	//combine blocks
+	blockFromPeersIndex := 0
+	for blocksFromPeer := range blocksFromPeersChan {
+		utils.Logger.Info("reaced range")
+		blocks = append(blocks, blocksFromPeer...)
+
+		if numOfGoRoutines-1 == blockFromPeersIndex {
+			close(blocksFromPeersChan)
 		}
-		blockJson := string(body)
-		block := blockchain.GetBlockFromJson(blockJson)
-		blocks = append(blocks, block)
+
+		blockFromPeersIndex++
 	}
 
 	return blocks
+}
+
+func (cryptoNode *CryptoNode) getBlocksFromPeer(peerIp string, start int, end int, blocksChan chan []blockchain.Block) {
+	response, err := http.Get("http://" + peerIp + "/blockchain/blocks?start=" + strconv.Itoa(start) + "&end=" + strconv.Itoa(end))
+	if err != nil {
+		utils.Logger.Error("GetBlocksFromNetwork", err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			utils.Logger.Warn(err)
+		}
+	}(response.Body)
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		utils.Logger.Warn(err)
+	}
+	blockJson := string(body)
+	utils.Logger.Info(blockJson)
+	blocksChan <- blockchain.GetBlocksFromJson(blockJson)
+}
+
+func (cryptoNode *CryptoNode) getBlockHeightFromPeer(peerIp string) int {
+	response, err := http.Get("http://" + peerIp + "/blockchain/block-length")
+	if err != nil {
+		utils.Logger.Error("GetBlocksFromNetwork", err)
+		return -1
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		utils.Logger.Warn(err)
+	}
+
+	blockHeightJson := string(body)
+	blockHeight, err := strconv.Atoi(blockHeightJson)
+	if err != nil {
+		utils.Logger.Warn(err)
+	}
+
+	return blockHeight
 }
 
 func (cryptoNode *CryptoNode) WriteToTopic(data string, topicType TopicType) {

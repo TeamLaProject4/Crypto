@@ -1,12 +1,11 @@
 package main
 
 import (
-	"net/http"
 	"cryptomunt/wallet"
-	"github.com/gin-gonic/gin"
-	"github.com/gin-contrib/cors"
 	"fmt"
-	//"io"
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"net/http"
 )
 
 // album represents data about a record album.
@@ -26,7 +25,7 @@ type seedphrase struct {
 }
 
 type Mnemonic struct {
-    Mnemonic string `json:"mnemonic"`
+	Mnemonic string `json:"mnemonic"`
 }
 
 // // albums slice to seed record album data.
@@ -54,13 +53,12 @@ func confirmMnemonic(c *gin.Context) {
 
 }
 
-
 func setupResponse(c *gin.Context) {
 	var w = c.Writer
-	
+
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-    w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
 
 func indexHandler(c *gin.Context) {
@@ -84,7 +82,7 @@ func indexHandler(c *gin.Context) {
 
 	wallet.ConvertMnemonicToKeys(mnemonic.Mnemonic, "secret")
 
-//    fmt.Println(requestBody.Mnemonic)
+	//    fmt.Println(requestBody.Mnemonic)
 	c.IndentedJSON(http.StatusCreated, "key files created")
 }
 
@@ -95,7 +93,7 @@ func main_router() {
 
 	router.GET("/getMnemonic", getMnemonic)
 	router.POST("/confirmMnemonic", indexHandler)
-//	router.POST("/confirmMnemonic", confirmMnemonic)
+	//	router.POST("/confirmMnemonic", confirmMnemonic)
 
 	router.Run("localhost:8080")
 }

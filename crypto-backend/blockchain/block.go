@@ -23,13 +23,13 @@ func CreateBlock(newBlock Block) Block {
 	return newBlock
 }
 
-func GetBlockFromJson(jsonData string) Block {
-	var block Block
-	err := json.Unmarshal([]byte(jsonData), &block)
+func GetBlocksFromJson(jsonData string) []Block {
+	var blocks []Block
+	err := json.Unmarshal([]byte(jsonData), &blocks)
 	if err != nil {
 		utils.Logger.Error("unmarshal error ", err)
 	}
-	return block
+	return blocks
 }
 
 func CreateGenesisBlock() Block {

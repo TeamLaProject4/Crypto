@@ -1,12 +1,31 @@
 package blockchain
 
-import (
-	"sync"
-)
+import "sync"
 
+// GetBlocksFromRange, if end > len(blocks) then return all blocks
 func (blockchain *Blockchain) GetBlocksFromRange(start int, end int) []Block {
-	return blockchain.Blocks[start:end]
+	if len(blockchain.Blocks) <= 0 {
+		return nil
+	}
+	if end > len(blockchain.Blocks) {
+		return blockchain.Blocks[start:len(blockchain.Blocks)]
+	}
+
+	blocks := blockchain.Blocks[start:end]
+	return blocks
 }
+
+//func CreateBlock(transactions []Transaction, forgerWallet interface{}) Block {
+//	covered_transactions := self.get_covered_transactions(transactions)
+//	self.execute_transactions(covered_transactions)
+//	block := forgerWallet.create_block(
+//		covered_transactions,
+//		self.latest_previous_hash(),
+//		self.latest_block_height()+1,
+//	)
+//	self.add_block(block)
+//	return block
+//}
 
 func (blockchain *Blockchain) IsTransactionInBlockchain(transaction Transaction) bool {
 	for _, block := range blockchain.Blocks {
@@ -48,6 +67,7 @@ func (blockchain *Blockchain) GetAllAccountTransactions(publicKey string) []Tran
 func getAccountTransactionsFromBlock(block Block, transactions chan []Transaction, publicKey string, index int) {
 	transactionsFromBlock := *new([]Transaction)
 	for _, transaction := range block.Transactions {
+		//fmt.Printf("Goroutine: %d  trans: %v  \n", index, transaction)
 		if transaction.SenderPublicKey == publicKey || transaction.ReceiverPublicKey == publicKey {
 			transactionsFromBlock = append(transactionsFromBlock, transaction)
 		}
