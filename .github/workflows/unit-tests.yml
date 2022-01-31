@@ -54,8 +54,7 @@ jobs:
     name: run-if-failed
     runs-on: ubuntu-latest
     needs: unittests
-    if: always() 
-    # && (needs.unittests.result == 'failure')
+    if: always() && (needs.unittests.result == 'failure')
     steps:
       - uses: actions/checkout@v2
 
