@@ -3,8 +3,6 @@ package networking
 import (
 	"context"
 	"cryptomunt/utils"
-	//"cryptomunt/utils"
-
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -105,7 +103,6 @@ func initHost(ctx context.Context, bootstrapPeers []multiaddr.Multiaddr) host.Ho
 	if initDHTErr != nil {
 		utils.Logger.Error("dht error")
 		panic(initDHTErr)
-		return nil
 	}
 
 	initRoutingDiscovery(ctx, kademliaDHT, node)

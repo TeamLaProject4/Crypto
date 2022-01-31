@@ -14,6 +14,7 @@ func nodeFactory(config networking.Config) {
 	}
 }
 
+
 func startNode(config networking.Config) {
 	node := networking.CreateAndInitCryptoNode(config)
 	go api.StartApi(node)
