@@ -37,6 +37,7 @@ jobs:
       # Run tests with nice formatting. Save the original log in /tmp/gotest.log
       - name: Run tests
         run: |
+          cd crypto-backend
           set -euo pipefail
           go test -json -v ./... 2>&1 | tee /tmp/gotest.log | gotestfmt
 
