@@ -65,6 +65,16 @@ type Wallet struct {
 	key ecdsa.PrivateKey
 }
 
+func CreateWalletFromKeyFile() Wallet {
+	key, err := utils.ReadEDCSAFromtFile()
+	if err != nil {
+		utils.Logger.Warn(err)
+		return Wallet{}
+	}
+
+	return Wallet{key: *key}
+}
+
 func CreateWallet(key ecdsa.PrivateKey) Wallet {
 	return Wallet{key: key}
 }
