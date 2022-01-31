@@ -84,7 +84,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           project-location: TeamLaProject4/Crypto
           project-name: Development
-          column-name: triage
+          column-name: Triage
           issue-number: ${{ steps.create-issue.outputs.number }}
 
       - uses: actions/checkout@v2
