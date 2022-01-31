@@ -9,7 +9,9 @@ import { PaymentComponent } from './payment/payment.component';
 import { LedgerComponent } from './ledger/ledger.component';
 import { LandingComponent } from './landing/landing.component';
 import { HttpClientModule } from '@angular/common/http';
-
+import { NewwalletComponent } from './newwallet/newwallet.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { QRCodeModule } from 'angularx-qrcode';
 
 @NgModule({
   declarations: [
@@ -18,12 +20,16 @@ import { HttpClientModule } from '@angular/common/http';
     WalletComponent,
     PaymentComponent,
     LedgerComponent,
-    LandingComponent
+    LandingComponent,
+    NewwalletComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+    FormsModule,
+    ReactiveFormsModule,
+    QRCodeModule,
   ],
   providers: [],
   bootstrap: [AppComponent]

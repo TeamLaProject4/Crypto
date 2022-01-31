@@ -5,9 +5,10 @@ import (
 	"cryptomunt/networking"
 	"cryptomunt/wallet"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func getAccountTransactions(c *gin.Context, cryptoNode networking.CryptoNode) {

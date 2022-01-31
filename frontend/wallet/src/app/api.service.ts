@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -10,21 +10,36 @@ export class APIService {
 
   constructor(private httpClient: HttpClient) { }
 
+  IP = "http://192.168.178.111"
+  PORT = "50741"
+
   getMnemonic(): Observable<any>{
-    return this.httpClient.get("http://localhost:8080/getMnemonic")
+    return this.httpClient.get(this.IP + ":" + this.PORT + "/frontend/getMnemonic")
   }
 
   
   confirmMnemonic(mnemonic: string): Observable<any>{
-    const httpOptions = {headers: new HttpHeaders({ 
-      'Access-Control-Allow-Origin':'*',
-    })}
 
-    return this.httpClient.post("http://localhost:8080/confirmMnemonic", //+ `/credentials`, 
+
+    return this.httpClient.post(this.IP + ":" + this.PORT + "/frontend/confirmMnemonic", //+ `/credentials`, 
     {
       "mnemonic": mnemonic,
     });
+  }
+       
+  getBalance(accountnumber: string): Observable<any>{
+    let queryParams = new HttpParams().append("publicKey",accountnumber);
+    return this.httpClient.get(this.IP + ":" + this.PORT + "/frontend/balance", {params:queryParams});
+  }
 
+  getTransactions(accountnumber: string): Observable<any>{
+    let queryParams = new HttpParams().append("publicKey",accountnumber);
+    return this.httpClient.get(this.IP + ":" + this.PORT + "/frontend/transactions", {params:queryParams})
+  }
 
-}
+  getBlocklength(accountnumber: string): Observable<any>{
+    let queryParams = new HttpParams().append("publicKey",accountnumber);
+    return this.httpClient.get(this.IP + ":" + this.PORT + "/frontend/transactions", {params:queryParams})
+  }
+
 }
