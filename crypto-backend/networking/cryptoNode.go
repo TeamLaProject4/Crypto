@@ -31,11 +31,8 @@ const (
 )
 
 type Config struct {
-	//Port           int
-	//ProtocolID     string
-	//Rendezvous     string
-	//Seed           int64
-	BootNodes AddrList
+	NodesToBoot int
+	BootNodes   AddrList
 }
 
 type CryptoNode struct {
@@ -48,13 +45,13 @@ type CryptoNode struct {
 	//sub map[TopicType]Subscription
 }
 
-func CreateAndInitCryptoNode(bootnodes AddrList) CryptoNode {
+func CreateAndInitCryptoNode(config Config) CryptoNode {
 	utils.Logger.Info("Starting network")
 	ctx := context.Background()
 	//config := parseFlags()
 
 	//p2p
-	node := initHost(ctx, bootnodes)
+	node := initHost(ctx, config.BootNodes)
 	//init
 	cryptoNode := CryptoNode{
 		Libp2pNode: node,
@@ -67,11 +64,16 @@ func CreateAndInitCryptoNode(bootnodes AddrList) CryptoNode {
 	cryptoNode.readSubscriptions()
 
 	//blockchain
-	cryptoNode.Blockchain = blockchain.CreateBlockchain()
-	cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
-	cryptoNode.Wallet = wallet.CreateWalletFromKeyFile()
 
-	//return cryptoNode
+	//if bootnode then initialise, else set using network
+	if len(config.BootNodes) > 0 {
+		cryptoNode.SetBlockchainUsingNetwork()
+	} else {
+		cryptoNode.Blockchain = blockchain.CreateBlockchain()
+		cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
+		cryptoNode.Wallet = wallet.CreateWalletFromKeyFile()
+	}
+
 	return cryptoNode
 }
 
@@ -117,7 +119,6 @@ func getIpv4AddrFromAddrInfo(addrInfo peer.AddrInfo) string {
 func (cryptoNode *CryptoNode) GetOwnIpAddr() string {
 	for _, addr := range cryptoNode.Libp2pNode.Addrs() {
 		if strings.Contains(addr.String(), "ip4") && !strings.Contains(addr.String(), "127.0.0") {
-			utils.Logger.Info("TEST", addr.String())
 			multiAddrIp4 := strings.Split(addr.String(), "/")
 			port, _ := strconv.Atoi(multiAddrIp4[4])
 			port = port - 1
@@ -132,11 +133,10 @@ func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
 	blocks := cryptoNode.GetAllBlocksFromNetwork()
 	cryptoNode.Blockchain.Blocks = blocks
 
-	//TODO: proof of stake? remember stakers?? should it not be removed after stake completed?
 	pos := proofOfStake.NewProofOfStake()
 	cryptoNode.Blockchain.ProofOfStake = &pos
 
-	//cryptoNode.MemoryPool = creat
+	//TODO: getMemorypool?
 
 	//calculate and set account balances
 	am := blockchain.CreateAccountModel()

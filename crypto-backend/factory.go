@@ -4,23 +4,18 @@ import (
 	"cryptomunt/api"
 	"cryptomunt/blockchain"
 	"cryptomunt/networking"
-	"cryptomunt/utils"
 	"math/rand"
 	"strconv"
 )
 
-func nodeFactory(config Config) {
-	for i := 0; i < config.nodesToBoot; i++ {
-		go startNode(config.BootNodes)
+func nodeFactory(config networking.Config) {
+	for i := 0; i < config.NodesToBoot; i++ {
+		go startNode(config)
 	}
 }
 
-func startNode(bootnodes networking.AddrList) {
-	node := networking.CreateAndInitCryptoNode(bootnodes)
-	utils.Logger.Info("pubkey hex: ", node.Wallet.GetPublicKeyHex())
-
-	node.Wallet.GetPublicKeyHex()
-
+func startNode(config networking.Config) {
+	node := networking.CreateAndInitCryptoNode(config)
 	go api.StartApi(node)
 }
 

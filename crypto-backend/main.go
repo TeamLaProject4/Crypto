@@ -15,10 +15,10 @@ func main() {
 	utils.InitLogger()
 
 	config := parseFlags()
-	if config.nodesToBoot != 0 {
+	if config.NodesToBoot != 0 {
 		nodeFactory(config)
 	} else {
-		go startNode(config.BootNodes)
+		go startNode(config)
 	}
 
 	//infinite loop
@@ -35,17 +35,12 @@ func main() {
 //	utils.Logger.Info(key)
 //}
 
-func parseFlags() Config {
-	config := Config{}
+func parseFlags() networking.Config {
+	config := networking.Config{}
 	flag.Var(&config.BootNodes, "peer", "Peer multiaddress for peer discovery")
-	flag.IntVar(&config.nodesToBoot, "amount", 0, "amount of nodesToBoot using a factory, 0 is for making a bootnode")
+	flag.IntVar(&config.NodesToBoot, "amount", 0, "amount of nodesToBoot using a factory, 0 is for making a bootnode")
 	flag.Parse()
 	return config
-}
-
-type Config struct {
-	nodesToBoot int
-	BootNodes   networking.AddrList
 }
 
 func tempWriteToTopic(node networking.CryptoNode) {
