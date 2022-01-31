@@ -81,7 +81,7 @@ jobs:
       - name: Create or Update Project Card
         uses: peter-evans/create-or-update-project-card@v1
         with:
-          project-name: test
+          project-name: Development
           column-name: triage
           issue-number: ${{ steps.create-issue.outputs.number }}
 
