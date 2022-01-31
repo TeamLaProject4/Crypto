@@ -31,11 +31,8 @@ const (
 )
 
 type Config struct {
-	//Port           int
-	//ProtocolID     string
-	//Rendezvous     string
-	//Seed           int64
-	BootNodes AddrList
+	NodesToBoot int
+	BootNodes   AddrList
 }
 
 type CryptoNode struct {
@@ -48,13 +45,13 @@ type CryptoNode struct {
 	//sub map[TopicType]Subscription
 }
 
-func CreateAndInitCryptoNode(bootnodes AddrList) CryptoNode {
+func CreateAndInitCryptoNode(config Config) CryptoNode {
 	utils.Logger.Info("Starting network")
 	ctx := context.Background()
 	//config := parseFlags()
 
 	//p2p
-	node := initHost(ctx, bootnodes)
+	node := initHost(ctx, config.BootNodes)
 	//init
 	cryptoNode := CryptoNode{
 		Libp2pNode: node,
@@ -67,11 +64,16 @@ func CreateAndInitCryptoNode(bootnodes AddrList) CryptoNode {
 	cryptoNode.readSubscriptions()
 
 	//blockchain
-	cryptoNode.Blockchain = blockchain.CreateBlockchain()
-	cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
-	//cryptoNode.Wallet = wallet.CreateWallet()
 
-	//return cryptoNode
+	//if bootnode then initialise, else set using network
+	if len(config.BootNodes) > 0 {
+		cryptoNode.SetBlockchainUsingNetwork()
+	} else {
+		cryptoNode.Blockchain = blockchain.CreateBlockchain()
+		cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
+		cryptoNode.Wallet = wallet.CreateWalletFromKeyFile()
+	}
+
 	return cryptoNode
 }
 
@@ -117,7 +119,6 @@ func getIpv4AddrFromAddrInfo(addrInfo peer.AddrInfo) string {
 func (cryptoNode *CryptoNode) GetOwnIpAddr() string {
 	for _, addr := range cryptoNode.Libp2pNode.Addrs() {
 		if strings.Contains(addr.String(), "ip4") && !strings.Contains(addr.String(), "127.0.0") {
-			utils.Logger.Info("TEST", addr.String())
 			multiAddrIp4 := strings.Split(addr.String(), "/")
 			port, _ := strconv.Atoi(multiAddrIp4[4])
 			port = port - 1
@@ -132,16 +133,43 @@ func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
 	blocks := cryptoNode.GetAllBlocksFromNetwork()
 	cryptoNode.Blockchain.Blocks = blocks
 
-	//TODO: proof of stake? remember stakers?? should it not be removed after stake completed?
 	pos := proofOfStake.NewProofOfStake()
 	cryptoNode.Blockchain.ProofOfStake = &pos
 
-	//cryptoNode.MemoryPool = creat
+	//set memorypool
+	peerIps, _ := cryptoNode.getIpAddrsFromConnectedPeers()
+	cryptoNode.MemoryPool = cryptoNode.getMemoryPoolFromPeer(peerIps[0])
 
 	//calculate and set account balances
 	am := blockchain.CreateAccountModel()
 	cryptoNode.Blockchain.AccountModel = &am
 	cryptoNode.Blockchain.AccountModel.SetBalancesFromBlockChain(cryptoNode.Blockchain)
+}
+
+func (cryptoNode *CryptoNode) getMemoryPoolFromPeer(peerIp string) blockchain.MemoryPool {
+	response, err := http.Get("http://" + peerIp + "/blockchain/memory-pool")
+	if err != nil {
+		utils.Logger.Error(err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			utils.Logger.Warn(err)
+		}
+	}(response.Body)
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		utils.Logger.Warn(err)
+	}
+	memPoolJson := string(body)
+
+	var memPool blockchain.MemoryPool
+	err = json.Unmarshal([]byte(memPoolJson), &memPool)
+	if err != nil {
+		utils.Logger.Error("unmarshal error ", err)
+	}
+	return memPool
 }
 
 //get blockchain blocks from directly connected peers
@@ -319,7 +347,7 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 	}
 }
 
-//TODO: getBlockchainMetaData, getMissingBLocks, getEntireBlockchain
+//TODO: getMissingBLocks
 //TODO: consensus over the network \w bad actor
 //TODO: timing, new forged block transaction not in memory pool then wait a few seconds
 

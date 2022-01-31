@@ -58,7 +58,7 @@ func (transaction *Transaction) Sign(signature string) {
 type TransactionType int64
 
 const (
-	TRANSFER TransactionType = iota //transactions
+	TRANSFER TransactionType = iota //Transactions
 	EXCHANGE                        //buy coins with fiad money
 	STAKE                           //stake in the lottery
 	REWARD

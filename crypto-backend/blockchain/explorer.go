@@ -15,8 +15,8 @@ func (blockchain *Blockchain) GetBlocksFromRange(start int, end int) []Block {
 	return blocks
 }
 
-//func CreateBlock(transactions []Transaction, forgerWallet interface{}) Block {
-//	covered_transactions := self.get_covered_transactions(transactions)
+//func CreateBlock(Transactions []Transaction, forgerWallet interface{}) Block {
+//	covered_transactions := self.get_covered_transactions(Transactions)
 //	self.execute_transactions(covered_transactions)
 //	block := forgerWallet.create_block(
 //		covered_transactions,
@@ -45,7 +45,7 @@ func (blockchain *Blockchain) GetAllAccountTransactions(publicKey string) []Tran
 		wg.Add(1)
 		go func(block Block, index int) {
 			defer wg.Done()
-			go getAccountTransactionsFromBlock(block, blocksTransactions, publicKey, index)
+			go getAccountTransactionsFromBlock(block, blocksTransactions, publicKey)
 		}(block, index)
 	}
 	wg.Wait()
@@ -64,10 +64,9 @@ func (blockchain *Blockchain) GetAllAccountTransactions(publicKey string) []Tran
 	return transactions
 }
 
-func getAccountTransactionsFromBlock(block Block, transactions chan []Transaction, publicKey string, index int) {
+func getAccountTransactionsFromBlock(block Block, transactions chan []Transaction, publicKey string) {
 	transactionsFromBlock := *new([]Transaction)
 	for _, transaction := range block.Transactions {
-		//fmt.Printf("Goroutine: %d  trans: %v  \n", index, transaction)
 		if transaction.SenderPublicKey == publicKey || transaction.ReceiverPublicKey == publicKey {
 			transactionsFromBlock = append(transactionsFromBlock, transaction)
 		}

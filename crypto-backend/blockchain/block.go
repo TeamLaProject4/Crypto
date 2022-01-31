@@ -8,7 +8,7 @@ import (
 )
 
 type Block struct {
-	Transactions []Transaction `json:"transactions"`
+	Transactions []Transaction `json:"Transactions"`
 	PreviousHash string        `json:"previous_hash"`
 	Forger       string        `json:"forger"`
 	Height       int           `json:"height"`
