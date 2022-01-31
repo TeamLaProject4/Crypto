@@ -15,9 +15,8 @@ type Wallet struct {
 	key ecdsa.PrivateKey
 }
 
-
 func CreateWalletFromKeyFile() Wallet {
-	key, err := utils.ReadEDCSAFromtFile()
+	key, err := ReadKeyFromFile("./keys/privatekey.bytes")
 	if err != nil {
 		utils.Logger.Warn(err)
 		return Wallet{}
@@ -47,7 +46,7 @@ func (wallet *Wallet) Sign(data string) string {
 func (wallet *Wallet) GetPublicKeyHex() string {
 	pubkey := wallet.key.PublicKey
 	pubKeyBytes := elliptic.Marshal(pubkey, pubkey.X, pubkey.Y)
-  
+
 	return hex.EncodeToString(pubKeyBytes)
 }
 

@@ -10,7 +10,7 @@ func (wallet *Wallet) CreateTransaction(receiverPublicKey string, amount int,
 	transactionType blockchain.TransactionType) blockchain.Transaction {
 
 	transaction := blockchain.Transaction{
-		SenderPublicKey:   wallet.PublicKey(),
+		SenderPublicKey:   wallet.GetPublicKeyHex(),
 		ReceiverPublicKey: receiverPublicKey,
 		Amount:            amount,
 		Type:              transactionType,
