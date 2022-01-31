@@ -15,8 +15,8 @@ func (blockchain *Blockchain) GetBlocksFromRange(start int, end int) []Block {
 	return blocks
 }
 
-//func CreateBlock(transactions []Transaction, forgerWallet interface{}) Block {
-//	covered_transactions := self.get_covered_transactions(transactions)
+//func CreateBlock(Transactions []Transaction, forgerWallet interface{}) Block {
+//	covered_transactions := self.get_covered_transactions(Transactions)
 //	self.execute_transactions(covered_transactions)
 //	block := forgerWallet.create_block(
 //		covered_transactions,

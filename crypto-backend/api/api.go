@@ -93,9 +93,7 @@ func getAccountTransactions(c *gin.Context, cryptoNode networking.CryptoNode) {
 }
 
 func getMemoryPool(c *gin.Context, cryptoNode networking.CryptoNode) {
-	//memoryPool := cryptoNode.MemoryPool
-	c.JSON(200, "TEST")
-	//c.JSON(200, memoryPool)
+	c.JSON(200, cryptoNode.MemoryPool)
 }
 func test(c *gin.Context, cryptoNode networking.CryptoNode) {
 	test := cryptoNode.Wallet.CreateTransaction("henk", 20, blockchain.TRANSFER)

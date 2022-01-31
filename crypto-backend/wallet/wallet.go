@@ -94,7 +94,6 @@ func (wallet *Wallet) sign(data string) string {
 }
 
 func (wallet *Wallet) GetPublicKeyHex() string {
-	utils.Logger.Info("pubkey", wallet.key.PublicKey)
 	pubkey := wallet.key.PublicKey
 	pubKeyBytes := elliptic.Marshal(pubkey, pubkey.X, pubkey.Y)
 	return hex.EncodeToString(pubKeyBytes)

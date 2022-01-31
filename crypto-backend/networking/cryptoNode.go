@@ -136,12 +136,40 @@ func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
 	pos := proofOfStake.NewProofOfStake()
 	cryptoNode.Blockchain.ProofOfStake = &pos
 
-	//TODO: getMemorypool?
+	//set memorypool
+	peerIps, _ := cryptoNode.getIpAddrsFromConnectedPeers()
+	cryptoNode.MemoryPool = cryptoNode.getMemoryPoolFromPeer(peerIps[0])
 
 	//calculate and set account balances
 	am := blockchain.CreateAccountModel()
 	cryptoNode.Blockchain.AccountModel = &am
 	cryptoNode.Blockchain.AccountModel.SetBalancesFromBlockChain(cryptoNode.Blockchain)
+}
+
+func (cryptoNode *CryptoNode) getMemoryPoolFromPeer(peerIp string) blockchain.MemoryPool {
+	response, err := http.Get("http://" + peerIp + "/blockchain/memory-pool")
+	if err != nil {
+		utils.Logger.Error(err)
+	}
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			utils.Logger.Warn(err)
+		}
+	}(response.Body)
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		utils.Logger.Warn(err)
+	}
+	memPoolJson := string(body)
+
+	var memPool blockchain.MemoryPool
+	err = json.Unmarshal([]byte(memPoolJson), &memPool)
+	if err != nil {
+		utils.Logger.Error("unmarshal error ", err)
+	}
+	return memPool
 }
 
 //get blockchain blocks from directly connected peers

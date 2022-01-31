@@ -6,19 +6,19 @@ import (
 )
 
 type MemoryPool struct {
-	transactions []Transaction
+	Transactions []Transaction
 }
 
 const TRANSACTION_THRESHOLD = 99
 
 func CreateMemoryPool() MemoryPool {
 	memoryPool := new(MemoryPool)
-	memoryPool.transactions = make([]Transaction, 0)
+	memoryPool.Transactions = make([]Transaction, 0)
 	return *memoryPool
 }
 
 func (memoryPool *MemoryPool) IsTransactionInPool(transaction Transaction) bool {
-	for _, transactionInPool := range memoryPool.transactions {
+	for _, transactionInPool := range memoryPool.Transactions {
 		if transactionInPool == transaction {
 			return true
 		}
@@ -28,7 +28,7 @@ func (memoryPool *MemoryPool) IsTransactionInPool(transaction Transaction) bool 
 
 func (memoryPool *MemoryPool) AddTransaction(transaction Transaction) {
 	if !memoryPool.IsTransactionInPool(transaction) {
-		memoryPool.transactions = append(memoryPool.transactions, transaction)
+		memoryPool.Transactions = append(memoryPool.Transactions, transaction)
 	}
 }
 
@@ -39,11 +39,11 @@ func (memoryPool *MemoryPool) AddTransactions(transactions []Transaction) {
 }
 
 func (memoryPool *MemoryPool) GetTransactionsLength() int {
-	return len(memoryPool.transactions)
+	return len(memoryPool.Transactions)
 }
 
 func (memoryPool *MemoryPool) GetTransactionIndex(transaction Transaction) (int, error) {
-	for index, transactionInPool := range memoryPool.transactions {
+	for index, transactionInPool := range memoryPool.Transactions {
 		if transactionInPool == transaction {
 			return index, nil
 		}
@@ -60,9 +60,9 @@ func (memoryPool *MemoryPool) RemoveTransaction(transaction Transaction) {
 	}
 
 	// Remove the element at index
-	memoryPool.transactions[index] = memoryPool.transactions[len(memoryPool.transactions)-1] // Copy last element to index i.
-	memoryPool.transactions[len(memoryPool.transactions)-1] = *new(Transaction)              // Erase last element (write zero value).
-	memoryPool.transactions = memoryPool.transactions[:len(memoryPool.transactions)-1]       // Truncate slice.
+	memoryPool.Transactions[index] = memoryPool.Transactions[len(memoryPool.Transactions)-1] // Copy last element to index i.
+	memoryPool.Transactions[len(memoryPool.Transactions)-1] = *new(Transaction)              // Erase last element (write zero value).
+	memoryPool.Transactions = memoryPool.Transactions[:len(memoryPool.Transactions)-1]       // Truncate slice.
 }
 
 func (memoryPool *MemoryPool) RemoveTransactions(transactions []Transaction) {
@@ -72,5 +72,5 @@ func (memoryPool *MemoryPool) RemoveTransactions(transactions []Transaction) {
 }
 
 func (memoryPool *MemoryPool) IsTransactionThresholdReached() bool {
-	return len(memoryPool.transactions) >= TRANSACTION_THRESHOLD
+	return len(memoryPool.Transactions) >= TRANSACTION_THRESHOLD
 }
