@@ -347,7 +347,7 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 	}
 }
 
-//TODO: getBlockchainMetaData, getMissingBLocks, getEntireBlockchain
+//TODO: getMissingBLocks
 //TODO: consensus over the network \w bad actor
 //TODO: timing, new forged block transaction not in memory pool then wait a few seconds
 

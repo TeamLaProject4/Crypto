@@ -19,7 +19,14 @@ func startNode(config networking.Config) {
 	go api.StartApi(node)
 }
 
+func innitialCoinOffering() {
+
+}
+
 func transactionsFactory(amountOfTransactions int, node networking.CryptoNode) {
+	//founderwallet
+	//gives coins to n wallets
+
 	for i := 0; i < amountOfTransactions; i++ {
 		node.Wallet.CreateTransaction("public-key-"+strconv.Itoa(i), rand.Intn(1000), blockchain.TRANSFER)
 	}

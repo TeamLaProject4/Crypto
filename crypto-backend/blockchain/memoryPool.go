@@ -66,9 +66,29 @@ func (memoryPool *MemoryPool) RemoveTransaction(transaction Transaction) {
 }
 
 func (memoryPool *MemoryPool) RemoveTransactions(transactions []Transaction) {
-	for _, transaction := range transactions {
-		memoryPool.RemoveTransaction(transaction)
+	if memoryPool.areTransactionsInMemoryPool(transactions) {
+		for _, transaction := range transactions {
+			memoryPool.RemoveTransaction(transaction)
+		}
 	}
+}
+
+func (memoryPool *MemoryPool) areTransactionsInMemoryPool(transactions []Transaction) bool {
+	for _, transactionFromForgedBlock := range transactions {
+		if !memoryPool.containsTransaction(transactionFromForgedBlock) {
+			return false
+		}
+	}
+
+	return true
+}
+func (memoryPool *MemoryPool) containsTransaction(transaction Transaction) bool {
+	for _, transactionFromMemPool := range memoryPool.Transactions {
+		if transaction == transactionFromMemPool {
+			return true
+		}
+	}
+	return false
 }
 
 func (memoryPool *MemoryPool) IsTransactionThresholdReached() bool {
