@@ -18,6 +18,9 @@ func nodeFactory(config Config) {
 func startNode(bootnodes networking.AddrList) {
 	node := networking.CreateAndInitCryptoNode(bootnodes)
 	utils.Logger.Info("pubkey hex: ", node.Wallet.GetPublicKeyHex())
+
+	node.Wallet.GetPublicKeyHex()
+
 	go api.StartApi(node)
 }
 

@@ -136,6 +136,8 @@ func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
 	pos := proofOfStake.CreateProofOfStake()
 	cryptoNode.Blockchain.ProofOfStake = &pos
 
+	//cryptoNode.MemoryPool = creat
+
 	//calculate and set account balances
 	am := blockchain.CreateAccountModel()
 	cryptoNode.Blockchain.AccountModel = &am

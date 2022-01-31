@@ -1,20 +1,12 @@
 package api
 
 import (
+	"cryptomunt/blockchain"
 	"cryptomunt/networking"
 	"cryptomunt/utils"
 	"github.com/gin-gonic/gin"
-	"net/http"
 	"strconv"
 )
-
-// album represents data about a record album.
-type album struct {
-	ID     string  `json:"id"`
-	Title  string  `json:"title"`
-	Artist string  `json:"artist"`
-	Price  float64 `json:"price"`
-}
 
 // album represents data about a record album.
 // capitalize first letter of new var in struct to escape last line
@@ -24,39 +16,7 @@ type seedphrase struct {
 	Secret   string `json:"secret"`
 }
 
-// // albums slice to seed record album data.
-// var albums = []album{
-// 	{ID: "1", Title: "Blue Train", Artist: "John Coltrane", Price: 56.99},
-// 	{ID: "2", Title: "Jeru", Artist: "Gerry Mulligan", Price: 17.99},
-// 	{ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
-// }
-
 var seedphrases = []seedphrase{}
-
-// // getAlbums responds with the list of all albums as JSON.
-// func getAlbums(c *gin.Context) {
-// 	c.IndentedJSON(http.StatusOK, albums)
-// }
-
-// postAlbums adds an album from JSON received in the request body.
-func postAlbums(c *gin.Context) {
-	c.JSON(200, gin.H{
-		"start": "ERROR: no parameters 'start' and/or 'end' found",
-	})
-	return
-
-	var newSeedphrase seedphrase
-
-	// Call BindJSON to bind the received JSON to
-	// newAlbum.
-	if err := c.BindJSON(&newSeedphrase); err != nil {
-		return
-	}
-
-	// Add the new album to the slice.
-	seedphrases = append(seedphrases, newSeedphrase)
-	c.IndentedJSON(http.StatusCreated, seedphrases)
-}
 
 //return blockchain blocks with start and end index
 func getBlocks(c *gin.Context, cryptoNode networking.CryptoNode) {
@@ -108,11 +68,22 @@ func getAccountTransactions(c *gin.Context, cryptoNode networking.CryptoNode) {
 	})
 }
 
+func getMemoryPool(c *gin.Context, cryptoNode networking.CryptoNode) {
+	//memoryPool := cryptoNode.MemoryPool
+	c.JSON(200, "TEST")
+	//c.JSON(200, memoryPool)
+}
+func test(c *gin.Context, cryptoNode networking.CryptoNode) {
+	test := cryptoNode.Wallet.CreateTransaction("henk", 20, blockchain.TRANSFER)
+	cryptoNode.MemoryPool.AddTransaction(test)
+
+	memoryPool := cryptoNode.MemoryPool
+	c.JSON(200, memoryPool)
+}
+
 func StartApi(cryptoNode networking.CryptoNode) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
-
-	router.POST("/albums", postAlbums)
 
 	//routes for frontend communication
 	router.GET("/frontend/balance", func(context *gin.Context) {
@@ -122,6 +93,9 @@ func StartApi(cryptoNode networking.CryptoNode) {
 		getAccountTransactions(context, cryptoNode)
 	})
 
+	router.GET("/test", func(context *gin.Context) {
+		test(context, cryptoNode)
+	})
 	//routes for node communication
 	router.GET("/blockchain/block-length", func(context *gin.Context) {
 		getBlockHeight(context, cryptoNode)
@@ -129,6 +103,9 @@ func StartApi(cryptoNode networking.CryptoNode) {
 
 	router.GET("/blockchain/blocks", func(context *gin.Context) {
 		getBlocks(context, cryptoNode)
+	})
+	router.GET("/blockchain/memory-pool", func(context *gin.Context) {
+		getMemoryPool(context, cryptoNode)
 	})
 
 	nodeIpAddr := cryptoNode.GetOwnIpAddr()

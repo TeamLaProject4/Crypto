@@ -6,37 +6,34 @@ import (
 	"cryptomunt/networking"
 	"cryptomunt/proofOfStake"
 	"cryptomunt/utils"
-	"cryptomunt/wallet"
 	"flag"
 	"fmt"
 	"os"
 )
 
-//func main() {
-//	utils.InitLogger()
-//
-//	wallet.GenerateMnemonic()
-//	//config := parseFlags()
-//	//if config.nodesToBoot != 0 {
-//	//	nodeFactory(config)
-//	//} else {
-//	//	go startNode(config.BootNodes)
-//	//}
-//
-//	//infinite loop
-//	select {}
-//}
-
 func main() {
 	utils.InitLogger()
-	wallet.GenerateMnemonic()
-	key, err := utils.ReadEDCSAFromtFile()
-	if err != nil {
-		return
-	}
-	utils.Logger.Info(key)
 
+	config := parseFlags()
+	if config.nodesToBoot != 0 {
+		nodeFactory(config)
+	} else {
+		go startNode(config.BootNodes)
+	}
+
+	//infinite loop
+	select {}
 }
+
+//func main() {
+//	utils.InitLogger()
+//	wallet.GenerateMnemonic()
+//	key, err := utils.ReadEDCSAFromtFile()
+//	if err != nil {
+//		return
+//	}
+//	utils.Logger.Info(key)
+//}
 
 func parseFlags() Config {
 	config := Config{}

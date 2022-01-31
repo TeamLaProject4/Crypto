@@ -2,23 +2,23 @@ package wallet
 
 import (
 	"crypto"
+	"crypto/ecdsa"
+	"crypto/elliptic"
 	cryptoRand "crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"cryptomunt/blockchain"
 	"cryptomunt/utils"
 	"encoding/hex"
-	"fmt"
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/google/uuid"
 	"github.com/jbenet/go-base58"
 	"github.com/tyler-smith/go-bip32"
 	"github.com/tyler-smith/go-bip39"
-	"os"
 	"time"
 )
 
-func GenerateMnemonic() {
+func GenerateMnemonic() *ecdsa.PrivateKey {
 	//Generate a mnemonic for memorization or user-friendly seeds
 	entropy, _ := bip39.NewEntropy(256)
 	mnemonic, _ := bip39.NewMnemonic(entropy)
@@ -47,6 +47,7 @@ func GenerateMnemonic() {
 	}
 
 	utils.WriteEDCSAToFile(privateKeyECDSA)
+	return privateKeyECDSA
 }
 
 var KEY_LENGTH_BITS = 2048
@@ -54,34 +55,13 @@ var PRIVATE_KEY_PATH = "../keys/walletPrivateKey.hex"
 var PUBLIC_KEY_PATH = "../keys/walletPublicKey.hex"
 
 type Wallet struct {
-	key rsa.PrivateKey //contains private and public keys, keep private!
+	//key rsa.PrivateKey //contains private and public keys, keep private!
+	key ecdsa.PrivateKey
 }
 
 // CreateWallet TODO: mnumonic?
 func CreateWallet() Wallet {
-	return Wallet{key: GetKeyPair()}
-}
-
-//get the keypair from a file or generate one
-//func GetKeyPair() (string, string) {
-func GetKeyPair() rsa.PrivateKey {
-	var privateKey rsa.PrivateKey
-
-	//get from file
-	privateKey = utils.ReadRsaKeyFile("./keys/wallet.rsa")
-
-	//generate key
-	if privateKey.Size() < 1 {
-		key, err := rsa.GenerateKey(cryptoRand.Reader, KEY_LENGTH_BITS)
-		if err != nil {
-			utils.Logger.Error("generate rsa error", err)
-		}
-		privateKey = *key
-		//TODO: error handling
-		utils.WriteRsaKeyToFile(privateKey)
-	}
-
-	return privateKey
+	return Wallet{key: *GenerateMnemonic()}
 }
 
 func (wallet *Wallet) sign(data string) string {
@@ -89,9 +69,9 @@ func (wallet *Wallet) sign(data string) string {
 	//Sign hash of message because only small messages can be signed
 	hashed := sha256.Sum256(message)
 
-	signature, err := rsa.SignPKCS1v15(cryptoRand.Reader, &wallet.key, crypto.SHA256, hashed[:])
+	signature, err := ecdsa.SignASN1(cryptoRand.Reader, &wallet.key, hashed[:])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error from signing: %s\n", err)
+		utils.Logger.Errorf("Error from signing: %s\n", err)
 		return ""
 	}
 
@@ -99,7 +79,10 @@ func (wallet *Wallet) sign(data string) string {
 }
 
 func (wallet *Wallet) GetPublicKeyHex() string {
-	return utils.GetRsaPublicKeyHexValue(&wallet.key.PublicKey)
+	utils.Logger.Info("pubkey", wallet.key.PublicKey)
+	pubkey := wallet.key.PublicKey
+	pubKeyBytes := elliptic.Marshal(pubkey, pubkey.X, pubkey.Y)
+	return hex.EncodeToString(pubKeyBytes)
 }
 
 func (wallet *Wallet) CreateTransaction(
@@ -131,10 +114,7 @@ func (wallet *Wallet) CreateBlock(
 		blockchain.Block{
 			Transactions: transactions,
 			PreviousHash: previousHash,
-			Forger:       "",
 			Height:       blockCount,
-			Timestamp:    0,
-			Signature:    wallet.GetPublicKeyHex(),
 		})
 	signature := wallet.sign(block.Payload())
 	block.Sign(signature)
