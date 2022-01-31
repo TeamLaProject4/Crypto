@@ -69,7 +69,7 @@ func CreateAndInitCryptoNode(bootnodes AddrList) CryptoNode {
 	//blockchain
 	cryptoNode.Blockchain = blockchain.CreateBlockchain()
 	cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
-	cryptoNode.Wallet = wallet.CreateWallet()
+	//cryptoNode.Wallet = wallet.CreateWallet()
 
 	//return cryptoNode
 	return cryptoNode

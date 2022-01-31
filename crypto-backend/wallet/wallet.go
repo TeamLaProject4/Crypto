@@ -18,11 +18,15 @@ import (
 	"time"
 )
 
-func GenerateMnemonic() *ecdsa.PrivateKey {
+func GenerateMnemonic() string {
 	//Generate a mnemonic for memorization or user-friendly seeds
 	entropy, _ := bip39.NewEntropy(256)
 	mnemonic, _ := bip39.NewMnemonic(entropy)
-	//
+
+	return mnemonic
+}
+
+func (wallet *Wallet) SetWalletKeyAndWritePrivateKeyFile(mnemonic string) {
 	// Generate a Bip32 HD wallet for the mnemonic and a user supplied password
 	seed := bip39.NewSeed(mnemonic, "secret")
 
@@ -46,8 +50,11 @@ func GenerateMnemonic() *ecdsa.PrivateKey {
 		utils.Logger.Fatal(err)
 	}
 
+	//set wallet using mnemonic
+	wal := CreateWallet(*privateKeyECDSA)
+	wallet = &wal
+
 	utils.WriteEDCSAToFile(privateKeyECDSA)
-	return privateKeyECDSA
 }
 
 var KEY_LENGTH_BITS = 2048
@@ -55,13 +62,11 @@ var PRIVATE_KEY_PATH = "../keys/walletPrivateKey.hex"
 var PUBLIC_KEY_PATH = "../keys/walletPublicKey.hex"
 
 type Wallet struct {
-	//key rsa.PrivateKey //contains private and public keys, keep private!
 	key ecdsa.PrivateKey
 }
 
-// CreateWallet TODO: mnumonic?
-func CreateWallet() Wallet {
-	return Wallet{key: *GenerateMnemonic()}
+func CreateWallet(key ecdsa.PrivateKey) Wallet {
+	return Wallet{key: key}
 }
 
 func (wallet *Wallet) sign(data string) string {

@@ -4,19 +4,43 @@ import (
 	"cryptomunt/blockchain"
 	"cryptomunt/networking"
 	"cryptomunt/utils"
+	"cryptomunt/wallet"
+	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"net/http"
 	"strconv"
 )
 
-// album represents data about a record album.
-// capitalize first letter of new var in struct to escape last line
 type seedphrase struct {
 	ID       string `json:"id"`
 	Mnemonic string `json:"mnemonic"`
 	Secret   string `json:"secret"`
 }
 
+type Mnemonic struct {
+	Mnemonic string `json:"mnemonic"`
+}
+
 var seedphrases = []seedphrase{}
+
+// getAlbums responds with the list of all albums as JSON.
+func getMnemonic(c *gin.Context) {
+	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+	c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+	c.IndentedJSON(http.StatusOK, wallet.GenerateMnemonic())
+}
+
+func setupResponse(c *gin.Context) {
+	var w = c.Writer
+
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+}
 
 //return blockchain blocks with start and end index
 func getBlocks(c *gin.Context, cryptoNode networking.CryptoNode) {
@@ -81,9 +105,32 @@ func test(c *gin.Context, cryptoNode networking.CryptoNode) {
 	c.JSON(200, memoryPool)
 }
 
+func confirmMnemonic(c *gin.Context, node networking.CryptoNode) {
+	var req = c.Request
+	var mnemonic Mnemonic
+	setupResponse(c)
+
+	if (*req).Method == "OPTIONS" {
+		return
+	}
+	if err := c.BindJSON(&mnemonic); err != nil {
+		return
+	}
+
+	// Add the new album to the slice.
+	fmt.Println(mnemonic.Mnemonic)
+
+	//wallet.ConvertMnemonicToKeys(mnemonic.Mnemonic, "secret")
+	node.Wallet.SetWalletKeyAndWritePrivateKeyFile(mnemonic.Mnemonic)
+
+	//    fmt.Println(requestBody.Mnemonic)
+	c.IndentedJSON(http.StatusCreated, "key files created")
+}
+
 func StartApi(cryptoNode networking.CryptoNode) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
+	router.Use(cors.Default())
 
 	//routes for frontend communication
 	router.GET("/frontend/balance", func(context *gin.Context) {
@@ -92,10 +139,11 @@ func StartApi(cryptoNode networking.CryptoNode) {
 	router.GET("/frontend/transactions", func(context *gin.Context) {
 		getAccountTransactions(context, cryptoNode)
 	})
-
-	router.GET("/test", func(context *gin.Context) {
-		test(context, cryptoNode)
+	router.GET("/frontend/getMnemonic", getMnemonic)
+	router.POST("/frontend/confirmMnemonic", func(context *gin.Context) {
+		confirmMnemonic(context, cryptoNode)
 	})
+
 	//routes for node communication
 	router.GET("/blockchain/block-length", func(context *gin.Context) {
 		getBlockHeight(context, cryptoNode)
@@ -106,6 +154,9 @@ func StartApi(cryptoNode networking.CryptoNode) {
 	})
 	router.GET("/blockchain/memory-pool", func(context *gin.Context) {
 		getMemoryPool(context, cryptoNode)
+	})
+	router.GET("/test", func(context *gin.Context) {
+		test(context, cryptoNode)
 	})
 
 	nodeIpAddr := cryptoNode.GetOwnIpAddr()
