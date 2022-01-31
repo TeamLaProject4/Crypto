@@ -2,29 +2,32 @@ package wallet
 
 import (
 	"bufio"
+    // mathRand "math/rand"
+    // "time"
 	"crypto"
 	cryptoRand "crypto/rand"
+	"cryptomunt/blockchain"
 	"crypto/rsa"
 	"crypto/sha256"
-	"cryptomunt/blockchain"
 	"cryptomunt/utils"
+	"github.com/tyler-smith/go-bip39"
+	"github.com/tyler-smith/go-bip32"
 	"encoding/hex"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/tyler-smith/go-bip32"
-	"github.com/tyler-smith/go-bip39"
 	"os"
-	"time"
 )
 
-func GenerateMnemonic() {
+func GenerateMnemonic() string {
 	//Generate a mnemonic for memorization or user-friendly seeds
-
 	entropy, _ := bip39.NewEntropy(256)
 	mnemonic, _ := bip39.NewMnemonic(entropy)
 
+	return mnemonic
+}
+
+func ConvertMnemonicToKeys(mnemonic string, secret string){
 	// Generate a Bip32 HD wallet for the mnemonic and a user supplied password
-	seed := bip39.NewSeed(mnemonic, "secret")
+	seed := bip39.NewSeed(mnemonic, secret)
 
 	masterKey, _ := bip32.NewMasterKey(seed)
 	publicKey := masterKey.PublicKey()
@@ -33,32 +36,37 @@ func GenerateMnemonic() {
 	writePublicKeyFile(publicKey)
 }
 
-func writePrivateKeyFile(private *bip32.Key) {
-	file, err := os.OpenFile("../keys/private.key", os.O_WRONLY|os.O_CREATE, 0666)
-
+func writePrivateKeyFile(private *bip32.Key){
+	path, err := os.Getwd()
 	if err != nil {
-		fmt.Println("File does not exists or cannot be created")
-		os.Exit(1)
+		fmt.Println(err)
 	}
+	fmt.Println(path)  // for example /home/user
+    file, err := os.OpenFile("keys/private.key", os.O_WRONLY|os.O_CREATE, 0666)
+	
+    if err != nil {
+        fmt.Println("File does not exists or cannot be created")
+        os.Exit(1)
+    }
 
-	defer file.Close()
+    defer file.Close()
 	w := bufio.NewWriter(file)
-	fmt.Fprintf(w, "%v\n", private)
-	w.Flush()
+    fmt.Fprintf(w, "%v\n", private)
+    w.Flush()
 }
 
-func writePublicKeyFile(public *bip32.Key) {
-	file, err := os.OpenFile("../keys/public.key", os.O_WRONLY|os.O_CREATE, 0666)
+func writePublicKeyFile(public *bip32.Key){
+    file, err := os.OpenFile("keys/public.key", os.O_WRONLY|os.O_CREATE, 0666)
+	
+    if err != nil {
+        fmt.Println("File does not exists or cannot be created")
+        os.Exit(1)
+    }
 
-	if err != nil {
-		fmt.Println("File does not exists or cannot be created")
-		os.Exit(1)
-	}
-
-	defer file.Close()
+    defer file.Close()
 	w := bufio.NewWriter(file)
-	fmt.Fprintf(w, "%v\n", public)
-	w.Flush()
+    fmt.Fprintf(w, "%v\n", public)
+    w.Flush()
 }
 
 var KEY_LENGTH_BITS = 2048
@@ -114,43 +122,41 @@ func (wallet *Wallet) GetPublicKeyHex() string {
 	return utils.GetRsaPublicKeyHexValue(&wallet.key.PublicKey)
 }
 
-func (wallet *Wallet) CreateTransaction(
+func (wallet *Wallet) createTransaction(
 	receiverPublicKey string,
 	amount int,
 	transactionType blockchain.TransactionType,
 ) blockchain.Transaction {
-	amount += blockchain.CalculateFee(amount)
-
-	transaction := blockchain.Transaction{
-		SenderPublicKey:   wallet.GetPublicKeyHex(),
-		ReceiverPublicKey: receiverPublicKey,
-		Amount:            amount,
-		Type:              transactionType,
-		Id:                uuid.New().String(),
-		Timestamp:         time.Now().Unix(),
-	}
+	transaction := blockchain.CreateTransaction(
+		blockchain.Transaction{
+			SenderPublicKey:   wallet.GetPublicKeyHex(),
+			ReceiverPublicKey: receiverPublicKey,
+			Amount:            amount,
+			Type:              transactionType,
+			Id:                "",
+			Timestamp:         0,
+			Signature:         "",
+		})
 
 	signature := wallet.sign(transaction.ToJson())
 	transaction.Sign(signature)
-
 	return transaction
 }
 
 func (wallet *Wallet) CreateBlock(
 	transactions []blockchain.Transaction,
 	previousHash string,
-	blockHeight int,
+	blockCount int,
 ) blockchain.Block {
 	block := blockchain.CreateBlock(
 		blockchain.Block{
 			Transactions: transactions,
 			PreviousHash: previousHash,
-			Forger:       wallet.GetPublicKeyHex(),
-			Height:       blockHeight,
+			Forger:       "",
+			Height:       blockCount,
 			Timestamp:    0,
-	})
-	rewardTransaction := blockchain.CreateRewardTransaction(wallet.GetPublicKeyHex(), transactions)
-	block.Transactions = append(block.Transactions, rewardTransaction)
+			Signature:    wallet.GetPublicKeyHex(),
+		})
 	signature := wallet.sign(block.Payload())
 	block.Sign(signature)
 	return block
