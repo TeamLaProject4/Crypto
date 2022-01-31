@@ -82,6 +82,7 @@ jobs:
         uses: peter-evans/create-or-update-project-card@v1
         with:
           token: ${{ secrets.OAUTH }}
+          project-location: TeamLaProject4/Crypto
           project-name: Development
           column-name: triage
           issue-number: ${{ steps.create-issue.outputs.number }}
