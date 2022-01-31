@@ -11,7 +11,7 @@ import (
 	"os"
 )
 
-func main2() {
+func main() {
 	utils.InitLogger()
 
 	config := parseFlags()
