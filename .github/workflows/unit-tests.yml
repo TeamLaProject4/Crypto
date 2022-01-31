@@ -75,7 +75,7 @@ jobs:
           STATUS: ${{job.status}}
           WORKFLOW: ${{github.workflow}}
         with:
-          assignees: ${{env.ACTOR}}
+          assignees: ${{env.ACTOR}} 
           filename: .github/blame-template.md
 
       - name: Create or Update Project Card
