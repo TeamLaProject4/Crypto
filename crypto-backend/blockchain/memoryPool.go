@@ -45,7 +45,9 @@ func (memoryPool *MemoryPool) GetTransactionsLength() int {
 
 func (memoryPool *MemoryPool) GetTransactionIndex(transaction Transaction) (int, error) {
 	for index, transactionInPool := range memoryPool.Transactions {
-		if transactionInPool.Id == transaction.Id {
+		utils.Logger.Info("transaction", transaction)
+		utils.Logger.Info("transaction in pool", transactionInPool)
+		if transactionInPool.Id == transaction.Id || transactionInPool.Timestamp == transaction.Timestamp {
 			return index, nil
 		}
 	}
@@ -59,11 +61,12 @@ func (memoryPool *MemoryPool) RemoveTransaction(transaction Transaction) {
 		utils.Logger.Error(err)
 		return
 	}
+	memoryPool.Transactions = append(memoryPool.Transactions[:index], memoryPool.Transactions[index+1:]...)
 
 	// Remove the element at index
-	memoryPool.Transactions[index] = memoryPool.Transactions[len(memoryPool.Transactions)-1] // Copy last element to index i.
-	memoryPool.Transactions[len(memoryPool.Transactions)-1] = *new(Transaction)              // Erase last element (write zero value).
-	memoryPool.Transactions = memoryPool.Transactions[:len(memoryPool.Transactions)-1]       // Truncate slice.
+	//memoryPool.Transactions[index] = memoryPool.Transactions[len(memoryPool.Transactions)-1] // Copy last element to index i.
+	//memoryPool.Transactions[len(memoryPool.Transactions)-1] = *new(Transaction)              // Erase last element (write zero value).
+	//memoryPool.Transactions = memoryPool.Transactions[:len(memoryPool.Transactions)-1]       // Truncate slice.
 }
 
 func (memoryPool *MemoryPool) RemoveTransactions(transactions []Transaction) {
