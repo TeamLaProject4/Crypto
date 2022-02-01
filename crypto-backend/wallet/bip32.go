@@ -3,7 +3,6 @@ package wallet
 import (
 	"crypto/ecdsa"
 	"cryptomunt/utils"
-
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/jbenet/go-base58"
 	"github.com/tyler-smith/go-bip32"

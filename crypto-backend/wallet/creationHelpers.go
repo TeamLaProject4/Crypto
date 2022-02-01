@@ -8,17 +8,18 @@ import (
 
 func (wallet *Wallet) CreateTransaction(receiverPublicKey string, amount int,
 	transactionType blockchain.TransactionType) blockchain.Transaction {
-
 	transaction := blockchain.Transaction{
-		SenderPublicKey:   wallet.GetPublicKeyHex(),
-		ReceiverPublicKey: receiverPublicKey,
-		Amount:            amount,
-		Type:              transactionType,
-		Id:                uuid.New().String(),
-		Timestamp:         time.Now().Unix(),
+		SenderPublicKey:       wallet.GetPublicKeyHex(),
+		SenderPublicKeyString: wallet.GetPublicKeyString(),
+		ReceiverPublicKey:     receiverPublicKey,
+		Amount:                amount,
+		Type:                  transactionType,
+		Id:                    uuid.New().String(),
+		Timestamp:             time.Now().Unix(),
 	}
 
-	signature := wallet.Sign(transaction.ToJson())
+	//signature := wallet.Sign(transaction.ToJson())
+	signature := wallet.Sign(transaction.Payload())
 	transaction.Sign(signature)
 
 	return transaction

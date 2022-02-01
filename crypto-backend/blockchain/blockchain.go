@@ -13,8 +13,8 @@ type Blockchain struct {
 	ProofOfStake *proofOfStake.ProofOfStake `json:"-"`
 }
 
-func CreateBlockchain() Blockchain {
-	genesisBlock := CreateGenesisBlock()
+func CreateBlockchain(transactions []Transaction) Blockchain {
+	genesisBlock := CreateGenesisBlock(transactions)
 	var blocks []Block
 	blocks = append(blocks, genesisBlock)
 	pos := proofOfStake.NewProofOfStake()
@@ -46,7 +46,6 @@ func (blockchain *Blockchain) AddBlock(block Block) {
 		blockchain.Blocks = append(blockchain.Blocks, block)
 	}
 }
-
 
 func (blockchain *Blockchain) ExecuteTransactions(transactions []Transaction) {
 	for _, transaction := range transactions {
@@ -83,7 +82,7 @@ func (blockchain *Blockchain) IsValidPreviousBlockHash(block Block) bool {
 }
 
 func (blockchain *Blockchain) IsValidForger(block Block) bool {
-	return block.Forger == blockchain.getNextForger()
+	return block.Forger == blockchain.GetNextForger()
 }
 
 func (blockchain *Blockchain) IsBlockTransactionsValid(block Block) bool {
@@ -166,7 +165,7 @@ func (blockchain *Blockchain) GetAccountBalance(publicKey string) int {
 	return blockchain.AccountModel.GetBalance(publicKey)
 }
 
-func (blockchain *Blockchain) getNextForger() string {
+func (blockchain *Blockchain) GetNextForger() string {
 	prevBlockHash := blockchain.LatestPreviousHash()
 	return blockchain.ProofOfStake.PickForger(prevBlockHash)
 }

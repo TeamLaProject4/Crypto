@@ -2,6 +2,7 @@ package proofOfStake
 
 import (
 	"cryptomunt/utils"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 )
@@ -10,7 +11,7 @@ const MAX_256_INT_VALUE = "10000000000000000000000000000000000000000000000000000
 
 type ProofOfStake struct {
 	Stakers          map[string]int
-	genesisPublicKey string
+	GenesisPublicKey string
 }
 
 type NegativeBalanceError struct {
@@ -27,7 +28,10 @@ func (e *NegativeBalanceError) Error() string {
 func NewProofOfStake() ProofOfStake {
 	pos := new(ProofOfStake)
 	pos.Stakers = make(map[string]int)
-	pos.genesisPublicKey = "key" // TODO: load key from file/config
+
+	pubkeyBytes := utils.ReadFileBytes("./keys/demo-keys/wallet-pubkey-genesis.txt")
+	hex.EncodeToString(pubkeyBytes)
+	pos.GenesisPublicKey = hex.EncodeToString(pubkeyBytes)
 	return *pos
 }
 
@@ -67,17 +71,17 @@ func validateNegativeStake(proofOfStake *ProofOfStake, publicKey string, stake i
 	if stake < 0 && !proofOfStake.balanceIsSufficient(publicKey, -stake) {
 		currentBalance := proofOfStake.GetStake(publicKey)
 		return &NegativeBalanceError{
-			account: publicKey,
+			account:        publicKey,
 			currentBalance: currentBalance,
 			withdrawAmount: stake,
-			Msg: fmt.Sprintf("Unstake amount (%d) cannot be greater than balance (%d)", stake, currentBalance),
+			Msg:            fmt.Sprintf("Unstake amount (%d) cannot be greater than balance (%d)", stake, currentBalance),
 		}
 	}
 	return nil
 }
 
 func (proofOfStake *ProofOfStake) balanceIsSufficient(publicKey string, withdrawAmount int) bool {
-	return  proofOfStake.GetStake(publicKey) >= withdrawAmount
+	return proofOfStake.GetStake(publicKey) >= withdrawAmount
 }
 
 func (proofOfStake *ProofOfStake) generateLots(seed string) []Lot {
@@ -99,7 +103,7 @@ func generateLotsFromStakers(proofOfStake *ProofOfStake, seed string) []Lot {
 }
 
 func generateLotFromGenesis(proofOfStake *ProofOfStake, seed string) []Lot {
-	lots := generateStakerLots(proofOfStake.genesisPublicKey, 1, seed)
+	lots := generateStakerLots(proofOfStake.GenesisPublicKey, 1, seed)
 	return lots
 }
 

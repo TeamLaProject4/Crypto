@@ -3,29 +3,31 @@ package api
 import (
 	"cryptomunt/blockchain"
 	"cryptomunt/networking"
+	"cryptomunt/utils"
 	"cryptomunt/wallet"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
-func getAccountTransactions(c *gin.Context, cryptoNode networking.CryptoNode) {
-	trans := constructTransactions()
-	c.JSON(200, trans)
-	// queryParameters := c.Request.URL.Query()
-	// publicKey := queryParameters["publicKey"]
-	// if publicKey != nil {
-	// 	// balance := cryptoNode.Blockchain.GetAllAccountTransactions(publicKey[0])
-	// 	return
-	// }
-	// c.JSON(419, gin.H{
-	// 	"start": "ERROR: no parameters 'start' and/or 'end' found",
-	// })
+
+func getAccountTransactions(c *gin.Context, cryptoNode *networking.CryptoNode) {
+	queryParameters := c.Request.URL.Query()
+	publicKey := queryParameters["publicKey"]
+	if publicKey != nil {
+		accountTransaction := cryptoNode.Blockchain.GetAllAccountTransactions(publicKey[0])
+		c.JSON(200, accountTransaction)
+		return
+	}
+	c.JSON(419, gin.H{
+		"start": "ERROR: no parameters publicKey",
+	})
 }
 
-func getAccountBalance(c *gin.Context, cryptoNode networking.CryptoNode) {
+func getAccountBalance(c *gin.Context, cryptoNode *networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
 	publicKey := queryParameters["publicKey"]
 	if publicKey != nil {
@@ -37,6 +39,13 @@ func getAccountBalance(c *gin.Context, cryptoNode networking.CryptoNode) {
 		"start": "ERROR: no parameters publicKey found",
 	})
 }
+func getOwnPublicKey(c *gin.Context, cryptoNode *networking.CryptoNode) {
+	c.JSON(200, cryptoNode.Wallet.GetPublicKeyHex())
+}
+func getGenesisPublicKey(c *gin.Context, cryptoNode *networking.CryptoNode) {
+	c.JSON(200, cryptoNode.Wallet.GetPublicKeyHex())
+}
+
 func getMnemonic(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -45,7 +54,7 @@ func getMnemonic(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusOK, wallet.GenerateMnemonic())
 }
-func confirmMnemonic(c *gin.Context, node networking.CryptoNode) {
+func confirmMnemonic(c *gin.Context, node *networking.CryptoNode) {
 	var req = c.Request
 	var mnemonic Mnemonic
 	setupResponse(c)
@@ -57,35 +66,60 @@ func confirmMnemonic(c *gin.Context, node networking.CryptoNode) {
 		return
 	}
 
-	// Add the new album to the slice.
-	fmt.Println(mnemonic.Mnemonic)
-
+	//wallet.ConvertMnemonicToKeys(mnemonic.Mnemonic, "secret")
 	masterKey := wallet.NewMasterKey(mnemonic.Mnemonic)
 	ecdsaKey := wallet.ConvertBip32ToECDSA(masterKey)
+
+	utils.Logger.Info("key", ecdsaKey)
 	node.Wallet = wallet.CreateWallet(ecdsaKey)
-	wallet.WriteKeyToFile(wallet.PRIVATE_KEY_PATH, ecdsaKey)
+	utils.Logger.Info("Node wallet", node.Wallet)
+
+	ecdsaKeyPemEncoded := wallet.EncodePrivateKey(&ecdsaKey)
+	wallet.WriteKeyToFile(wallet.PRIVATE_KEY_PATH, ecdsaKeyPemEncoded)
 
 	c.IndentedJSON(http.StatusCreated, "key files created")
 }
 
-func createTransaction(c *gin.Context, node networking.CryptoNode) {
+func createTransaction(c *gin.Context, node *networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
-	publicKey := queryParameters["publicKey"]
+	recieverPublicKey := queryParameters["recieverPublicKey"]
 	amount := queryParameters["amount"]
-	constructTransactions()
+	transactionType := queryParameters["transactionType"]
 
-	if publicKey != nil && amount != nil {
+	if recieverPublicKey != nil && amount != nil && transactionType != nil {
 		amountInt, err := strconv.Atoi(amount[0])
+		recieverPublicKeyString := recieverPublicKey[0]
 		if err != nil {
 			c.JSON(419, "Amount is not an integer")
+			return
+		}
+		//set trans type
+		var transType blockchain.TransactionType
+		if transactionType[0] == "transfer" {
+			transType = blockchain.TRANSFER
+		} else {
+			recieverPublicKeyString = node.Blockchain.ProofOfStake.GenesisPublicKey
+			transType = blockchain.STAKE
 		}
 
-		node.Wallet.CreateTransaction(publicKey[0], amountInt, blockchain.TRANSFER)
+		//create and verify transaction
+		transaction := node.Wallet.CreateTransaction(recieverPublicKeyString, amountInt, transType)
+		if !node.IsTransactionValid(transaction) {
+			c.JSON(419, "Transaction is not valid")
+			return
+		}
+
+		//memPool, validate & forge if threshold reached
+		node.HandleTransaction(transaction)
+
+		//write to topic
+		node.WriteToTopic(transaction.ToJson(), networking.TRANSACTION)
+
 		c.JSON(200, "added transaction to memoryPool")
 		return
 	}
 	c.JSON(419, gin.H{
-		"start": "ERROR: no parameters publicKey or amount found",
+		"start": "ERROR: no parameters recieverPublicKey, amount or transactionType found",
 	})
 }
 

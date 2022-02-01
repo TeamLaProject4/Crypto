@@ -4,19 +4,12 @@ import (
 	"context"
 	"cryptomunt/blockchain"
 	"cryptomunt/proofOfStake"
+	"cryptomunt/structs"
 	"cryptomunt/utils"
 	"cryptomunt/wallet"
 	"encoding/json"
-	"flag"
 	"github.com/libp2p/go-libp2p-core/host"
-	"github.com/libp2p/go-libp2p-core/peer"
 	pubsub "github.com/libp2p/go-libp2p-pubsub"
-	"io"
-	"io/ioutil"
-	"net/http"
-	"strconv"
-	"strings"
-	"sync"
 )
 
 const RANDEVOUS_STRING = "cryptomunt-randevous"
@@ -45,12 +38,10 @@ type CryptoNode struct {
 	//sub map[TopicType]Subscription
 }
 
-func CreateAndInitCryptoNode(config Config) CryptoNode {
+func CreateAndInitCryptoNode(config Config, apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) *CryptoNode {
 	utils.Logger.Info("Starting network")
 	ctx := context.Background()
-	//config := parseFlags()
 
-	//p2p
 	node := initHost(ctx, config.BootNodes)
 	//init
 	cryptoNode := CryptoNode{
@@ -59,73 +50,44 @@ func CreateAndInitCryptoNode(config Config) CryptoNode {
 	}
 
 	//pubsub
-	cryptoNode.logNodeAddr()
-	cryptoNode.subscriptions = cryptoNode.subscribeToTopics()
-	cryptoNode.readSubscriptions()
+	initPubSub(&cryptoNode)
+	//blockchain, memPool, wallet
+	initBlockchain(config, &cryptoNode)
 
-	//blockchain
+	return &cryptoNode
+}
 
+func (cryptoNode *CryptoNode) HandleApiCalls(apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) {
+	for requestMessage := range apiRequest {
+		utils.Logger.Info("GOTTEN API CALL: ", requestMessage.Message, requestMessage.CallType)
+
+		switch requestMessage.CallType {
+		case structs.GET_BLOCKS:
+			cryptoNode.handleGetBlocks(requestMessage.Message, apiResponse)
+
+		}
+
+	}
+}
+
+func initBlockchain(config Config, cryptoNode *CryptoNode) {
 	//if bootnode then initialise, else set using network
 	if len(config.BootNodes) > 0 {
 		cryptoNode.SetBlockchainUsingNetwork()
 	} else {
-		cryptoNode.Blockchain = blockchain.CreateBlockchain()
+		transactions := wallet.CreateGenesisTransactions()
+		cryptoNode.Blockchain = blockchain.CreateBlockchain(transactions)
 		cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
 		cryptoNode.Wallet = wallet.CreateWalletFromKeyFile()
-	}
 
-	return cryptoNode
+		cryptoNode.Blockchain.AccountModel.SetBalancesFromBlockChain(cryptoNode.Blockchain)
+	}
 }
 
-func (cryptoNode *CryptoNode) getIpAddrsFromConnectedPeers() ([]string, []peer.ID) {
-	peerstore := cryptoNode.Libp2pNode.Peerstore()
-	peers := peerstore.PeersWithAddrs()
-	peerIpAdresses := make([]string, 1)
-	peerIds := make([]peer.ID, 1)
-	for _, peer := range peers {
-		if peer != cryptoNode.Libp2pNode.ID() {
-			peerInfo := peerstore.PeerInfo(peer)
-			peerIpAdresses = append(peerIpAdresses, getIpv4AddrFromAddrInfo(peerInfo))
-			peerIds = append(peerIds, peer)
-		}
-	}
-
-	for index, peerIp := range peerIpAdresses {
-		if peerIp == "" {
-			//remove empty peerIp
-			peerIpAdresses = append(peerIpAdresses[:index], peerIpAdresses[index+1:]...)
-		}
-
-	}
-
-	utils.Logger.Info("peerIpAdresses", peerIpAdresses)
-	return peerIpAdresses, peerIds
-}
-
-func getIpv4AddrFromAddrInfo(addrInfo peer.AddrInfo) string {
-	for _, addr := range addrInfo.Addrs {
-		if strings.Contains(addr.String(), "ip4") && !strings.Contains(addr.String(), "127.0.0") {
-			utils.Logger.Info("TEST", addr.String())
-			multiAddrIp4 := strings.Split(addr.String(), "/")
-			port, _ := strconv.Atoi(multiAddrIp4[4])
-			port = port - 1
-			return multiAddrIp4[2] + ":" + strconv.Itoa(port)
-			//return strings.Split(addr.String(), "/")[2]
-		}
-	}
-	return ""
-}
-
-func (cryptoNode *CryptoNode) GetOwnIpAddr() string {
-	for _, addr := range cryptoNode.Libp2pNode.Addrs() {
-		if strings.Contains(addr.String(), "ip4") && !strings.Contains(addr.String(), "127.0.0") {
-			multiAddrIp4 := strings.Split(addr.String(), "/")
-			port, _ := strconv.Atoi(multiAddrIp4[4])
-			port = port - 1
-			return multiAddrIp4[2] + ":" + strconv.Itoa(port)
-		}
-	}
-	return ""
+func initPubSub(cryptoNode *CryptoNode) {
+	cryptoNode.logNodeAddr()
+	cryptoNode.subscriptions = cryptoNode.subscribeToTopics()
+	cryptoNode.readSubscriptions()
 }
 
 func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
@@ -146,131 +108,6 @@ func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
 	cryptoNode.Blockchain.AccountModel.SetBalancesFromBlockChain(cryptoNode.Blockchain)
 }
 
-func (cryptoNode *CryptoNode) getMemoryPoolFromPeer(peerIp string) blockchain.MemoryPool {
-	response, err := http.Get("http://" + peerIp + "/blockchain/memory-pool")
-	if err != nil {
-		utils.Logger.Error(err)
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			utils.Logger.Warn(err)
-		}
-	}(response.Body)
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		utils.Logger.Warn(err)
-	}
-	memPoolJson := string(body)
-
-	var memPool blockchain.MemoryPool
-	err = json.Unmarshal([]byte(memPoolJson), &memPool)
-	if err != nil {
-		utils.Logger.Error("unmarshal error ", err)
-	}
-	return memPool
-}
-
-//get blockchain blocks from directly connected peers
-func (cryptoNode *CryptoNode) GetAllBlocksFromNetwork() []blockchain.Block {
-	blocks := *new([]blockchain.Block)
-	blocksFromPeersChan := make(chan []blockchain.Block)
-	peerIps, peerIds := cryptoNode.getIpAddrsFromConnectedPeers()
-
-	//cryptoNode.Libp2pNode.
-
-	utils.Logger.Info("peerIps", peerIps)
-
-	blockHeight := cryptoNode.getBlockHeightFromPeer(peerIps[0])
-	if blockHeight == -1 {
-		utils.Logger.Error("No ")
-		cryptoNode.Libp2pNode.Network().ClosePeer(peerIds[0])
-		//cryptoNode.GetAllBlocksFromNetwork()
-		//blockHeight = cryptoNode.getBlockHeightFromPeer(peerIps[1])
-	}
-
-	step := blockHeight / len(peerIps)
-	step++ //round up to not mis blocks
-	start := 0
-	end := step
-
-	numOfGoRoutines := 0
-	var wg sync.WaitGroup
-	for _, peerIp := range peerIps {
-		wg.Add(1)
-		go func(peerIp string, start int, end int) {
-			defer wg.Done()
-			go cryptoNode.getBlocksFromPeer(peerIp, start, end, blocksFromPeersChan)
-		}(peerIp, start, end)
-		numOfGoRoutines++
-		start = end //including
-		end += step //excluding
-	}
-	utils.Logger.Info("reached before wg.wait")
-	//wg.Done()
-	wg.Wait()
-	utils.Logger.Info("reached after wg.wait")
-
-	//combine blocks
-	blockFromPeersIndex := 0
-	for blocksFromPeer := range blocksFromPeersChan {
-		utils.Logger.Info("reaced range")
-		blocks = append(blocks, blocksFromPeer...)
-
-		if numOfGoRoutines-1 == blockFromPeersIndex {
-			close(blocksFromPeersChan)
-		}
-
-		blockFromPeersIndex++
-	}
-
-	return blocks
-}
-
-func (cryptoNode *CryptoNode) getBlocksFromPeer(peerIp string, start int, end int, blocksChan chan []blockchain.Block) {
-	response, err := http.Get("http://" + peerIp + "/blockchain/blocks?start=" + strconv.Itoa(start) + "&end=" + strconv.Itoa(end))
-	if err != nil {
-		utils.Logger.Error("GetBlocksFromNetwork", err)
-	}
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			utils.Logger.Warn(err)
-		}
-	}(response.Body)
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		utils.Logger.Warn(err)
-	}
-	blockJson := string(body)
-	utils.Logger.Info(blockJson)
-	blocksChan <- blockchain.GetBlocksFromJson(blockJson)
-}
-
-func (cryptoNode *CryptoNode) getBlockHeightFromPeer(peerIp string) int {
-	response, err := http.Get("http://" + peerIp + "/blockchain/block-length")
-	if err != nil {
-		utils.Logger.Error("GetBlocksFromNetwork", err)
-		return -1
-	}
-	defer response.Body.Close()
-
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		utils.Logger.Warn(err)
-	}
-
-	blockHeightJson := string(body)
-	blockHeight, err := strconv.Atoi(blockHeightJson)
-	if err != nil {
-		utils.Logger.Warn(err)
-	}
-
-	return blockHeight
-}
-
 func (cryptoNode *CryptoNode) WriteToTopic(data string, topicType TopicType) {
 	for _, subscription := range cryptoNode.subscriptions {
 		if subscription.TopicName == string(topicType) {
@@ -286,13 +123,6 @@ func (cryptoNode *CryptoNode) readSubscriptions() {
 	for _, subscription := range cryptoNode.subscriptions {
 		go cryptoNode.readSubscription(subscription)
 	}
-}
-
-func parseFlags() Config {
-	config := Config{}
-	flag.Var(&config.BootNodes, "peer", "Peer multiaddress for peer discovery")
-	flag.Parse()
-	return config
 }
 
 func (cryptoNode *CryptoNode) logNodeAddr() {
@@ -335,7 +165,7 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 			if err != nil {
 				utils.Logger.Error("unmarshal error ", err)
 			}
-			cryptoNode.handleTransaction(transaction)
+			cryptoNode.HandleTransaction(transaction)
 
 		case BLOCK_FORGED:
 			utils.Logger.Info("Forged block received from the network")
@@ -347,12 +177,9 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 	}
 }
 
-//TODO: getMissingBLocks
-//TODO: consensus over the network \w bad actor
-//TODO: timing, new forged block transaction not in memory pool then wait a few seconds
-
 //block forged on other node
 func (cryptoNode *CryptoNode) handleBlockForged(block blockchain.Block) {
+	//TODO: update balance?
 
 	//TODO: cryptoNode.request_missing_blocks()
 	//if !blockCountValid {
@@ -363,6 +190,7 @@ func (cryptoNode *CryptoNode) handleBlockForged(block blockchain.Block) {
 		cryptoNode.MemoryPool.RemoveTransactions(block.Transactions)
 	}
 }
+
 func (cryptoNode *CryptoNode) isForgedBlockValid(block blockchain.Block) bool {
 	payload := block.Payload()
 	signature := block.Signature
@@ -377,17 +205,74 @@ func (cryptoNode *CryptoNode) isForgedBlockValid(block blockchain.Block) bool {
 	return blockTransactionsValid && forgerValid && signatureValid && previousBlockHashValid && blockCountValid
 }
 
-func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transaction) {
-	payload := transaction.Payload()
-	signature := transaction.Signature
-	senderPublicKey := transaction.SenderPublicKey
+//Add transaction to memorypool, make stake if required, forge block when threshold is reached
+func (cryptoNode *CryptoNode) HandleTransaction(transaction blockchain.Transaction) {
+	if cryptoNode.IsTransactionValid(transaction) {
 
-	transactionInMemoryPool := cryptoNode.MemoryPool.IsTransactionInPool(transaction)
-	signatureValid := wallet.IsValidSignature(payload, signature, senderPublicKey)
-	transactionInBlockchain := cryptoNode.Blockchain.IsTransactionInBlockchain(transaction)
+		if transaction.Type == blockchain.STAKE {
+			err := cryptoNode.Blockchain.ProofOfStake.UpdateStake(transaction.SenderPublicKey, transaction.Amount)
+			if err != nil {
+				utils.Logger.Error(err)
+				return
+			}
+		}
 
-	if !transactionInMemoryPool && signatureValid && !transactionInBlockchain {
 		cryptoNode.MemoryPool.AddTransaction(transaction)
 		utils.Logger.Info("Transaction added to memory pool")
+
+		if cryptoNode.MemoryPool.IsTransactionThresholdReached() {
+			cryptoNode.Forge()
+			utils.Logger.Info("Threshold reached")
+		}
 	}
+}
+
+func (cryptoNode *CryptoNode) Forge() {
+	forger := cryptoNode.Blockchain.GetNextForger()
+
+	if forger == cryptoNode.Wallet.GetPublicKeyHex() {
+		utils.Logger.Info("I am the forger!")
+		transactions := cryptoNode.MemoryPool.Transactions
+
+		//add staker reward
+		rewardTrans := blockchain.CreateRewardTransaction(forger, transactions)
+		transactions = append(transactions, rewardTrans)
+
+		block := blockchain.CreateBlock(blockchain.Block{
+			Transactions: transactions,
+			PreviousHash: cryptoNode.Blockchain.LatestPreviousHash(),
+			Forger:       forger,
+			Height:       cryptoNode.Blockchain.LatestBlockHeight() + 1,
+		})
+		//sign block
+		signature := cryptoNode.Wallet.Sign(block.Payload())
+		block.Sign(signature)
+
+		cryptoNode.Blockchain.AddBlock(block)
+
+		cryptoNode.MemoryPool.RemoveTransactions(transactions)
+
+		cryptoNode.WriteToTopic(block.ToJson(), BLOCK_FORGED)
+
+	} else {
+		utils.Logger.Info("I am not the forger...")
+	}
+}
+
+func (cryptoNode *CryptoNode) IsTransactionValid(transaction blockchain.Transaction) bool {
+	payload := transaction.Payload()
+	signature := transaction.Signature
+	senderPublicKeyString := transaction.SenderPublicKeyString
+
+	transactionInMemoryPool := cryptoNode.MemoryPool.IsTransactionInPool(transaction)
+	signatureValid := wallet.IsValidSignature(payload, signature, senderPublicKeyString)
+	transactionInBlockchain := cryptoNode.Blockchain.IsTransactionInBlockchain(transaction)
+	balanceNegative := cryptoNode.balanceNegativeAfterTransaction(transaction)
+
+	return !transactionInMemoryPool && signatureValid && !transactionInBlockchain && !balanceNegative
+}
+
+func (cryptoNode *CryptoNode) balanceNegativeAfterTransaction(transaction blockchain.Transaction) bool {
+	balance := cryptoNode.Blockchain.AccountModel.GetBalance(cryptoNode.Wallet.GetPublicKeyHex())
+	return transaction.Amount > balance
 }

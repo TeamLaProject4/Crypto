@@ -30,7 +30,7 @@ func constructBlock(prevHash string) blockchain.Block {
 }
 
 func TestWhenSetBalancesFromBlockchainThenBalanceHasCorrectAmount(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	block1 := constructBlock(chain.LatestPreviousHash())
 	chain.Blocks = []blockchain.Block{block1}
 
@@ -45,7 +45,7 @@ func TestWhenSetBalancesFromBlockchainThenBalanceHasCorrectAmount(t *testing.T) 
 }
 
 func TestWhenGettingAllAccountLarsTransactionsThenIsSix(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	block1 := constructBlock(chain.LatestPreviousHash())
 	block2 := constructBlock(chain.LatestPreviousHash())
 	block3 := constructBlock(chain.LatestPreviousHash())

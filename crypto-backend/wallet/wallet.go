@@ -1,40 +1,37 @@
 package wallet
 
 import (
-	"crypto"
+	"bytes"
 	"crypto/ecdsa"
-	"crypto/elliptic"
-	cryptoRand "crypto/rand"
-	"crypto/rsa"
-	"crypto/sha256"
 	"cryptomunt/utils"
 	"encoding/hex"
+	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 )
 
 type Wallet struct {
-	key ecdsa.PrivateKey
+	Key ecdsa.PrivateKey
 }
 
 func CreateWalletFromKeyFile() Wallet {
-	key, err := ReadKeyFromFile("./keys/privatekey.bytes")
-	if err != nil {
-		utils.Logger.Warn(err)
-		return Wallet{}
-	}
-
-	return Wallet{key: *key}
+	//pemEncodedKey := ReadKeyFromFile(PRIVATE_KEY_PATH)
+	//privateKey := DecodePrivateKey(pemEncodedKey)
+	//return Wallet{Key: *privateKey}
+	return Wallet{}
 }
 
 func CreateWallet(key ecdsa.PrivateKey) Wallet {
-	return Wallet{key: key}
+	return Wallet{Key: key}
 }
 
 func (wallet *Wallet) Sign(data string) string {
 	message := []byte(data)
-	//Sign hash of message because only small messages can be signed
-	hashed := sha256.Sum256(message)
+	hashed := ethCrypto.Keccak256Hash(message)
+	signature, err := ethCrypto.Sign(hashed.Bytes(), &wallet.Key)
 
-	signature, err := ecdsa.SignASN1(cryptoRand.Reader, &wallet.key, hashed[:])
+	//Sign hash of message because only small messages can be signed
+	//hashed := sha256.Sum256(message)
+
+	//signature, err := ecdsa.SignASN1(cryptoRand.Reader, &wallet.Key, hashed[:])
 	if err != nil {
 		utils.Logger.Errorf("Error from signing: %s\n", err)
 		return ""
@@ -44,27 +41,36 @@ func (wallet *Wallet) Sign(data string) string {
 }
 
 func (wallet *Wallet) GetPublicKeyHex() string {
-	pubkey := wallet.key.PublicKey
-	pubKeyBytes := elliptic.Marshal(pubkey, pubkey.X, pubkey.Y)
+	//pubKey := wallet.Key.PublicKey
+
+	//pubKeyBytes := elliptic.Marshal(pubKey, pubKey.X, pubKey.Y)
+	//ethCrypto.FromECDSA(wallet.key)
+
+	pubKeyBytes := ethCrypto.FromECDSAPub(&wallet.Key.PublicKey)
 
 	return hex.EncodeToString(pubKeyBytes)
 }
 
-func IsValidSignature(data string, signature string, publicKey string) bool {
-	sig, err := hex.DecodeString(signature)
-	if err != nil {
-		return false
-	}
+func (wallet *Wallet) GetPublicKeyString() string {
+	return string(ethCrypto.FromECDSAPub(&wallet.Key.PublicKey))
+}
 
+func IsValidSignature(data string, signature string, publicKeyString string) bool {
 	message := []byte(data)
-	hashed := sha256.Sum256(message)
-
-	pubKey, _ := utils.GetPublicKeyFromHex(publicKey)
-	err = rsa.VerifyPKCS1v15(&pubKey, crypto.SHA256, hashed[:], sig)
-
+	hashed := ethCrypto.Keccak256Hash(message)
+	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
+		utils.Logger.Error(err)
 		return false
 	}
 
-	return true
+	//new
+	sigPublicKey, err := ethCrypto.Ecrecover(hashed.Bytes(), sigBytes)
+	if err != nil {
+		utils.Logger.Error(err)
+		return false
+	}
+	matches := bytes.Equal(sigPublicKey, []byte(publicKeyString))
+
+	return matches
 }

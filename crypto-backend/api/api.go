@@ -2,6 +2,7 @@ package api
 
 import (
 	"cryptomunt/networking"
+	"cryptomunt/structs"
 	"cryptomunt/utils"
 
 	"github.com/gin-contrib/cors"
@@ -28,12 +29,20 @@ func setupResponse(c *gin.Context) {
 	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
 
-func StartApi(cryptoNode networking.CryptoNode) {
+
+func StartApi(cryptoNode *networking.CryptoNode, apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.Use(cors.Default())
 
 	//routes for frontend communication
+	router.GET("/frontend/publickey", func(context *gin.Context) {
+		getOwnPublicKey(context, cryptoNode)
+	})
+	router.GET("/frontend/genesis-publickey", func(context *gin.Context) {
+		getGenesisPublicKey(context, cryptoNode)
+	})
+
 	router.GET("/frontend/balance", func(context *gin.Context) {
 		getAccountBalance(context, cryptoNode)
 	})
@@ -55,7 +64,7 @@ func StartApi(cryptoNode networking.CryptoNode) {
 		getBlockHeight(context, cryptoNode)
 	})
 	router.GET("/blockchain/blocks", func(context *gin.Context) {
-		getBlocks(context, cryptoNode)
+		getBlocks(context, cryptoNode, apiRequest, apiResponse)
 	})
 	router.GET("/blockchain/memory-pool", func(context *gin.Context) {
 		getMemoryPool(context, cryptoNode)

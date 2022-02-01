@@ -14,6 +14,7 @@ import (
 func main() {
 	utils.InitLogger()
 
+	//createWallets()
 	config := parseFlags()
 	if config.NodesToBoot != 0 {
 		nodeFactory(config)
@@ -26,13 +27,49 @@ func main() {
 }
 
 //func main() {
+//	//init
 //	utils.InitLogger()
-//	wallet.GenerateMnemonic()
-//	key, err := utils.ReadEDCSAFromtFile()
+//	config := parseFlags()
+//	node := networking.CreateAndInitCryptoNode(config)
+//	key, _ := ethCrypto.GenerateKey()
+//	node.Wallet.Key = *key
+//
+//	//test
+//	transaction := node.Wallet.CreateTransaction("receiverpubkey", 20, blockchain.TRANSFER)
+//
+//	payload := transaction.Payload()
+//	signature := transaction.Signature
+//	senderPublicKeyString := transaction.SenderPublicKeyString
+//	utils.Logger.Info("valid signature", wallet.IsValidSignature(payload, signature, senderPublicKeyString))
+//}
+
+//func main() {
+//	utils.InitLogger()
+//
+//	//creat transaction
+//	key, _ := ethCrypto.GenerateKey()
+//	publicKeyBytes := ethCrypto.FromECDSAPub(&key.PublicKey)
+//
+//	data := []byte("hello")
+//	hash := ethCrypto.Keccak256Hash(data)
+//	fmt.Println(hash.Hex())
+//	signature, _ := ethCrypto.Sign(hash.Bytes(), key)
+//
+//	//verify transaction
+//
+//	sigPublicKey, err := ethCrypto.Ecrecover(hash.Bytes(), signature)
+//
+//	pubkeystring := string(ethCrypto.FromECDSAPub(&key.PublicKey))
+//	fmt.Println(pubkeystring)
+//	matches2 := bytes.Equal(sigPublicKey, publicKeyBytes)
+//	fmt.Println(matches2) // true
+//
 //	if err != nil {
-//		return
+//		log.Fatal(err)
 //	}
-//	utils.Logger.Info(key)
+//	matches := bytes.Equal(sigPublicKey, publicKeyBytes)
+//	fmt.Println(matches) // true
+//
 //}
 
 func parseFlags() networking.Config {
