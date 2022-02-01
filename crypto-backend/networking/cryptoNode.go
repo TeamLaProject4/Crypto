@@ -249,7 +249,7 @@ func (cryptoNode *CryptoNode) Forge() {
 		cryptoNode.WriteToTopic(block.ToJson(), BLOCK_FORGED)
 
 	} else {
-		utils.Logger.Info("Not the forger...")
+		utils.Logger.Info("I am not the forger...")
 	}
 }
 

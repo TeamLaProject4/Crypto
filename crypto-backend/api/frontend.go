@@ -78,27 +78,35 @@ func createTransaction(c *gin.Context, node *networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
 	recieverPublicKey := queryParameters["recieverPublicKey"]
 	amount := queryParameters["amount"]
+	transactionType := queryParameters["transactionType"]
 
-	if recieverPublicKey != nil && amount != nil {
+	if recieverPublicKey != nil && amount != nil && transactionType != nil {
 		amountInt, err := strconv.Atoi(amount[0])
 		if err != nil {
 			c.JSON(419, "Amount is not an integer")
 			return
 		}
+		//set trans type
+		var transType blockchain.TransactionType
+		if transactionType[0] == "transfer" {
+			transType = blockchain.TRANSFER
+		} else {
+			transType = blockchain.STAKE
+		}
 
-		transaction := node.Wallet.CreateTransaction(recieverPublicKey[0], amountInt, blockchain.TRANSFER)
+		//create and verify transaction
+		transaction := node.Wallet.CreateTransaction(recieverPublicKey[0], amountInt, transType)
 		if !node.IsTransactionValid(transaction) {
 			c.JSON(419, "Transaction is not valid")
 			return
 		}
-		utils.Logger.Info("TRANSACTION VALID")
 
 		//add transaction to mem pool
 		node.MemoryPool.AddTransaction(transaction)
 		//write to topic
 		node.WriteToTopic(transaction.ToJson(), networking.TRANSACTION)
 
-		//stake if threshold is reached forge a new block
+		//if threshold is reached forge a new block using stake
 		if node.MemoryPool.IsTransactionThresholdReached() {
 			node.Forge()
 			utils.Logger.Info("Threshold reached")
@@ -108,6 +116,6 @@ func createTransaction(c *gin.Context, node *networking.CryptoNode) {
 		return
 	}
 	c.JSON(419, gin.H{
-		"start": "ERROR: no parameters recieverPublicKey or amount found",
+		"start": "ERROR: no parameters recieverPublicKey, amount or transactionType found",
 	})
 }
