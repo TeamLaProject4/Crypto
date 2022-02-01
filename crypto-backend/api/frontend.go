@@ -5,9 +5,10 @@ import (
 	"cryptomunt/networking"
 	"cryptomunt/utils"
 	"cryptomunt/wallet"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 func getAccountTransactions(c *gin.Context, cryptoNode *networking.CryptoNode) {
@@ -38,6 +39,9 @@ func getAccountBalance(c *gin.Context, cryptoNode *networking.CryptoNode) {
 func getOwnPublicKey(c *gin.Context, cryptoNode *networking.CryptoNode) {
 	c.JSON(200, cryptoNode.Wallet.GetPublicKeyHex())
 }
+func getGenesisPublicKey(c *gin.Context, cryptoNode *networking.CryptoNode) {
+	c.JSON(200, cryptoNode.Wallet.GetPublicKeyHex())
+}
 
 func getMnemonic(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -48,7 +52,6 @@ func getMnemonic(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, wallet.GenerateMnemonic())
 }
 func confirmMnemonic(c *gin.Context, node *networking.CryptoNode) {
-	utils.Logger.Info("in conf mnuemonic")
 	var req = c.Request
 	var mnemonic Mnemonic
 	setupResponse(c)
@@ -74,38 +77,22 @@ func confirmMnemonic(c *gin.Context, node *networking.CryptoNode) {
 	c.IndentedJSON(http.StatusCreated, "key files created")
 }
 
-type TransactionParams struct {
-	RecieverPublicKey string
-	Amount            string
-	TransactionType   string
-}
-
 func createTransaction(c *gin.Context, node *networking.CryptoNode) {
-	var req = c.Request
-	var params TransactionParams
-	setupResponse(c)
+	queryParameters := c.Request.URL.Query()
+	recieverPublicKey := queryParameters["recieverPublicKey"]
+	amount := queryParameters["amount"]
+	transactionType := queryParameters["transactionType"]
 
-	if (*req).Method == "OPTIONS" {
-		return
-	}
-	if err := c.BindJSON(&params); err != nil {
-		return
-	}
-
-	recieverPublicKey := params.RecieverPublicKey
-	amount := params.Amount
-	transactionType := params.TransactionType
-
-	if recieverPublicKey != "" && amount != "" && transactionType != "" {
-		amountInt, err := strconv.Atoi(amount)
-		recieverPublicKeyString := recieverPublicKey
+	if recieverPublicKey != nil && amount != nil && transactionType != nil {
+		amountInt, err := strconv.Atoi(amount[0])
+		recieverPublicKeyString := recieverPublicKey[0]
 		if err != nil {
 			c.JSON(419, "Amount is not an integer")
 			return
 		}
 		//set trans type
 		var transType blockchain.TransactionType
-		if transactionType == "transfer" {
+		if transactionType[0] == "transfer" {
 			transType = blockchain.TRANSFER
 		} else {
 			recieverPublicKeyString = node.Blockchain.ProofOfStake.GenesisPublicKey

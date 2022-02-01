@@ -35,18 +35,20 @@ export class WalletComponent {
 
   ngOnInit() {
     this.getAccountnumber();
-    this.loadBalance();
   }
 
   loadBalance() {
+    console.log(this.accountnumber);
     this.api.getBalance(this.accountnumber).subscribe((data) => {
       this.balance = data;
+      console.log(this.balance);
     });
   }
 
   getAccountnumber() {
     this.api.getPublicKey().subscribe((data) => {
       this.accountnumber = data;
+      this.loadBalance();
     });
   }
 
