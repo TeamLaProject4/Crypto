@@ -32,6 +32,21 @@ export class APIService {
     );
   }
 
+  sendTransaction(
+    receiverPk: string,
+    amount: string,
+    transactionType: string
+  ): Observable<any> {
+    return this.httpClient.post(
+      this.IP + ':' + this.PORT + '/frontend/transaction',
+      {
+        recieverPublicKey: receiverPk,
+        amount: amount,
+        transactionType: transactionType,
+      }
+    );
+  }
+
   getBalance(accountnumber: string): Observable<any> {
     let queryParams = new HttpParams().append('publicKey', accountnumber);
     return this.httpClient.get(
