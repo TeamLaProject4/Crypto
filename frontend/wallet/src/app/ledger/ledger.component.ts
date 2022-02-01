@@ -70,10 +70,8 @@ export class LedgerComponent implements AfterViewInit {
   }
 
   searchAccountnumber() {
-    // this.accountnumber = this.accountnumberform.get('publicKey')?.value;
-    // this.router.navigate(['ledger'], {
-    //   queryParams: { accountnumber: this.accountnumber },
-    // });
+    //const accountnumber: string = '';
+    this.getLedgerEntries(this.accountnumber);
   }
 
   getAccountNumber() {

@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { APIService } from '../api.service';
+import { Router } from '@angular/router';
+
 
 @Component({
   selector: 'app-newwallet',
@@ -12,7 +14,8 @@ export class NewwalletComponent implements OnInit {
   mnemonic = String();
 
   constructor(private http: HttpClient,
-              private api: APIService) { }
+              private api: APIService, 
+              private router:Router) { }
 
   ngOnInit(): void {
     console.log(this.getMnemonic());
@@ -27,9 +30,9 @@ export class NewwalletComponent implements OnInit {
   }
 
   confirmWallet(){
-    this.api.confirmMnemonic(this.mnemonic)
-    .subscribe(data => {
-      console.log(data);
-    });
+    this.api.confirmMnemonic(this.mnemonic).subscribe(data => {
+      console.log(data)
+      this.router.navigate(["wallet"]);     
+    })
   }
 }
