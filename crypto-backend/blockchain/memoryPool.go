@@ -9,8 +9,9 @@ type MemoryPool struct {
 	Transactions []Transaction
 }
 
-//const TRANSACTION_THRESHOLD = 99
-const TRANSACTION_THRESHOLD = 3
+const TRANSACTION_THRESHOLD = 99
+
+//const TRANSACTION_THRESHOLD = 3
 
 func CreateMemoryPool() MemoryPool {
 	memoryPool := new(MemoryPool)
