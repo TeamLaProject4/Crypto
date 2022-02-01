@@ -50,7 +50,7 @@ func (accountModel *AccountModel) SetBalancesFromBlockChain(blockchain Blockchai
 func getBalancesFromBlock(block Block, balances chan map[string]int) {
 	balancesPerBlock := make(map[string]int)
 	for _, transaction := range block.Transactions {
-		balancesPerBlock[transaction.SenderPublicKeyString] -= transaction.Amount
+		balancesPerBlock[transaction.SenderPublicKey] -= transaction.Amount
 		balancesPerBlock[transaction.ReceiverPublicKey] += transaction.Amount
 	}
 	balances <- balancesPerBlock

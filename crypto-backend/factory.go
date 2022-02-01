@@ -6,6 +6,9 @@ import (
 	"cryptomunt/networking"
 	"cryptomunt/structs"
 	"cryptomunt/utils"
+	"cryptomunt/wallet"
+	"encoding/hex"
+	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 	"math/rand"
 	"strconv"
 )
@@ -21,6 +24,7 @@ func startNode(config networking.Config) {
 	apiResponse := make(chan structs.ApiCallMessage)
 
 	node := networking.CreateAndInitCryptoNode(config, apiRequest, apiResponse)
+
 	utils.Logger.Info(len(node.Blockchain.Blocks))
 	go node.HandleApiCalls(apiRequest, apiResponse)
 	go api.StartApi(node, apiRequest, apiResponse)
@@ -28,8 +32,22 @@ func startNode(config networking.Config) {
 
 }
 
-func innitialCoinOffering() {
+func createWallets(node networking.CryptoNode) {
+	publicKeys := make([]string, 10)
 
+	for i := 0; i < 10; i++ {
+		mnemonic := wallet.GenerateMnemonic()
+
+		key := wallet.NewMasterKey(mnemonic)
+		ecdsaKey := wallet.ConvertBip32ToECDSA(key)
+
+		pubKeyBytes := ethCrypto.FromECDSAPub(&ecdsaKey.PublicKey)
+		pubKeyHex := hex.EncodeToString(pubKeyBytes)
+
+		publicKeys = append(publicKeys, pubKeyHex)
+	}
+
+	utils.Logger.Info(publicKeys)
 }
 
 func transactionsFactory(amountOfTransactions int, node networking.CryptoNode) {

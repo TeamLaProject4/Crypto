@@ -215,10 +215,10 @@ func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transacti
 func (cryptoNode *CryptoNode) IsTransactionValid(transaction blockchain.Transaction) bool {
 	payload := transaction.Payload()
 	signature := transaction.Signature
-	senderPublicKey := transaction.SenderPublicKeyString
+	senderPublicKeyString := transaction.SenderPublicKeyString
 
 	transactionInMemoryPool := cryptoNode.MemoryPool.IsTransactionInPool(transaction)
-	signatureValid := wallet.IsValidSignature(payload, signature, senderPublicKey)
+	signatureValid := wallet.IsValidSignature(payload, signature, senderPublicKeyString)
 	transactionInBlockchain := cryptoNode.Blockchain.IsTransactionInBlockchain(transaction)
 	balanceNegative := cryptoNode.balanceNegativeAfterTransaction(transaction)
 
@@ -226,6 +226,6 @@ func (cryptoNode *CryptoNode) IsTransactionValid(transaction blockchain.Transact
 }
 
 func (cryptoNode *CryptoNode) balanceNegativeAfterTransaction(transaction blockchain.Transaction) bool {
-	balance := cryptoNode.Blockchain.AccountModel.GetBalance(cryptoNode.Wallet.GetPublicKeyString())
+	balance := cryptoNode.Blockchain.AccountModel.GetBalance(cryptoNode.Wallet.GetPublicKeyHex())
 	return transaction.Amount > balance
 }
