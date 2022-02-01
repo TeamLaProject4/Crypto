@@ -228,6 +228,8 @@ func (cryptoNode *CryptoNode) HandleTransaction(transaction blockchain.Transacti
 			cryptoNode.Forge()
 			utils.Logger.Info("Threshold reached")
 		}
+	} else {
+		utils.Logger.Error("transaction not valid")
 	}
 }
 
@@ -273,6 +275,11 @@ func (cryptoNode *CryptoNode) IsTransactionValid(transaction blockchain.Transact
 	signatureValid := wallet.IsValidSignature(payload, signature, senderPublicKeyString)
 	transactionInBlockchain := cryptoNode.Blockchain.IsTransactionInBlockchain(transaction)
 	balanceNegative := cryptoNode.balanceNegativeAfterTransaction(transaction)
+
+	utils.Logger.Info("transactionInMemoryPool", transactionInMemoryPool)
+	utils.Logger.Info("signatureValid", signatureValid)
+	utils.Logger.Info("transactionInBlockchain", transactionInBlockchain)
+	utils.Logger.Info("balanceNegative", balanceNegative)
 
 	return !transactionInMemoryPool && signatureValid && !transactionInBlockchain && !balanceNegative
 }

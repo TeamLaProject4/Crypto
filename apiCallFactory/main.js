@@ -9,7 +9,7 @@ async function main() {
 }
 
 
-const url = "http://192.168.178.35:65524"
+const url = "http://95.217.211.123:42658"
 
 
 
