@@ -79,6 +79,8 @@ func initBlockchain(config Config, cryptoNode *CryptoNode) {
 		cryptoNode.Blockchain = blockchain.CreateBlockchain(transactions)
 		cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
 		cryptoNode.Wallet = wallet.CreateWalletFromKeyFile()
+
+		cryptoNode.Blockchain.AccountModel.SetBalancesFromBlockChain(cryptoNode.Blockchain)
 	}
 }
 
