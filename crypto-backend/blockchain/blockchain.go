@@ -13,8 +13,8 @@ type Blockchain struct {
 	ProofOfStake *proofOfStake.ProofOfStake `json:"-"`
 }
 
-func CreateBlockchain() Blockchain {
-	genesisBlock := CreateGenesisBlock()
+func CreateBlockchain(transactions []Transaction) Blockchain {
+	genesisBlock := CreateGenesisBlock(transactions)
 	var blocks []Block
 	blocks = append(blocks, genesisBlock)
 	pos := proofOfStake.NewProofOfStake()

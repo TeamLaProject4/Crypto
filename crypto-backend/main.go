@@ -14,6 +14,7 @@ import (
 func main() {
 	utils.InitLogger()
 
+	//createWallets()
 	config := parseFlags()
 	if config.NodesToBoot != 0 {
 		nodeFactory(config)

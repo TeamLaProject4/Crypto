@@ -75,7 +75,8 @@ func initBlockchain(config Config, cryptoNode *CryptoNode) {
 	if len(config.BootNodes) > 0 {
 		cryptoNode.SetBlockchainUsingNetwork()
 	} else {
-		cryptoNode.Blockchain = blockchain.CreateBlockchain()
+		transactions := wallet.CreateGenesisTransactions()
+		cryptoNode.Blockchain = blockchain.CreateBlockchain(transactions)
 		cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
 		cryptoNode.Wallet = wallet.CreateWalletFromKeyFile()
 	}
