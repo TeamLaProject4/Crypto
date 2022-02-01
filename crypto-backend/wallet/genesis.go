@@ -18,7 +18,6 @@ func CreateGenesisTransactions() []blockchain.Transaction {
 	transactions := make([]blockchain.Transaction, 0)
 	for i := 0; i < 10; i++ {
 		pubKey := string(utils.ReadFileBytes(fmt.Sprintf("./keys/demo-keys/wallet-pubkey-%d.txt", i)))
-		utils.Logger.Info("pubkey", pubKey)
 
 		trans := wal.CreateTransaction(pubKey, 100000, blockchain.TRANSFER)
 		transactions = append(transactions, trans)
