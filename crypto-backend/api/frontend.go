@@ -101,16 +101,11 @@ func createTransaction(c *gin.Context, node *networking.CryptoNode) {
 			return
 		}
 
-		//add transaction to mem pool
-		node.MemoryPool.AddTransaction(transaction)
+		//memPool, validate & forge if threshold reached
+		node.HandleTransaction(transaction)
+
 		//write to topic
 		node.WriteToTopic(transaction.ToJson(), networking.TRANSACTION)
-
-		//if threshold is reached forge a new block using stake
-		if node.MemoryPool.IsTransactionThresholdReached() {
-			node.Forge()
-			utils.Logger.Info("Threshold reached")
-		}
 
 		c.JSON(200, "added transaction to memoryPool")
 		return
