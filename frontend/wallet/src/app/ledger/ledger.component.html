@@ -42,29 +42,32 @@
       <h1>Find transactions coupled to any <i>CryptoMunt</i> account number</h1>
       <hr />
       <div class="text-center w-50 mx-auto">
-        <div class="row">
-          <br />
-          <br />
-          <div class="col-sm form-floating text-dark">
-            <!-- Input box to enter the required data -->
-            <input
-              type="text"
-              class="form-control input-sm"
-              id="accountnumber"
-              placeholder="u89rjoiefoi"
-            />
-            <label for="accountnumber">Account number</label>
+        <form [formGroup]="accountnumberform">
+          <div class="row">
+            <br />
+            <br />
+            <div class="col-sm form-floating text-dark">
+              <!-- Input box to enter the required data -->
+              <input
+                class="form-control input-sm"
+                id="accountnumber"
+                name="accountnumber"
+                formControlName="accountnumber"
+                value="{{ accountnumber }}"
+                placeholder="accountnumber"
+              />
+            </div>
+            <br /><br /><br />
           </div>
-          <br /><br /><br />
-        </div>
-        <br />
-        <button
-          type="button"
-          class="btn btn-warning btn-lg font-weight-bold"
-          id="generate"
-        >
-          Get ledger
-        </button>
+          <br />
+          <button
+            type="button"
+            (click)="searchAccountnumber()"
+            class="btn btn-warning btn-lg font-weight-bold"
+          >
+            Get ledger
+          </button>
+        </form>
       </div>
       <hr />
       <br /><br /><br />

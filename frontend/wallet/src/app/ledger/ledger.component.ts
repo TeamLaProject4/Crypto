@@ -4,8 +4,9 @@ import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { MatTableDataSource } from '@angular/material/table';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { APIService } from '../api.service';
+import { FormBuilder, FormGroup } from '@angular/forms';
 
 export interface LedgerEntry {
   sender: string;
@@ -38,24 +39,43 @@ export class LedgerComponent implements AfterViewInit {
   sort!: MatSort;
 
   entries: LedgerEntry[] = [];
-  accountNumber: string = '';
+  accountnumber: string = '';
   full_ledger: string = '';
+  public accountnumberform: FormGroup; // variable is created of type FormGroup is created
 
   constructor(
     private http: HttpClient,
     private api: APIService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private router: Router,
+    private fb: FormBuilder
   ) {
+    this.accountnumberform = this.fb.group({
+      accountnumber: '',
+    });
     this.getAccountNumber();
-    this.getLedgerEntries(this.accountNumber);
+    this.getLedgerEntries(this.accountnumber);
     this.dataSource = new MatTableDataSource(this.entries);
 
     console.log(this.entries);
   }
 
+  ngOnInit() {
+    this.route.queryParams.subscribe((params) => {
+      this.accountnumber = params['accountnumber'];
+    });
+  }
+
+  searchAccountnumber() {
+    this.accountnumber = this.accountnumberform.get('accountnumber')?.value;
+    this.router.navigate(['ledger'], {
+      queryParams: { accountnumber: this.accountnumber },
+    });
+  }
+
   getAccountNumber() {
     this.route.queryParams.subscribe((params) => {
-      this.accountNumber = params['accountNumber'];
+      this.accountnumber = params['accountnumber'];
     });
   }
 
