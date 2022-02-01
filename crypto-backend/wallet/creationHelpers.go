@@ -2,6 +2,7 @@ package wallet
 
 import (
 	"cryptomunt/blockchain"
+	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/google/uuid"
 	"time"
 )
@@ -9,16 +10,20 @@ import (
 func (wallet *Wallet) CreateTransaction(receiverPublicKey string, amount int,
 	transactionType blockchain.TransactionType) blockchain.Transaction {
 
+	pubKeyString := string(ethCrypto.FromECDSAPub(&wallet.Key.PublicKey))
+
 	transaction := blockchain.Transaction{
-		SenderPublicKey:   wallet.GetPublicKeyHex(),
-		ReceiverPublicKey: receiverPublicKey,
-		Amount:            amount,
-		Type:              transactionType,
-		Id:                uuid.New().String(),
-		Timestamp:         time.Now().Unix(),
+		SenderPublicKey:       wallet.GetPublicKeyHex(),
+		SenderPublicKeyString: pubKeyString,
+		ReceiverPublicKey:     receiverPublicKey,
+		Amount:                amount,
+		Type:                  transactionType,
+		Id:                    uuid.New().String(),
+		Timestamp:             time.Now().Unix(),
 	}
 
-	signature := wallet.Sign(transaction.ToJson())
+	//signature := wallet.Sign(transaction.ToJson())
+	signature := wallet.Sign(transaction.Payload())
 	transaction.Sign(signature)
 
 	return transaction

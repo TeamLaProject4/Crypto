@@ -1,12 +1,12 @@
 package wallet
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/elliptic"
-	cryptoRand "crypto/rand"
-	"crypto/sha256"
 	"cryptomunt/utils"
 	"encoding/hex"
+	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 )
 
 type Wallet struct {
@@ -14,9 +14,10 @@ type Wallet struct {
 }
 
 func CreateWalletFromKeyFile() Wallet {
-	pemEncodedKey := ReadKeyFromFile(PRIVATE_KEY_PATH)
-	privateKey := DecodePrivateKey(pemEncodedKey)
-	return Wallet{Key: *privateKey}
+	//pemEncodedKey := ReadKeyFromFile(PRIVATE_KEY_PATH)
+	//privateKey := DecodePrivateKey(pemEncodedKey)
+	//return Wallet{Key: *privateKey}
+	return Wallet{}
 }
 
 func CreateWallet(key ecdsa.PrivateKey) Wallet {
@@ -25,10 +26,13 @@ func CreateWallet(key ecdsa.PrivateKey) Wallet {
 
 func (wallet *Wallet) Sign(data string) string {
 	message := []byte(data)
-	//Sign hash of message because only small messages can be signed
-	hashed := sha256.Sum256(message)
+	hashed := ethCrypto.Keccak256Hash(message)
+	signature, err := ethCrypto.Sign(hashed.Bytes(), &wallet.Key)
 
-	signature, err := ecdsa.SignASN1(cryptoRand.Reader, &wallet.Key, hashed[:])
+	//Sign hash of message because only small messages can be signed
+	//hashed := sha256.Sum256(message)
+
+	//signature, err := ecdsa.SignASN1(cryptoRand.Reader, &wallet.Key, hashed[:])
 	if err != nil {
 		utils.Logger.Errorf("Error from signing: %s\n", err)
 		return ""
@@ -45,22 +49,22 @@ func (wallet *Wallet) GetPublicKeyHex() string {
 }
 
 func IsValidSignature(data string, signature string, publicKey string) bool {
-	sig, err := hex.DecodeString(signature)
+	message := []byte(data)
+	hashed := ethCrypto.Keccak256Hash(message)
+	sigBytes, err := hex.DecodeString(signature)
 	if err != nil {
+		utils.Logger.Error(err)
 		return false
 	}
 
-	message := []byte(data)
-	hashed := sha256.Sum256(message)
+	//new
+	sigPublicKey, err := ethCrypto.Ecrecover(hashed.Bytes(), sigBytes)
+	if err != nil {
+		utils.Logger.Error(err)
+		return false
+	}
+	matches2 := bytes.Equal(sigPublicKey, []byte(publicKey))
+	utils.Logger.Info("VALID ? ", matches2)
 
-	pubKeyBytes, _ := hex.DecodeString(publicKey)
-	x, y := elliptic.Unmarshal(elliptic.P256(), pubKeyBytes)
-	pubKey := new(ecdsa.PublicKey)
-	pubKey.Curve = elliptic.P256()
-	pubKey.X = x
-	pubKey.Y = y
-
-	valid := ecdsa.VerifyASN1(pubKey, hashed[:], sig)
-
-	return valid
+	return matches2
 }

@@ -3,14 +3,14 @@ package api
 import (
 	"cryptomunt/blockchain"
 	"cryptomunt/networking"
+	"cryptomunt/utils"
 	"cryptomunt/wallet"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
 )
 
-func getAccountTransactions(c *gin.Context, cryptoNode networking.CryptoNode) {
+func getAccountTransactions(c *gin.Context, cryptoNode *networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
 	publicKey := queryParameters["publicKey"]
 	if publicKey != nil {
@@ -23,7 +23,7 @@ func getAccountTransactions(c *gin.Context, cryptoNode networking.CryptoNode) {
 	})
 }
 
-func getAccountBalance(c *gin.Context, cryptoNode networking.CryptoNode) {
+func getAccountBalance(c *gin.Context, cryptoNode *networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
 	publicKey := queryParameters["publicKey"]
 	if publicKey != nil {
@@ -43,7 +43,7 @@ func getMnemonic(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusOK, wallet.GenerateMnemonic())
 }
-func confirmMnemonic(c *gin.Context, node networking.CryptoNode) {
+func confirmMnemonic(c *gin.Context, node *networking.CryptoNode) {
 	var req = c.Request
 	var mnemonic Mnemonic
 	setupResponse(c)
@@ -55,13 +55,14 @@ func confirmMnemonic(c *gin.Context, node networking.CryptoNode) {
 		return
 	}
 
-	// Add the new album to the slice.
-	fmt.Println(mnemonic.Mnemonic)
-
 	//wallet.ConvertMnemonicToKeys(mnemonic.Mnemonic, "secret")
 	masterKey := wallet.NewMasterKey(mnemonic.Mnemonic)
 	ecdsaKey := wallet.ConvertBip32ToECDSA(masterKey)
+
+	utils.Logger.Info("key", ecdsaKey)
 	node.Wallet = wallet.CreateWallet(ecdsaKey)
+	utils.Logger.Info("Node wallet", node.Wallet)
+
 	ecdsaKeyPemEncoded := wallet.EncodePrivateKey(&ecdsaKey)
 	wallet.WriteKeyToFile(wallet.PRIVATE_KEY_PATH, ecdsaKeyPemEncoded)
 
@@ -69,23 +70,30 @@ func confirmMnemonic(c *gin.Context, node networking.CryptoNode) {
 	c.IndentedJSON(http.StatusCreated, "key files created")
 }
 
-func createTransaction(c *gin.Context, node networking.CryptoNode) {
+func createTransaction(c *gin.Context, node *networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
-	publicKey := queryParameters["publicKey"]
+	recieverPublicKey := queryParameters["recieverPublicKey"]
 	amount := queryParameters["amount"]
 
-	if publicKey != nil && amount != nil {
+	if recieverPublicKey != nil && amount != nil {
 		amountInt, err := strconv.Atoi(amount[0])
 		if err != nil {
 			c.JSON(419, "Amount is not an integer")
 			return
 		}
 
-		transaction := node.Wallet.CreateTransaction(publicKey[0], amountInt, blockchain.TRANSFER)
-		if !node.IsTransactionValid(transaction) {
-			c.JSON(419, "Transaction is not valid")
-			return
-		}
+		transaction := node.Wallet.CreateTransaction(recieverPublicKey[0], amountInt, blockchain.TRANSFER)
+		//if !node.IsTransactionValid(transaction) {
+		//	c.JSON(419, "Transaction is not valid")
+		//	return
+		//}
+		//transaction := node.Wallet.CreateTransaction("receiverpubkey", 20, blockchain.TRANSFER)
+
+		payload := transaction.Payload()
+		signature := transaction.Signature
+		senderPublicKeyString := transaction.SenderPublicKeyString
+		utils.Logger.Info("valid signature", wallet.IsValidSignature(payload, signature, senderPublicKeyString))
+
 		//add transaction to mem pool
 		node.MemoryPool.AddTransaction(transaction)
 		//write to topic
@@ -95,6 +103,6 @@ func createTransaction(c *gin.Context, node networking.CryptoNode) {
 		return
 	}
 	c.JSON(419, gin.H{
-		"start": "ERROR: no parameters publicKey or amount found",
+		"start": "ERROR: no parameters recieverPublicKey or amount found",
 	})
 }

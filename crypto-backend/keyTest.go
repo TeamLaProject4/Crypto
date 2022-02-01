@@ -7,7 +7,7 @@ import (
 	"cryptomunt/wallet"
 )
 
-func main() {
+func main2() {
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		panic(err)
@@ -20,8 +20,6 @@ func main() {
 
 	wallet.WriteKeyToFile(wallet.PRIVATE_KEY_PATH, pemEncodedPriv)
 	wallet.WriteKeyToFile(wallet.PUBLIC_KEY_PATH, pemEncodedPub)
-
-
 
 	// hash := sha256.Sum256([]byte(msg))
 

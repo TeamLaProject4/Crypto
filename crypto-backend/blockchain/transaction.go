@@ -7,13 +7,14 @@ import (
 )
 
 type Transaction struct {
-	SenderPublicKey   string          `json:"sender_pk"`
-	ReceiverPublicKey string          `json:"receiver_pk"`
-	Amount            int             `json:"amount"`
-	Type              TransactionType `json:"tx_type"`
-	Id                string          `json:"id"`
-	Timestamp         int64           `json:"timestamp"`
-	Signature         string          `json:"signature"`
+	SenderPublicKey       string          `json:"sender_pk"`
+	SenderPublicKeyString string          `json:"sender_pk_string"`
+	ReceiverPublicKey     string          `json:"receiver_pk"`
+	Amount                int             `json:"amount"`
+	Type                  TransactionType `json:"tx_type"`
+	Id                    string          `json:"id"`
+	Timestamp             int64           `json:"timestamp"`
+	Signature             string          `json:"signature"`
 }
 
 func GetTransactionFromJson(jsonData string) Transaction {

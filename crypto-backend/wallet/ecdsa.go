@@ -4,7 +4,9 @@ import (
 	"crypto/ecdsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
+	ethCrypto "github.com/ethereum/go-ethereum/crypto"
 	"github.com/jbenet/go-base58"
 )
 
@@ -17,9 +19,15 @@ func ecdsaVerify(publicKey *ecdsa.PublicKey, data string, signature string) bool
 }
 
 func EncodePrivateKey(privateKey *ecdsa.PrivateKey) string {
-	x509EncodedPriv, _ := x509.MarshalECPrivateKey(privateKey)
-	pemEncodedPriv := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: x509EncodedPriv})
-	return string(pemEncodedPriv)
+	//x509EncodedPriv, _ := x509.MarshalECPrivateKey(privateKey)
+	//pemEncodedPriv := pem.EncodeToMemory(&pem.Block{Type: "PRIVATE KEY", Bytes: x509EncodedPriv})
+	return hex.EncodeToString(ethCrypto.FromECDSA(privateKey))
+
+	//ethCrypto.HexToECDSA()
+	//ethCrypto.
+
+	//ethCrypto.SigToPub()
+	//return string(pemEncodedPriv)
 }
 
 func EncodePublicKey(publicKey *ecdsa.PublicKey) string {

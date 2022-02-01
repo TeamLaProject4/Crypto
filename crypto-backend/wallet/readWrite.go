@@ -4,8 +4,8 @@ import (
 	"cryptomunt/utils"
 )
 
-var PRIVATE_KEY_PATH = "./keys/walletPrivateKey.pem"
-var PUBLIC_KEY_PATH = "./keys/walletPublicKey.pem"
+var PRIVATE_KEY_PATH = "./keys/walletPrivateKey.txt"
+var PUBLIC_KEY_PATH = "./keys/walletPublicKey.txt"
 
 func WriteKeyToFile(path string, pemEncodedKey string) {
 	utils.WriteFile(path, pemEncodedKey)
