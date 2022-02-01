@@ -13,6 +13,12 @@ import { NewwalletComponent } from './newwallet/newwallet.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { QRCodeModule } from 'angularx-qrcode';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatTableModule } from '@angular/material/table';
+import {MatPaginatorModule} from '@angular/material/paginator';
+
+
 
 @NgModule({
   declarations: [
@@ -32,6 +38,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
     ReactiveFormsModule,
     QRCodeModule,
     BrowserAnimationsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatTableModule,
+    MatPaginatorModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
