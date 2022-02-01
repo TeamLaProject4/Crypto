@@ -100,7 +100,7 @@ func (cryptoNode *CryptoNode) getBlocksFromPeer(peerIp string, start int, end in
 		utils.Logger.Warn(err)
 	}
 	blockJson := string(body)
-	utils.Logger.Info(blockJson)
+	//utils.Logger.Info(blockJson)
 	blocksChan <- blockchain.GetBlocksFromJson(blockJson)
 }
 

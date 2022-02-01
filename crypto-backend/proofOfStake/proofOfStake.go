@@ -25,7 +25,7 @@ func (e *NegativeBalanceError) Error() string {
 	return e.Msg
 }
 
-func NewProofOfStake() ProofOfStake {
+func CreateProofOfStake() ProofOfStake {
 	pos := new(ProofOfStake)
 	pos.Stakers = make(map[string]int)
 

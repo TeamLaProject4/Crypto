@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-const GENESIS_PUBLIC_KEY = `key`
+const GENESIS_PUBLIC_KEY = `04575a66262a88c6491890587e00e0d3b1726856de7bcef259a41c21f5221ed2adc35d290125baed1fec314de77aac16a72024d7af5ad8f9cd50f247ad6ff994a5`
 
 func generateRandomString(length int) string {
 	var letters bytes.Buffer
@@ -19,7 +19,7 @@ func generateRandomString(length int) string {
 }
 
 func TestWhenNewPOSThenAccountNotInStakers(t *testing.T) {
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 
 	got := pos.IsAccountInStakers("satoshi")
 	want := false
@@ -29,7 +29,7 @@ func TestWhenNewPOSThenAccountNotInStakers(t *testing.T) {
 }
 
 func TestWhenAccountAddedThenAccountInStakers(t *testing.T) {
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 	pos.AddAccountToStakers("barrie")
 
 	got := pos.IsAccountInStakers("barrie")
@@ -40,7 +40,7 @@ func TestWhenAccountAddedThenAccountInStakers(t *testing.T) {
 }
 
 func TestWhenAccountAddedThenStakeOfAccountIsZero(t *testing.T) {
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 	pos.AddAccountToStakers("barrie")
 
 	got := pos.GetStake("barrie")
@@ -51,7 +51,7 @@ func TestWhenAccountAddedThenStakeOfAccountIsZero(t *testing.T) {
 }
 
 func TestWhenStakeUpdatedThenStakeOfAccountUpdated(t *testing.T) {
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 	pos.AddAccountToStakers("barrie")
 	pos.UpdateStake("barrie", 50)
 
@@ -63,7 +63,7 @@ func TestWhenStakeUpdatedThenStakeOfAccountUpdated(t *testing.T) {
 }
 
 func TestWhenNoStakersAddedThenGenesisIsForger(t *testing.T) {
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 
 	got := pos.PickForger("prev_hash")
 	want := GENESIS_PUBLIC_KEY
@@ -73,7 +73,7 @@ func TestWhenNoStakersAddedThenGenesisIsForger(t *testing.T) {
 }
 
 func TestWhenStakerWithZeroStakeAddedThenGenesisIsForger(t *testing.T) {
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 	pos.AddAccountToStakers("barrie")
 
 	got := pos.PickForger("prev_hash")
@@ -84,7 +84,7 @@ func TestWhenStakerWithZeroStakeAddedThenGenesisIsForger(t *testing.T) {
 }
 
 func TestWhenOneStakerAddedThenStakerIsForger(t *testing.T) {
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 	pos.UpdateStake("barrie", 100)
 
 	got := pos.PickForger("prev_hash")
@@ -95,7 +95,7 @@ func TestWhenOneStakerAddedThenStakerIsForger(t *testing.T) {
 }
 
 func TestWhenForgerPickedThenResultIsDeterministic(t *testing.T) {
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 	pos.UpdateStake("barrie", 100)
 	pos.UpdateStake("sjonnie", 100)
 	seed := "zaadje"
@@ -112,7 +112,7 @@ func TestWhenForgerPickedThenResultIsDeterministic(t *testing.T) {
 func TestGivenEqualStakeWhenForgerPickedThenItRepresentsStake(t *testing.T) {
 	account_1 := "barrie"
 	account_2 := "sjonnie"
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 	pos.UpdateStake(account_1, 100)
 	pos.UpdateStake(account_2, 100)
 	wins := map[string]int{
@@ -138,7 +138,7 @@ func TestGivenEqualStakeWhenForgerPickedThenItRepresentsStake(t *testing.T) {
 func TestGivenUnequalStakeWhenForgerPickedThenItRepresentsStake(t *testing.T) {
 	account_1 := "barrie"
 	account_2 := "sjonnie"
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 	pos.UpdateStake(account_1, 10)
 	pos.UpdateStake(account_2, 90)
 	wins := map[string]int{
@@ -162,7 +162,7 @@ func TestGivenUnequalStakeWhenForgerPickedThenItRepresentsStake(t *testing.T) {
 }
 
 func TestGivenBalanceOfStakerInsufficientWhenUnstakingThenNegativeBalanceError(t *testing.T) {
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 
 	err := pos.UpdateStake("barrie", -10)
 	if err == nil {
@@ -171,7 +171,7 @@ func TestGivenBalanceOfStakerInsufficientWhenUnstakingThenNegativeBalanceError(t
 }
 
 func TestGivenBalanceOfStakerSufficientWhenUnstakingThenNoError(t *testing.T) {
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 	pos.UpdateStake("barrie", 10)
 
 	err := pos.UpdateStake("barrie", -10)

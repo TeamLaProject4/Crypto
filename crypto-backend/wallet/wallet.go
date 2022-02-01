@@ -12,11 +12,13 @@ type Wallet struct {
 	Key ecdsa.PrivateKey
 }
 
-func CreateWalletFromKeyFile() Wallet {
-	//pemEncodedKey := ReadKeyFromFile(PRIVATE_KEY_PATH)
-	//privateKey := DecodePrivateKey(pemEncodedKey)
-	//return Wallet{Key: *privateKey}
-	return Wallet{}
+func CreateGenesisWallet() Wallet {
+	mnemonicBytes := utils.ReadFileBytes("./keys/demo-keys/wallet-mnemonic-genesis.txt")
+	mnemonic := string(mnemonicBytes)
+
+	bipKey := NewMasterKey(mnemonic)
+	key := ConvertBip32ToECDSA(bipKey)
+	return CreateWallet(key)
 }
 
 func CreateWallet(key ecdsa.PrivateKey) Wallet {
