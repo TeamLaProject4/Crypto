@@ -2,6 +2,7 @@ package proofOfStake
 
 import (
 	"cryptomunt/utils"
+	"encoding/hex"
 	"fmt"
 	"math/big"
 )
@@ -27,7 +28,10 @@ func (e *NegativeBalanceError) Error() string {
 func NewProofOfStake() ProofOfStake {
 	pos := new(ProofOfStake)
 	pos.Stakers = make(map[string]int)
-	pos.GenesisPublicKey = "key" // TODO: load key from file/config
+
+	pubkeyBytes := utils.ReadFileBytes("./keys/demo-keys/wallet-pubkey-genesis.txt")
+	hex.EncodeToString(pubkeyBytes)
+	pos.GenesisPublicKey = hex.EncodeToString(pubkeyBytes)
 	return *pos
 }
 
