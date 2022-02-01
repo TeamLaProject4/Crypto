@@ -14,12 +14,12 @@ func getAccountTransactions(c *gin.Context, cryptoNode *networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
 	publicKey := queryParameters["publicKey"]
 	if publicKey != nil {
-		balance := cryptoNode.Blockchain.GetAllAccountTransactions(publicKey[0])
-		c.JSON(200, balance)
+		accountTransaction := cryptoNode.Blockchain.GetAllAccountTransactions(publicKey[0])
+		c.JSON(200, accountTransaction)
 		return
 	}
 	c.JSON(419, gin.H{
-		"start": "ERROR: no parameters 'start' and/or 'end' found",
+		"start": "ERROR: no parameters publicKey",
 	})
 }
 
@@ -83,21 +83,21 @@ func createTransaction(c *gin.Context, node *networking.CryptoNode) {
 		}
 
 		transaction := node.Wallet.CreateTransaction(recieverPublicKey[0], amountInt, blockchain.TRANSFER)
-		//if !node.IsTransactionValid(transaction) {
-		//	c.JSON(419, "Transaction is not valid")
-		//	return
-		//}
-		//transaction := node.Wallet.CreateTransaction("receiverpubkey", 20, blockchain.TRANSFER)
-
-		payload := transaction.Payload()
-		signature := transaction.Signature
-		senderPublicKeyString := transaction.SenderPublicKeyString
-		utils.Logger.Info("valid signature", wallet.IsValidSignature(payload, signature, senderPublicKeyString))
+		if !node.IsTransactionValid(transaction) {
+			c.JSON(419, "Transaction is not valid")
+			return
+		}
+		utils.Logger.Info("TRANSACTION VALID")
 
 		//add transaction to mem pool
 		node.MemoryPool.AddTransaction(transaction)
 		//write to topic
 		node.WriteToTopic(transaction.ToJson(), networking.TRANSACTION)
+
+		//stake if threshold is reached
+		if node.MemoryPool.IsTransactionThresholdReached() {
+
+		}
 
 		c.JSON(200, "added transaction to memoryPool")
 		return

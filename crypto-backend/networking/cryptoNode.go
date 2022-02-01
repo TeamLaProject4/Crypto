@@ -4,6 +4,7 @@ import (
 	"context"
 	"cryptomunt/blockchain"
 	"cryptomunt/proofOfStake"
+	"cryptomunt/structs"
 	"cryptomunt/utils"
 	"cryptomunt/wallet"
 	"encoding/json"
@@ -37,7 +38,7 @@ type CryptoNode struct {
 	//sub map[TopicType]Subscription
 }
 
-func CreateAndInitCryptoNode(config Config) CryptoNode {
+func CreateAndInitCryptoNode(config Config, apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) *CryptoNode {
 	utils.Logger.Info("Starting network")
 	ctx := context.Background()
 
@@ -49,25 +50,41 @@ func CreateAndInitCryptoNode(config Config) CryptoNode {
 	}
 
 	//pubsub
-	initPubSub(cryptoNode)
+	initPubSub(&cryptoNode)
 	//blockchain, memPool, wallet
-	initBlockchain(config, cryptoNode)
+	initBlockchain(config, &cryptoNode)
 
-	return cryptoNode
+	return &cryptoNode
 }
 
-func initBlockchain(config Config, cryptoNode CryptoNode) {
+func (cryptoNode *CryptoNode) HandleApiCalls(apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) {
+	for requestMessage := range apiRequest {
+		utils.Logger.Info("GOTTEN API CALL: ", requestMessage.Message, requestMessage.CallType)
+
+		switch requestMessage.CallType {
+		case structs.GET_BLOCKS:
+			cryptoNode.handleGetBlocks(requestMessage.Message, apiResponse)
+
+		}
+
+	}
+}
+
+func initBlockchain(config Config, cryptoNode *CryptoNode) {
 	//if bootnode then initialise, else set using network
 	if len(config.BootNodes) > 0 {
 		cryptoNode.SetBlockchainUsingNetwork()
 	} else {
-		cryptoNode.Blockchain = blockchain.CreateBlockchain()
+		transactions := wallet.CreateGenesisTransactions()
+		cryptoNode.Blockchain = blockchain.CreateBlockchain(transactions)
 		cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
 		cryptoNode.Wallet = wallet.CreateWalletFromKeyFile()
+
+		cryptoNode.Blockchain.AccountModel.SetBalancesFromBlockChain(cryptoNode.Blockchain)
 	}
 }
 
-func initPubSub(cryptoNode CryptoNode) {
+func initPubSub(cryptoNode *CryptoNode) {
 	cryptoNode.logNodeAddr()
 	cryptoNode.subscriptions = cryptoNode.subscribeToTopics()
 	cryptoNode.readSubscriptions()
@@ -195,16 +212,56 @@ func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transacti
 	if cryptoNode.IsTransactionValid(transaction) {
 		cryptoNode.MemoryPool.AddTransaction(transaction)
 		utils.Logger.Info("Transaction added to memory pool")
+
+		if cryptoNode.MemoryPool.IsTransactionThresholdReached() {
+			cryptoNode.forge()
+			utils.Logger.Info("Threshold reached")
+			//forgen
+		}
+	}
+}
+
+func (cryptoNode *CryptoNode) forge() {
+	forger := cryptoNode.Blockchain.GetNextForger()
+
+	if forger == cryptoNode.Wallet.GetPublicKeyHex() {
+		utils.Logger.Info("I am the forger!")
+		transactions := cryptoNode.MemoryPool.Transactions
+
+		//add staker reward
+		rewardTrans := blockchain.CreateRewardTransaction(forger, transactions)
+		transactions = append(transactions, rewardTrans)
+
+		block := blockchain.CreateBlock(blockchain.Block{
+			Transactions: transactions,
+			PreviousHash: cryptoNode.Blockchain.LatestPreviousHash(),
+			Forger:       forger,
+			Height:       cryptoNode.Blockchain.LatestBlockHeight() + 1,
+		})
+		//sign block
+		signature := cryptoNode.Wallet.Sign(block.Payload())
+		block.Sign(signature)
+
+		//TODO: excecute transactions?
+
+		cryptoNode.Blockchain.AddBlock(block)
+
+		cryptoNode.MemoryPool.RemoveTransactions(transactions)
+
+		cryptoNode.WriteToTopic(block.ToJson(), BLOCK_FORGED)
+
+	} else {
+		utils.Logger.Info("Not the forger...")
 	}
 }
 
 func (cryptoNode *CryptoNode) IsTransactionValid(transaction blockchain.Transaction) bool {
 	payload := transaction.Payload()
 	signature := transaction.Signature
-	senderPublicKey := transaction.SenderPublicKey
+	senderPublicKeyString := transaction.SenderPublicKeyString
 
 	transactionInMemoryPool := cryptoNode.MemoryPool.IsTransactionInPool(transaction)
-	signatureValid := wallet.IsValidSignature(payload, signature, senderPublicKey)
+	signatureValid := wallet.IsValidSignature(payload, signature, senderPublicKeyString)
 	transactionInBlockchain := cryptoNode.Blockchain.IsTransactionInBlockchain(transaction)
 	balanceNegative := cryptoNode.balanceNegativeAfterTransaction(transaction)
 

@@ -2,6 +2,7 @@ package api
 
 import (
 	"cryptomunt/networking"
+	"cryptomunt/structs"
 	"cryptomunt/utils"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -27,7 +28,7 @@ func setupResponse(c *gin.Context) {
 	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
 
-func StartApi(cryptoNode *networking.CryptoNode) {
+func StartApi(cryptoNode *networking.CryptoNode, apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.Use(cors.Default())
@@ -51,13 +52,13 @@ func StartApi(cryptoNode *networking.CryptoNode) {
 
 	//routes for node communication
 	router.GET("/blockchain/block-length", func(context *gin.Context) {
-		getBlockHeight(context, *cryptoNode)
+		getBlockHeight(context, cryptoNode)
 	})
 	router.GET("/blockchain/blocks", func(context *gin.Context) {
-		getBlocks(context, *cryptoNode)
+		getBlocks(context, cryptoNode, apiRequest, apiResponse)
 	})
 	router.GET("/blockchain/memory-pool", func(context *gin.Context) {
-		getMemoryPool(context, *cryptoNode)
+		getMemoryPool(context, cryptoNode)
 	})
 
 	nodeIpAddr := cryptoNode.GetOwnIpAddr()

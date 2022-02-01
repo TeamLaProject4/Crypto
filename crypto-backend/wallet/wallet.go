@@ -3,7 +3,6 @@ package wallet
 import (
 	"bytes"
 	"crypto/ecdsa"
-	"crypto/elliptic"
 	"cryptomunt/utils"
 	"encoding/hex"
 	ethCrypto "github.com/ethereum/go-ethereum/crypto"
@@ -42,13 +41,21 @@ func (wallet *Wallet) Sign(data string) string {
 }
 
 func (wallet *Wallet) GetPublicKeyHex() string {
-	pubKey := wallet.Key.PublicKey
-	pubKeyBytes := elliptic.Marshal(pubKey, pubKey.X, pubKey.Y)
+	//pubKey := wallet.Key.PublicKey
+
+	//pubKeyBytes := elliptic.Marshal(pubKey, pubKey.X, pubKey.Y)
+	//ethCrypto.FromECDSA(wallet.key)
+
+	pubKeyBytes := ethCrypto.FromECDSAPub(&wallet.Key.PublicKey)
 
 	return hex.EncodeToString(pubKeyBytes)
 }
 
-func IsValidSignature(data string, signature string, publicKey string) bool {
+func (wallet *Wallet) GetPublicKeyString() string {
+	return string(ethCrypto.FromECDSAPub(&wallet.Key.PublicKey))
+}
+
+func IsValidSignature(data string, signature string, publicKeyString string) bool {
 	message := []byte(data)
 	hashed := ethCrypto.Keccak256Hash(message)
 	sigBytes, err := hex.DecodeString(signature)
@@ -63,8 +70,7 @@ func IsValidSignature(data string, signature string, publicKey string) bool {
 		utils.Logger.Error(err)
 		return false
 	}
-	matches2 := bytes.Equal(sigPublicKey, []byte(publicKey))
-	utils.Logger.Info("VALID ? ", matches2)
+	matches := bytes.Equal(sigPublicKey, []byte(publicKeyString))
 
-	return matches2
+	return matches
 }

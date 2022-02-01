@@ -32,12 +32,13 @@ func GetBlocksFromJson(jsonData string) []Block {
 	return blocks
 }
 
-func CreateGenesisBlock() Block {
+func CreateGenesisBlock(transactions []Transaction) Block {
 	genesis := new(Block)
 	genesis.PreviousHash = "genesis_hash"
 	genesis.Forger = "genesis_forger"
 	genesis.Height = 0
 	genesis.Timestamp = 0
+	genesis.Transactions = transactions
 	return *genesis
 }
 
