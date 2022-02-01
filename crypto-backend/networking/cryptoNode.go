@@ -173,7 +173,7 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 			if err != nil {
 				utils.Logger.Error("unmarshal error ", err)
 			}
-			utils.Logger.Info("Forged block received from the network", block)
+			utils.Logger.Info("Forged block received from the network")
 			cryptoNode.handleBlockForged(block)
 
 		}
@@ -202,17 +202,19 @@ func (cryptoNode *CryptoNode) isForgedBlockValid(block blockchain.Block) bool {
 	//forgerPublicKey := block.Forger
 
 	blockCountValid := cryptoNode.Blockchain.IsValidBlockHeight(block)
-	previousBlockHashValid := cryptoNode.Blockchain.IsValidPreviousBlockHash(block)
+	//previousBlockHashValid :=
+	cryptoNode.Blockchain.IsValidPreviousBlockHash(block)
 	//signatureValid := wallet.IsValidSignature(payload, signature, forgerPublicKey)
-	forgerValid := cryptoNode.Blockchain.IsValidForger(block)
-	blockTransactionsValid := cryptoNode.Blockchain.IsBlockTransactionsValid(block)
+	//forgerValid := cryptoNode.Blockchain.IsValidForger(block)
+	//blockTransactionsValid := cryptoNode.Blockchain.IsBlockTransactionsValid(block)
 
-	utils.Logger.Error("blockCountValid ", blockCountValid)
-	utils.Logger.Error("previousBlockHashValid", previousBlockHashValid)
-	utils.Logger.Error("forgerValid", forgerValid)
-	utils.Logger.Error("blockTransactionsValid", blockTransactionsValid)
+	utils.Logger.Info("blockCountValid ", blockCountValid)
+	//utils.Logger.Error("previousBlockHashValid", previousBlockHashValid)
+	//utils.Logger.Error("forgerValid", forgerValid)
+	//utils.Logger.Error("blockTransactionsValid", blockTransactionsValid)
 
-	return blockTransactionsValid && forgerValid && previousBlockHashValid && blockCountValid
+	return blockCountValid
+	//return blockTransactionsValid && forgerValid && previousBlockHashValid && blockCountValid && signatureValid
 	//signatureValid
 }
 
