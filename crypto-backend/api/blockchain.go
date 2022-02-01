@@ -3,7 +3,6 @@ package api
 import (
 	"cryptomunt/networking"
 	"cryptomunt/structs"
-	"cryptomunt/utils"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
@@ -13,23 +12,15 @@ func getBlockHeight(c *gin.Context, cryptoNode *networking.CryptoNode) {
 }
 
 //return blockchain blocks with start and end index
-func getBlocks(c *gin.Context, cryptoNode *networking.CryptoNode, apiRequest chan structs.ApiCallMessage, apiResponse chan string) {
+func getBlocks(c *gin.Context, cryptoNode *networking.CryptoNode, apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) {
 	queryParameters := c.Request.URL.Query()
 	start := queryParameters["start"]
 	end := queryParameters["end"]
-
-	apiRequest <- structs.ApiCallMessage{
-		CallType: structs.GET_BLOCKS,
-		Message:  "get blocks message",
-	}
-	test := <-apiResponse
-	utils.Logger.Info("API side", test)
 
 	if start != nil && end != nil {
 		startInt, _ := strconv.Atoi(start[0])
 		endInt, _ := strconv.Atoi(end[0])
 		blocks := cryptoNode.Blockchain.GetBlocksFromRange(startInt, endInt)
-
 		c.JSON(200, blocks)
 		return
 	}

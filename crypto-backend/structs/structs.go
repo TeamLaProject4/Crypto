@@ -17,3 +17,8 @@ const (
 	CONFIRM_MNEMONIC
 	POST_TRANSACTION
 )
+
+type ParamsGetBlocks struct {
+	Start string
+	End   string
+}

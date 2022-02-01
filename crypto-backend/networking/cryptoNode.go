@@ -38,7 +38,7 @@ type CryptoNode struct {
 	//sub map[TopicType]Subscription
 }
 
-func CreateAndInitCryptoNode(config Config, apiRequest chan structs.ApiCallMessage, apiResponse chan string) *CryptoNode {
+func CreateAndInitCryptoNode(config Config, apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) *CryptoNode {
 	utils.Logger.Info("Starting network")
 	ctx := context.Background()
 
@@ -50,23 +50,27 @@ func CreateAndInitCryptoNode(config Config, apiRequest chan structs.ApiCallMessa
 	}
 
 	//pubsub
-	initPubSub(cryptoNode)
+	initPubSub(&cryptoNode)
 	//blockchain, memPool, wallet
-	initBlockchain(config, cryptoNode)
-
-	go handleApiCalls(apiRequest, apiResponse)
+	initBlockchain(config, &cryptoNode)
 
 	return &cryptoNode
 }
 
-func handleApiCalls(apiRequest chan structs.ApiCallMessage, apiResponse chan string) {
+func (cryptoNode *CryptoNode) HandleApiCalls(apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) {
 	for requestMessage := range apiRequest {
 		utils.Logger.Info("GOTTEN API CALL: ", requestMessage.Message, requestMessage.CallType)
-		apiResponse <- "response test"
+
+		switch requestMessage.CallType {
+		case structs.GET_BLOCKS:
+			cryptoNode.handleGetBlocks(requestMessage.Message, apiResponse)
+
+		}
+
 	}
 }
 
-func initBlockchain(config Config, cryptoNode CryptoNode) {
+func initBlockchain(config Config, cryptoNode *CryptoNode) {
 	//if bootnode then initialise, else set using network
 	if len(config.BootNodes) > 0 {
 		cryptoNode.SetBlockchainUsingNetwork()
@@ -77,7 +81,7 @@ func initBlockchain(config Config, cryptoNode CryptoNode) {
 	}
 }
 
-func initPubSub(cryptoNode CryptoNode) {
+func initPubSub(cryptoNode *CryptoNode) {
 	cryptoNode.logNodeAddr()
 	cryptoNode.subscriptions = cryptoNode.subscribeToTopics()
 	cryptoNode.readSubscriptions()
@@ -222,6 +226,6 @@ func (cryptoNode *CryptoNode) IsTransactionValid(transaction blockchain.Transact
 }
 
 func (cryptoNode *CryptoNode) balanceNegativeAfterTransaction(transaction blockchain.Transaction) bool {
-	balance := cryptoNode.Blockchain.AccountModel.GetBalance(cryptoNode.Wallet.GetPublicKeyHex())
+	balance := cryptoNode.Blockchain.AccountModel.GetBalance(cryptoNode.Wallet.GetPublicKeyString())
 	return transaction.Amount > balance
 }

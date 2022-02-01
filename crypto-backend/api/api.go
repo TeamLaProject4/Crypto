@@ -28,7 +28,7 @@ func setupResponse(c *gin.Context) {
 	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
 
-func StartApi(cryptoNode *networking.CryptoNode, apiRequest chan structs.ApiCallMessage, apiResponse chan string) {
+func StartApi(cryptoNode *networking.CryptoNode, apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) {
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.Default()
 	router.Use(cors.Default())
