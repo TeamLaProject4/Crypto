@@ -12,6 +12,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { NewwalletComponent } from './newwallet/newwallet.component';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { QRCodeModule } from 'angularx-qrcode';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
 @NgModule({
   declarations: [
@@ -30,6 +31,7 @@ import { QRCodeModule } from 'angularx-qrcode';
     FormsModule,
     ReactiveFormsModule,
     QRCodeModule,
+    BrowserAnimationsModule,
   ],
   providers: [],
   bootstrap: [AppComponent]
