@@ -67,11 +67,11 @@ func (memoryPool *MemoryPool) RemoveTransaction(transaction Transaction) {
 }
 
 func (memoryPool *MemoryPool) RemoveTransactions(transactions []Transaction) {
-	if memoryPool.areTransactionsInMemoryPool(transactions) {
-		for _, transaction := range transactions {
-			memoryPool.RemoveTransaction(transaction)
-		}
+	//if memoryPool.areTransactionsInMemoryPool(transactions) {
+	for _, transaction := range transactions {
+		memoryPool.RemoveTransaction(transaction)
 	}
+	//}
 }
 
 func (memoryPool *MemoryPool) areTransactionsInMemoryPool(transactions []Transaction) bool {
