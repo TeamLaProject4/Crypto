@@ -5,11 +5,9 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
-	"net/url"
 	"strconv"
 )
 
@@ -28,40 +26,19 @@ func ReadFileHex(filePath string) string {
 
 func makeTransaction(ip string) {
 	//recieverPublicKey, amount	transactionType(transfer)
-	params := url.Values{}
 	index := rand.Intn(9) + 1
 	pubReceiverKey := ReadFileHex(fmt.Sprintf("../crypto-backend/keys/demo-keys/wallet-pubkey-%d.txt", index))
 
-	params.Add("recieverPublicKey", pubReceiverKey)
-	params.Add("amount", strconv.Itoa(rand.Intn(100)))
-	params.Add("transactionType", "transfert")
+	amount := strconv.Itoa(rand.Intn(20))
+	jsonString := fmt.Sprintf(`{
+		"recieverPublicKey": "%s",
+		"amount": "%s",
+		"transactionType": "transfer",
+	}`, pubReceiverKey, amount)
 
-	reader := io.Reader()
-	_, err := http.Post("http://"+ip+"/frontend/transaction", "url", reader)
-	if err != nil {
-		fmt.Println(err)
-	}
-}
+	httpposturl := "http://" + ip + "/frontend/transaction"
 
-//func loginToWallet(ip string) {
-//	//pubkey: 0409c7592e1ad0b738fc7ae71388502c0880580368b50bfae7334ee84e8b8b898f1c55ce10b7a7e33baf1fe31db4268288ef1df21ad8780c90a66e8040dddb87a1
-//	mnemonic := "tenant ostrich nation lift screen inside whisper replace foam correct tree cool little announce correct excess slogan term actor crystal scout innocent viable fix"
-//	params := url.Values{}
-//	params.Add("Mnemonic", mnemonic)
-//	http.post
-//	_, err := http.PostForm("http://"+ip+"/frontend/confirmMnemonic", params)
-//	if err != nil {
-//		fmt.Println(err)
-//	}
-//}
-func loginToWallet(ip string) {
-	//pubkey: 0409c7592e1ad0b738fc7ae71388502c0880580368b50bfae7334ee84e8b8b898f1c55ce10b7a7e33baf1fe31db4268288ef1df21ad8780c90a66e8040dddb87a1
-	//mnemonic := "tenant ostrich nation lift screen inside whisper replace foam correct tree cool little announce correct excess slogan term actor crystal scout innocent viable fix"
-	httpposturl := "http://" + ip + "/frontend/confirmMnemonic"
-
-	var jsonData = []byte(`{
-		"mnemonic": "tenant ostrich nation lift screen inside whisper replace foam correct tree cool little announce correct excess slogan term actor crystal scout innocent viable fix",
-	}`)
+	var jsonData = []byte(jsonString)
 	request, error := http.NewRequest("POST", httpposturl, bytes.NewBuffer(jsonData))
 	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -78,12 +55,61 @@ func loginToWallet(ip string) {
 	fmt.Println("response Body:", string(body))
 }
 
+func loginToWallet(ip string) {
+	//pubkey: 0409c7592e1ad0b738fc7ae71388502c0880580368b50bfae7334ee84e8b8b898f1c55ce10b7a7e33baf1fe31db4268288ef1df21ad8780c90a66e8040dddb87a1
+	//mnemonic := "tenant ostrich nation lift screen inside whisper replace foam correct tree cool little announce correct excess slogan term actor crystal scout innocent viable fix"
+	httpposturl := "http://" + ip + "/frontend/confirmMnemonic"
+
+	var jsonData = []byte(`{
+		"mnemonic": "tenant ostrich nation lift screen inside whisper replace foam correct tree cool little announce correct excess slogan term actor crystal scout innocent viable fix",
+	}`)
+	request, error := http.NewRequest("POST", httpposturl, bytes.NewBuffer(jsonData))
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, error := client.Do(request)
+	if error != nil {
+		panic(error)
+	}
+	defer response.Body.Close()
+
+	fmt.Println("response Status:", response.Status)
+	fmt.Println("response Headers:", response.Header)
+	body, _ := ioutil.ReadAll(response.Body)
+	fmt.Println("response Body:", string(body))
+}
+func test() {
+	httpposturl := "https://reqres.in/api/users"
+	fmt.Println("HTTP JSON POST URL:", httpposturl)
+
+	var jsonData = []byte(`{
+		"name": "morpheus",
+		"job": "leader"
+	}`)
+	request, error := http.NewRequest("POST", httpposturl, bytes.NewBuffer(jsonData))
+	request.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	response, error := client.Do(request)
+	if error != nil {
+		panic(error)
+	}
+	defer response.Body.Close()
+
+	fmt.Println("response Status:", response.Status)
+	fmt.Println("response Headers:", response.Header)
+	body, _ := ioutil.ReadAll(response.Body)
+	fmt.Println("response Body:", string(body))
+
+}
+
 func main() {
 	config := parseFlags()
+	test()
 	loginToWallet(config.ip)
-	for i := 0; i < config.transactions; i++ {
-		makeTransaction(config.ip)
-	}
+	//for i := 0; i < config.transactions; i++ {
+	//	makeTransaction(config.ip)
+	//}
 }
 
 func parseFlags() factoryFlags {

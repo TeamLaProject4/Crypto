@@ -256,7 +256,7 @@ func (cryptoNode *CryptoNode) Forge() {
 
 		cryptoNode.MemoryPool.RemoveTransactions(transactions)
 
-		utils.Logger.Info("block forged", block)
+		utils.Logger.Info("block forged")
 		cryptoNode.WriteToTopic(block.ToJson(), BLOCK_FORGED)
 
 	} else {
