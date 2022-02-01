@@ -771,3 +771,4 @@ Temporary Items
 
 # End of https://www.toptal.com/developers/gitignore/api/intellij,pycharm,goland,visualstudiocode,python,react,reactnative,go,java,maven
 crypto-backend/blockchain/BlockChain
+frontend/wallet/package-lock.json
