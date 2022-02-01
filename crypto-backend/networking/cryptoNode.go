@@ -20,7 +20,6 @@ const (
 	TRANSACTION     TopicType = "TRANSACTION" //transaction
 	BLOCK_FORGED              = "BLOCK_FORGED"
 	CONSENSUS_ERROR           = "CONSENSUS_ERROR"
-	NODE_
 )
 
 type Config struct {
@@ -196,17 +195,18 @@ func (cryptoNode *CryptoNode) handleBlockForged(block blockchain.Block) {
 }
 
 func (cryptoNode *CryptoNode) isForgedBlockValid(block blockchain.Block) bool {
-	payload := block.Payload()
-	signature := block.Signature
-	forgerPublicKey := block.Forger
+	//payload := block.Payload()
+	//signature := block.Signature
+	//forgerPublicKey := block.Forger
 
 	blockCountValid := cryptoNode.Blockchain.IsValidBlockHeight(block)
 	previousBlockHashValid := cryptoNode.Blockchain.IsValidPreviousBlockHash(block)
-	signatureValid := wallet.IsValidSignature(payload, signature, forgerPublicKey)
+	//signatureValid := wallet.IsValidSignature(payload, signature, forgerPublicKey)
 	forgerValid := cryptoNode.Blockchain.IsValidForger(block)
 	blockTransactionsValid := cryptoNode.Blockchain.IsBlockTransactionsValid(block)
 
-	return blockTransactionsValid && forgerValid && signatureValid && previousBlockHashValid && blockCountValid
+	return blockTransactionsValid && forgerValid && previousBlockHashValid && blockCountValid
+	//signatureValid
 }
 
 //Add transaction to memorypool, make stake if required, forge block when threshold is reached
@@ -267,24 +267,26 @@ func (cryptoNode *CryptoNode) Forge() {
 }
 
 func (cryptoNode *CryptoNode) IsTransactionValid(transaction blockchain.Transaction) bool {
-	payload := transaction.Payload()
-	signature := transaction.Signature
-	senderPublicKeyString := transaction.SenderPublicKeyString
+	//payload := transaction.Payload()
+	//signature := transaction.Signature
+	//senderPublicKeyString := transaction.SenderPublicKeyString
 
 	transactionInMemoryPool := cryptoNode.MemoryPool.IsTransactionInPool(transaction)
-	signatureValid := wallet.IsValidSignature(payload, signature, senderPublicKeyString)
+	//signatureValid := wallet.IsValidSignature(payload, signature, senderPublicKeyString)
 	transactionInBlockchain := cryptoNode.Blockchain.IsTransactionInBlockchain(transaction)
-	balanceNegative := cryptoNode.balanceNegativeAfterTransaction(transaction)
+	//balanceNegative := cryptoNode.balanceNegativeAfterTransaction(transaction)
 
 	utils.Logger.Info("transactionInMemoryPool", transactionInMemoryPool)
-	utils.Logger.Info("signatureValid", signatureValid)
+	//utils.Logger.Info("signatureValid", signatureValid)
 	utils.Logger.Info("transactionInBlockchain", transactionInBlockchain)
-	utils.Logger.Info("balanceNegative", balanceNegative)
+	//utils.Logger.Info("balanceNegative", balanceNegative)
 
-	return !transactionInMemoryPool && signatureValid && !transactionInBlockchain && !balanceNegative
+	return !transactionInMemoryPool && !transactionInBlockchain
+	//&& signatureValid
+	//&& !balanceNegative
 }
 
-func (cryptoNode *CryptoNode) balanceNegativeAfterTransaction(transaction blockchain.Transaction) bool {
-	balance := cryptoNode.Blockchain.AccountModel.GetBalance(cryptoNode.Wallet.GetPublicKeyHex())
-	return transaction.Amount > balance
-}
+//func (cryptoNode *CryptoNode) balanceNegativeAfterTransaction(transaction blockchain.Transaction) bool {
+//	balance := cryptoNode.Blockchain.AccountModel.GetBalance(cryptoNode.Wallet.GetPublicKeyHex())
+//	return transaction.Amount > balance
+//}
