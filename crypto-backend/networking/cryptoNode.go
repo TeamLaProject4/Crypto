@@ -242,8 +242,6 @@ func (cryptoNode *CryptoNode) forge() {
 		signature := cryptoNode.Wallet.Sign(block.Payload())
 		block.Sign(signature)
 
-		//TODO: excecute transactions?
-
 		cryptoNode.Blockchain.AddBlock(block)
 
 		cryptoNode.MemoryPool.RemoveTransactions(transactions)

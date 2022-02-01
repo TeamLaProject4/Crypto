@@ -35,6 +35,10 @@ func getAccountBalance(c *gin.Context, cryptoNode *networking.CryptoNode) {
 		"start": "ERROR: no parameters publicKey found",
 	})
 }
+func getOwnPublicKey(c *gin.Context, cryptoNode *networking.CryptoNode) {
+	c.JSON(200, cryptoNode.Wallet.GetPublicKeyHex())
+}
+
 func getMnemonic(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")

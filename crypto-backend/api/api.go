@@ -34,6 +34,9 @@ func StartApi(cryptoNode *networking.CryptoNode, apiRequest chan structs.ApiCall
 	router.Use(cors.Default())
 
 	//routes for frontend communication
+	router.GET("/frontend/publickey", func(context *gin.Context) {
+		getOwnPublicKey(context, cryptoNode)
+	})
 	router.GET("/frontend/balance", func(context *gin.Context) {
 		getAccountBalance(context, cryptoNode)
 	})
