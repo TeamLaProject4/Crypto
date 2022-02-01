@@ -5,14 +5,10 @@ import (
 	"cryptomunt/networking"
 	"cryptomunt/utils"
 	"cryptomunt/wallet"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-
-	"github.com/gin-gonic/gin"
 )
-
 
 func getAccountTransactions(c *gin.Context, cryptoNode *networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
@@ -40,9 +36,6 @@ func getAccountBalance(c *gin.Context, cryptoNode *networking.CryptoNode) {
 	})
 }
 func getOwnPublicKey(c *gin.Context, cryptoNode *networking.CryptoNode) {
-	c.JSON(200, cryptoNode.Wallet.GetPublicKeyHex())
-}
-func getGenesisPublicKey(c *gin.Context, cryptoNode *networking.CryptoNode) {
 	c.JSON(200, cryptoNode.Wallet.GetPublicKeyHex())
 }
 
@@ -122,49 +115,3 @@ func createTransaction(c *gin.Context, node *networking.CryptoNode) {
 		"start": "ERROR: no parameters recieverPublicKey, amount or transactionType found",
 	})
 }
-
-/**
-PLACEHOLDERS TILL THE REAL THING IS FIXED
-TODO: REMOVE
-*/
-func constructTransaction(pk string, rk string, amount int) blockchain.Transaction {
-	return blockchain.Transaction{
-		SenderPublicKey:   pk,
-		ReceiverPublicKey: rk,
-		Amount:            amount,
-		Type:              blockchain.TRANSFER,
-	}
-}
-func constructTransactions() []blockchain.Transaction {
-	transaction1 := constructTransaction("lars", "jeroen", 20)
-	transaction2 := constructTransaction("johan", "jeroen", 10)
-	transaction3 := constructTransaction("martijn", "lars", 32)
-	transaction4 := constructTransaction("martijn", "henk", 32)
-	return []blockchain.Transaction{transaction1, transaction2, transaction3, transaction4}
-}
-func constructBlock(prevHash string) blockchain.Block {
-	block := new(blockchain.Block)
-	block.Transactions = constructTransactions()
-	block.PreviousHash = prevHash
-	block.Forger = "forger"
-	block.Height = 1
-	return *block
-}
-
-func TestWhenSetBalancesFromBlockchainThenBalanceHasCorrectAmount() {
-	chain := blockchain.CreateBlockchain()
-	block1 := constructBlock(chain.LatestPreviousHash())
-	chain.Blocks = []blockchain.Block{block1}
-
-}
-
-func TestWhenGettingAllAccountLarsTransactionsThenIsSix() {
-	chain := blockchain.CreateBlockchain()
-	block1 := constructBlock(chain.LatestPreviousHash())
-	block2 := constructBlock(chain.LatestPreviousHash())
-	block3 := constructBlock(chain.LatestPreviousHash())
-	chain.Blocks = []blockchain.Block{block1, block2, block3}
-
-}
-
-//TODO: REMOVE CODE ABOVE WHEN DONE!!

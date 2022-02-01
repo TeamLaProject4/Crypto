@@ -62,5 +62,5 @@ const (
 	TRANSFER TransactionType = iota //Transactions
 	EXCHANGE                        //buy coins with fiad money
 	STAKE                           //stake in the lottery
-	REWARD
+	REWARD                          //reward when the lottery is won
 )

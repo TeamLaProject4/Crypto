@@ -38,7 +38,7 @@ type CryptoNode struct {
 	//sub map[TopicType]Subscription
 }
 
-func CreateAndInitCryptoNode(config Config, apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) *CryptoNode {
+func CreateAndInitCryptoNode(config Config) *CryptoNode {
 	utils.Logger.Info("Starting network")
 	ctx := context.Background()
 
@@ -95,7 +95,7 @@ func (cryptoNode *CryptoNode) SetBlockchainUsingNetwork() {
 	blocks := cryptoNode.GetAllBlocksFromNetwork()
 	cryptoNode.Blockchain.Blocks = blocks
 
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 	cryptoNode.Blockchain.ProofOfStake = &pos
 
 	//set memorypool
@@ -169,9 +169,12 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 
 		case BLOCK_FORGED:
 			utils.Logger.Info("Forged block received from the network")
-			//var block blockchain.Block
-			//block = utils.GetStructFromJson(message.Message, block).(blockchain.Block)
-			//handleBlock
+			var block blockchain.Block
+			err := json.Unmarshal([]byte(message.Message), &block)
+			if err != nil {
+				utils.Logger.Error("unmarshal error ", err)
+			}
+			cryptoNode.handleBlockForged(block)
 
 		}
 	}

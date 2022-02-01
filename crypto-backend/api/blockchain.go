@@ -2,7 +2,6 @@ package api
 
 import (
 	"cryptomunt/networking"
-	"cryptomunt/structs"
 	"github.com/gin-gonic/gin"
 	"strconv"
 )
@@ -12,7 +11,7 @@ func getBlockHeight(c *gin.Context, cryptoNode *networking.CryptoNode) {
 }
 
 //return blockchain blocks with start and end index
-func getBlocks(c *gin.Context, cryptoNode *networking.CryptoNode, apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) {
+func getBlocks(c *gin.Context, cryptoNode *networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
 	start := queryParameters["start"]
 	end := queryParameters["end"]
