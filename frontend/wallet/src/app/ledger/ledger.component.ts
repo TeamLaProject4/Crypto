@@ -41,7 +41,7 @@ export class LedgerComponent implements AfterViewInit {
   entries: LedgerEntry[] = [];
   accountnumber: string = '';
   full_ledger: string = '';
-  //  public accountnumberform: FormGroup; // variable is created of type FormGroup is created
+  public accountnumberform: FormGroup; // variable is created of type FormGroup is created
 
   constructor(
     private http: HttpClient,
@@ -50,9 +50,9 @@ export class LedgerComponent implements AfterViewInit {
     private router: Router,
     private fb: FormBuilder
   ) {
-    // this.accountnumberform = this.fb.group({
-    //   accountnumber: '',
-    // });
+    this.accountnumberform = this.fb.group({
+      accountnumber: '',
+    });
     this.getAccountNumber();
     this.getLedgerEntries(this.accountnumber);
     this.dataSource = new MatTableDataSource(this.entries);
@@ -66,14 +66,12 @@ export class LedgerComponent implements AfterViewInit {
     //   this.accountnumber = params['accountnumber'];
     // });
     this.getQueryParams();
-    //  this.accountnumber = this.accountnumberform.get('publicKey')?.value;
+    this.accountnumber = this.accountnumberform.get('publicKey')?.value;
   }
 
   searchAccountnumber() {
-    // this.accountnumber = this.accountnumberform.get('publicKey')?.value;
-    // this.router.navigate(['ledger'], {
-    //   queryParams: { accountnumber: this.accountnumber },
-    // });
+    const accountnumber: string = '';
+    this.getLedgerEntries(accountnumber);
   }
 
   getAccountNumber() {

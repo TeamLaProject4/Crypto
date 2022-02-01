@@ -8,8 +8,14 @@ import { Observable } from 'rxjs';
 export class APIService {
   constructor(private httpClient: HttpClient) {}
 
-  IP = 'http://10.51.60.59';
-  PORT = '64561';
+  IP = 'http://192.168.178.111';
+  PORT = '57498';
+
+  getPublicKey(): Observable<any> {
+    return this.httpClient.get(
+      this.IP + ':' + this.PORT + '/frontend/publickey'
+    );
+  }
 
   getMnemonic(): Observable<any> {
     return this.httpClient.get(
@@ -22,6 +28,21 @@ export class APIService {
       this.IP + ':' + this.PORT + '/frontend/confirmMnemonic',
       {
         mnemonic: mnemonic,
+      }
+    );
+  }
+
+  sendTransaction(
+    receiverPk: string,
+    amount: string,
+    transactionType: string
+  ): Observable<any> {
+    return this.httpClient.post(
+      this.IP + ':' + this.PORT + '/frontend/transaction',
+      {
+        recieverPublicKey: receiverPk,
+        amount: amount,
+        transactionType: transactionType,
       }
     );
   }
