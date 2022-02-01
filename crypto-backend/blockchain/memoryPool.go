@@ -45,7 +45,7 @@ func (memoryPool *MemoryPool) GetTransactionsLength() int {
 
 func (memoryPool *MemoryPool) GetTransactionIndex(transaction Transaction) (int, error) {
 	for index, transactionInPool := range memoryPool.Transactions {
-		if transactionInPool == transaction {
+		if transactionInPool.Id == transaction.Id {
 			return index, nil
 		}
 	}
