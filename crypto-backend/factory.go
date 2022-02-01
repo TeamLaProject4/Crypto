@@ -4,7 +4,6 @@ import (
 	"cryptomunt/api"
 	"cryptomunt/blockchain"
 	"cryptomunt/networking"
-	"cryptomunt/structs"
 	"cryptomunt/utils"
 	"cryptomunt/wallet"
 	"encoding/hex"
@@ -21,10 +20,7 @@ func nodeFactory(config networking.Config) {
 }
 
 func startNode(config networking.Config) {
-	apiRequest := make(chan structs.ApiCallMessage)
-	apiResponse := make(chan structs.ApiCallMessage)
-
-	node := networking.CreateAndInitCryptoNode(config, apiRequest, apiResponse)
+	node := networking.CreateAndInitCryptoNode(config)
 
 	utils.Logger.Info(len(node.Blockchain.Blocks))
 
@@ -32,8 +28,8 @@ func startNode(config networking.Config) {
 
 	}
 
-	go node.HandleApiCalls(apiRequest, apiResponse)
-	go api.StartApi(node, apiRequest, apiResponse)
+	//go node.HandleApiCalls()
+	go api.StartApi(node)
 
 	select {}
 

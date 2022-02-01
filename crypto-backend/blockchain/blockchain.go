@@ -17,7 +17,7 @@ func CreateBlockchain(transactions []Transaction) Blockchain {
 	genesisBlock := CreateGenesisBlock(transactions)
 	var blocks []Block
 	blocks = append(blocks, genesisBlock)
-	pos := proofOfStake.NewProofOfStake()
+	pos := proofOfStake.CreateProofOfStake()
 
 	accountModel := CreateAccountModel()
 

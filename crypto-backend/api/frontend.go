@@ -5,14 +5,10 @@ import (
 	"cryptomunt/networking"
 	"cryptomunt/utils"
 	"cryptomunt/wallet"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"strconv"
-
-	"github.com/gin-gonic/gin"
 )
-
 
 func getAccountTransactions(c *gin.Context, cryptoNode *networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
@@ -42,9 +38,6 @@ func getAccountBalance(c *gin.Context, cryptoNode *networking.CryptoNode) {
 func getOwnPublicKey(c *gin.Context, cryptoNode *networking.CryptoNode) {
 	c.JSON(200, cryptoNode.Wallet.GetPublicKeyHex())
 }
-func getGenesisPublicKey(c *gin.Context, cryptoNode *networking.CryptoNode) {
-	c.JSON(200, cryptoNode.Wallet.GetPublicKeyHex())
-}
 
 func getMnemonic(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -55,6 +48,7 @@ func getMnemonic(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, wallet.GenerateMnemonic())
 }
 func confirmMnemonic(c *gin.Context, node *networking.CryptoNode) {
+	utils.Logger.Info("in conf mnuemonic")
 	var req = c.Request
 	var mnemonic Mnemonic
 	setupResponse(c)
@@ -80,22 +74,38 @@ func confirmMnemonic(c *gin.Context, node *networking.CryptoNode) {
 	c.IndentedJSON(http.StatusCreated, "key files created")
 }
 
-func createTransaction(c *gin.Context, node *networking.CryptoNode) {
-	queryParameters := c.Request.URL.Query()
-	recieverPublicKey := queryParameters["recieverPublicKey"]
-	amount := queryParameters["amount"]
-	transactionType := queryParameters["transactionType"]
+type TransactionParams struct {
+	RecieverPublicKey string
+	Amount            string
+	TransactionType   string
+}
 
-	if recieverPublicKey != nil && amount != nil && transactionType != nil {
-		amountInt, err := strconv.Atoi(amount[0])
-		recieverPublicKeyString := recieverPublicKey[0]
+func createTransaction(c *gin.Context, node *networking.CryptoNode) {
+	var req = c.Request
+	var params TransactionParams
+	setupResponse(c)
+
+	if (*req).Method == "OPTIONS" {
+		return
+	}
+	if err := c.BindJSON(&params); err != nil {
+		return
+	}
+
+	recieverPublicKey := params.RecieverPublicKey
+	amount := params.Amount
+	transactionType := params.TransactionType
+
+	if recieverPublicKey != "" && amount != "" && transactionType != "" {
+		amountInt, err := strconv.Atoi(amount)
+		recieverPublicKeyString := recieverPublicKey
 		if err != nil {
 			c.JSON(419, "Amount is not an integer")
 			return
 		}
 		//set trans type
 		var transType blockchain.TransactionType
-		if transactionType[0] == "transfer" {
+		if transactionType == "transfer" {
 			transType = blockchain.TRANSFER
 		} else {
 			recieverPublicKeyString = node.Blockchain.ProofOfStake.GenesisPublicKey
@@ -122,49 +132,3 @@ func createTransaction(c *gin.Context, node *networking.CryptoNode) {
 		"start": "ERROR: no parameters recieverPublicKey, amount or transactionType found",
 	})
 }
-
-/**
-PLACEHOLDERS TILL THE REAL THING IS FIXED
-TODO: REMOVE
-*/
-func constructTransaction(pk string, rk string, amount int) blockchain.Transaction {
-	return blockchain.Transaction{
-		SenderPublicKey:   pk,
-		ReceiverPublicKey: rk,
-		Amount:            amount,
-		Type:              blockchain.TRANSFER,
-	}
-}
-func constructTransactions() []blockchain.Transaction {
-	transaction1 := constructTransaction("lars", "jeroen", 20)
-	transaction2 := constructTransaction("johan", "jeroen", 10)
-	transaction3 := constructTransaction("martijn", "lars", 32)
-	transaction4 := constructTransaction("martijn", "henk", 32)
-	return []blockchain.Transaction{transaction1, transaction2, transaction3, transaction4}
-}
-func constructBlock(prevHash string) blockchain.Block {
-	block := new(blockchain.Block)
-	block.Transactions = constructTransactions()
-	block.PreviousHash = prevHash
-	block.Forger = "forger"
-	block.Height = 1
-	return *block
-}
-
-func TestWhenSetBalancesFromBlockchainThenBalanceHasCorrectAmount() {
-	chain := blockchain.CreateBlockchain()
-	block1 := constructBlock(chain.LatestPreviousHash())
-	chain.Blocks = []blockchain.Block{block1}
-
-}
-
-func TestWhenGettingAllAccountLarsTransactionsThenIsSix() {
-	chain := blockchain.CreateBlockchain()
-	block1 := constructBlock(chain.LatestPreviousHash())
-	block2 := constructBlock(chain.LatestPreviousHash())
-	block3 := constructBlock(chain.LatestPreviousHash())
-	chain.Blocks = []blockchain.Block{block1, block2, block3}
-
-}
-
-//TODO: REMOVE CODE ABOVE WHEN DONE!!
