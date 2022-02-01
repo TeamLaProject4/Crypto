@@ -2,6 +2,7 @@ package networking
 
 import (
 	"context"
+	"cryptomunt/utils"
 	"encoding/json"
 
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -72,6 +73,7 @@ func (subscription *Subscription) Publish(message string) error {
 	}
 	msgBytes, err := json.Marshal(publishMessage)
 	if err != nil {
+		utils.Logger.Error(err)
 		return err
 	}
 	return subscription.topic.Publish(subscription.ctx, msgBytes)

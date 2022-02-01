@@ -153,7 +153,7 @@ func (cryptoNode *CryptoNode) subscribeToTopics() []Subscription {
 
 func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 	for message := range sub.Messages {
-		utils.Logger.Info(message.Message, sub.TopicName)
+		utils.Logger.Info("New message from topic")
 
 		topicType := TopicType(sub.TopicName)
 
