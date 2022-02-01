@@ -8,17 +8,18 @@ import { AbstractControl, FormBuilder, FormControl, FormGroup } from '@angular/f
   styleUrls: ['./wallet.component.scss']
 })
 
+
 export class WalletComponent  {
   public userForm:FormGroup; // variable is created of type FormGroup is created
-  accountnumber: String = ""; 
-  to_amount: String = ""; 
-  
+  accountnumber: String = "";
+  to_amount: String = "";
+
   constructor(  private fb: FormBuilder,
                 private router: Router) {
     // Form element defined below
     this.userForm = this.fb.group({
       accountnumber: '',
-      to_amount: '' 
+      to_amount: ''
     });
   }
 
@@ -30,5 +31,5 @@ export class WalletComponent  {
     }
     );
   }
-    
+
   }

@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { AbstractControl, FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { APIService } from '../api.service';
-
+import {RouterModule} from '@angular/router';
 @Component({
   selector: 'app-landing',
   templateUrl: './landing.component.html',
@@ -12,8 +12,8 @@ import { APIService } from '../api.service';
 export class LandingComponent implements OnInit {
 
   public loginForm:FormGroup;
-  seedphrase: string = ""; 
-  
+  seedphrase: string = "";
+
   constructor(  private fb: FormBuilder,
                 private router: Router,
                 private http: HttpClient,
@@ -23,7 +23,7 @@ export class LandingComponent implements OnInit {
       seedphrase: '',
     });
   }
-  
+
   ngOnInit(): void {
   }
 
