@@ -38,6 +38,9 @@ func getAccountBalance(c *gin.Context, cryptoNode *networking.CryptoNode) {
 func getOwnPublicKey(c *gin.Context, cryptoNode *networking.CryptoNode) {
 	c.JSON(200, cryptoNode.Wallet.GetPublicKeyHex())
 }
+func getGenesisPublicKey(c *gin.Context, cryptoNode *networking.CryptoNode) {
+	c.JSON(200, cryptoNode.Wallet.GetPublicKeyHex())
+}
 
 func getMnemonic(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
@@ -82,6 +85,7 @@ func createTransaction(c *gin.Context, node *networking.CryptoNode) {
 
 	if recieverPublicKey != nil && amount != nil && transactionType != nil {
 		amountInt, err := strconv.Atoi(amount[0])
+		recieverPublicKeyString := recieverPublicKey[0]
 		if err != nil {
 			c.JSON(419, "Amount is not an integer")
 			return
@@ -91,11 +95,12 @@ func createTransaction(c *gin.Context, node *networking.CryptoNode) {
 		if transactionType[0] == "transfer" {
 			transType = blockchain.TRANSFER
 		} else {
+			recieverPublicKeyString = node.Blockchain.ProofOfStake.GenesisPublicKey
 			transType = blockchain.STAKE
 		}
 
 		//create and verify transaction
-		transaction := node.Wallet.CreateTransaction(recieverPublicKey[0], amountInt, transType)
+		transaction := node.Wallet.CreateTransaction(recieverPublicKeyString, amountInt, transType)
 		if !node.IsTransactionValid(transaction) {
 			c.JSON(419, "Transaction is not valid")
 			return

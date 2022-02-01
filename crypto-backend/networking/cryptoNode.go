@@ -211,7 +211,6 @@ func (cryptoNode *CryptoNode) HandleTransaction(transaction blockchain.Transacti
 
 		if transaction.Type == blockchain.STAKE {
 			err := cryptoNode.Blockchain.ProofOfStake.UpdateStake(transaction.SenderPublicKey, transaction.Amount)
-			transaction.ReceiverPublicKey = cryptoNode.Blockchain.ProofOfStake.GenesisPublicKey
 			if err != nil {
 				utils.Logger.Error(err)
 				return

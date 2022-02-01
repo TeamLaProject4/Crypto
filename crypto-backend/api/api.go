@@ -37,6 +37,10 @@ func StartApi(cryptoNode *networking.CryptoNode, apiRequest chan structs.ApiCall
 	router.GET("/frontend/publickey", func(context *gin.Context) {
 		getOwnPublicKey(context, cryptoNode)
 	})
+	router.GET("/frontend/genesis-publickey", func(context *gin.Context) {
+		getGenesisPublicKey(context, cryptoNode)
+	})
+
 	router.GET("/frontend/balance", func(context *gin.Context) {
 		getAccountBalance(context, cryptoNode)
 	})
