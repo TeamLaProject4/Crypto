@@ -214,14 +214,14 @@ func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transacti
 		utils.Logger.Info("Transaction added to memory pool")
 
 		if cryptoNode.MemoryPool.IsTransactionThresholdReached() {
-			cryptoNode.forge()
+			cryptoNode.Forge()
 			utils.Logger.Info("Threshold reached")
 			//forgen
 		}
 	}
 }
 
-func (cryptoNode *CryptoNode) forge() {
+func (cryptoNode *CryptoNode) Forge() {
 	forger := cryptoNode.Blockchain.GetNextForger()
 
 	if forger == cryptoNode.Wallet.GetPublicKeyHex() {
