@@ -4,6 +4,7 @@ import (
 	"cryptomunt/networking"
 	"cryptomunt/structs"
 	"cryptomunt/utils"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
@@ -27,6 +28,7 @@ func setupResponse(c *gin.Context) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
 }
+
 
 func StartApi(cryptoNode *networking.CryptoNode, apiRequest chan structs.ApiCallMessage, apiResponse chan structs.ApiCallMessage) {
 	gin.SetMode(gin.ReleaseMode)
