@@ -43,16 +43,15 @@
       <hr />
       <div class="text-center w-50 mx-auto">
         <form>
-          <!--[formGroup]="accountnumberform">-->
           <div class="row">
             <br />
             <br />
             <div class="col-sm form-floating text-dark">
-              <!-- Input box to enter the required data -->
               <input
                 class="form-control input-sm"
                 id="accountnumber"
                 name="accountnumber"
+                #accountnumber
                 formControlName="accountnumber"
                 value="{{ accountnumber }}"
                 placeholder="accountnumber"
@@ -63,7 +62,7 @@
           <br />
           <button
             type="button"
-            (click)="searchAccountnumber()"
+            (click)="searchAccountnumber(accountnumber.value)"
             class="btn btn-warning btn-lg font-weight-bold"
           >
             Get ledger

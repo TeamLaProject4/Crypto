@@ -56,11 +56,20 @@ export class APIService {
   }
 
   getTransactions(accountnumber: string): Observable<any> {
-    let queryParams = new HttpParams().append('publicKey', accountnumber);
+    console.log(accountnumber);
     return this.httpClient.get(
-      this.IP + ':' + this.PORT + '/frontend/transactions',
-      { params: queryParams }
+      this.IP +
+        ':' +
+        this.PORT +
+        '/frontend/transactions?publicKey=' +
+        accountnumber
     );
+
+    // let queryParams = new HttpParams().append('publicKey', accountnumber);
+    // return this.httpClient.get(
+    //   this.IP + ':' + this.PORT + '/frontend/transactions',
+    //   { params: queryParams }
+    // );
   }
 
   getBlocklength(accountnumber: string): Observable<any> {

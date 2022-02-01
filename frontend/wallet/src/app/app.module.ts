@@ -16,11 +16,10 @@ import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
-import {MatPaginatorModule} from '@angular/material/paginator';
+import { MatPaginatorModule } from '@angular/material/paginator';
 import { LogoutComponent } from './logout/logout.component';
 import { StakeComponent } from './stake/stake.component';
-
-
+import { CustomSlice } from './pipes/customslice.pipe';
 
 @NgModule({
   declarations: [
@@ -28,9 +27,9 @@ import { StakeComponent } from './stake/stake.component';
     CryptieComponent,
     WalletComponent,
     PaymentComponent,
-    LedgerComponent,
     LandingComponent,
     NewwalletComponent,
+    LedgerComponent,
     LogoutComponent,
     StakeComponent,
   ],
@@ -47,7 +46,7 @@ import { StakeComponent } from './stake/stake.component';
     MatTableModule,
     MatPaginatorModule,
   ],
-  providers: [],
-  bootstrap: [AppComponent]
+  providers: [CustomSlice],
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

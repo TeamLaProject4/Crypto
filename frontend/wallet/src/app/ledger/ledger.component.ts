@@ -1,12 +1,20 @@
 import { HttpClient } from '@angular/common/http';
 import { temporaryAllocator } from '@angular/compiler/src/render3/view/util';
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  Pipe,
+  ViewChild,
+  PipeTransform,
+  NgModule,
+} from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
-import { MatTableDataSource } from '@angular/material/table';
+import { MatTableDataSource, MatTable } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
 import { APIService } from '../api.service';
 import { FormBuilder, FormGroup } from '@angular/forms';
+import { CustomSlice } from '../pipes/customslice.pipe';
 
 export interface LedgerEntry {
   sender: string;
@@ -53,7 +61,7 @@ export class LedgerComponent implements AfterViewInit {
     this.accountnumberform = this.fb.group({
       accountnumber: '',
     });
-    this.getAccountNumber();
+
     this.getLedgerEntries(this.accountnumber);
     this.dataSource = new MatTableDataSource(this.entries);
 
@@ -69,22 +77,12 @@ export class LedgerComponent implements AfterViewInit {
     this.accountnumber = this.accountnumberform.get('publicKey')?.value;
   }
 
-  searchAccountnumber() {
-    const accountnumber: string = '';
-    this.getLedgerEntries(accountnumber);
-  }
-
-  getAccountNumber() {
-    // this.route.queryParams.subscribe((params) => {
-    //   this.accountnumber = params['accountnumber'];
-    // });
+  searchAccountnumber(accountnumber: string) {
+    this.accountnumber = accountnumber;
+    this.getLedgerEntries(this.accountnumber);
   }
 
   getQueryParams() {
-    //dezedoet dat al beetje raar dat die daarboven niet werkte welliswaar
-    // console.log(this.route.snapshot.paramMap);
-    // this.to = this.route.snapshot.paramMap.get('to');
-
     this.route.queryParams.subscribe((params) => {
       this.accountnumber = params['accountnumber'];
     });
@@ -106,15 +104,27 @@ export class LedgerComponent implements AfterViewInit {
 
   /** gets the ledger entries tied to the accountnumber */
   getLedgerEntries(accountnumber: string) {
+    console.log(accountnumber);
     this.api.getTransactions(accountnumber).subscribe((data) => {
       data.forEach((entry: any) => {
         const temp: LedgerEntry = {
-          sender: entry.sender_pk,
+          sender: entry.sender_pk.substring(0, 5),
           amount: entry.amount,
-          receiver: entry.receiver_pk,
+          receiver: entry.receiver_pk.substring(0, 5),
         };
         this.entries.push(temp);
       });
+
+      this.dataSource = new MatTableDataSource(this.entries);
+      this.refresh();
     });
   }
+
+  refresh() {
+    this.dataSource = new MatTableDataSource(this.entries); //this.response
+    this.dataSource.sort = this.sort;
+    console.log(this.dataSource);
+    // console.log("hoi");
+  }
+  // }
 }
