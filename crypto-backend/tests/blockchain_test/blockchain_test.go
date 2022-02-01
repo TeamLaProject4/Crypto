@@ -14,8 +14,8 @@ func constructRewardTransaction() blockchain.Transaction {
 }
 
 func TestWhenNewBlockchainCreatedThenFirstBlockIsGenesis(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
-	genesis := blockchain.CreateGenesisBlock()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
+	genesis := blockchain.CreateGenesisBlock(*new([]blockchain.Transaction))
 
 	firstBlock := chain.Blocks[0]
 	if !firstBlock.Equals(genesis) {
@@ -24,7 +24,7 @@ func TestWhenNewBlockchainCreatedThenFirstBlockIsGenesis(t *testing.T) {
 }
 
 func TestWhenNewBlockHasCorrectPreviousHashThenPreviousHashValid(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	prev_hash := chain.LatestPreviousHash()
 	tx := constructTransaction()
 	block := new(blockchain.Block)
@@ -41,7 +41,7 @@ func TestWhenNewBlockHasCorrectPreviousHashThenPreviousHashValid(t *testing.T) {
 }
 
 func TestWhenNewBlockAddedThenLatestBlockHeightIsCorrect(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	prev_hash := chain.LatestPreviousHash()
 	tx := constructTransaction()
 	block := new(blockchain.Block)
@@ -59,7 +59,7 @@ func TestWhenNewBlockAddedThenLatestBlockHeightIsCorrect(t *testing.T) {
 }
 
 func TestGivenNewBlockchainWhenBlockAddedThenSecondBlockIsBlock(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	prev_hash := chain.LatestPreviousHash()
 	tx := constructTransaction()
 	block := new(blockchain.Block)
@@ -77,7 +77,7 @@ func TestGivenNewBlockchainWhenBlockAddedThenSecondBlockIsBlock(t *testing.T) {
 }
 
 func TestWhenThirdBlockHasLowerBlockHeightThenBlockHeightInvalid(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	tx := constructTransaction()
 
 	prev_hash_1 := chain.LatestPreviousHash()
@@ -103,7 +103,7 @@ func TestWhenThirdBlockHasLowerBlockHeightThenBlockHeightInvalid(t *testing.T) {
 }
 
 func TestWhenThirdBlockHasHigherBlockHeightThenBlockHeightInvalid(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	tx := constructTransaction()
 
 	prev_hash_1 := chain.LatestPreviousHash()
@@ -129,7 +129,7 @@ func TestWhenThirdBlockHasHigherBlockHeightThenBlockHeightInvalid(t *testing.T) 
 }
 
 func TestWhenThirdBlockHasCorrectBlockHeightThenBlockHeightInvalid(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	tx := constructTransaction()
 
 	prev_hash_1 := chain.LatestPreviousHash()
@@ -155,7 +155,7 @@ func TestWhenThirdBlockHasCorrectBlockHeightThenBlockHeightInvalid(t *testing.T)
 }
 
 func TestGivenNewBlockchainWhenRandomTransactionCreatedThenTransactionNotCovered(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	tx := constructTransaction()
 
 	got := chain.IsTransactionCovered(tx)
@@ -167,7 +167,7 @@ func TestGivenNewBlockchainWhenRandomTransactionCreatedThenTransactionNotCovered
 
 // TODO remove test when exchange transaction type removed
 func TestWhenTransactionIsExchangeTypeThenTransactionCovered(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	exchangeTx := new(blockchain.Transaction)
 	exchangeTx.SenderPublicKey = "exchange"
 	exchangeTx.ReceiverPublicKey = "alice"
@@ -183,7 +183,7 @@ func TestWhenTransactionIsExchangeTypeThenTransactionCovered(t *testing.T) {
 
 // TODO remove test when exchange transaction type removed
 func TestWhenExchangeTransactionExecutedThenReceiverHasCorrectBalance(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	amount := 10
 
 	exchangeTx := new(blockchain.Transaction)
@@ -202,7 +202,7 @@ func TestWhenExchangeTransactionExecutedThenReceiverHasCorrectBalance(t *testing
 }
 
 func TestWhenTransferTransactionExecutedThenReceiverHasCorrectBalance(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	chain.AccountModel.Balances["alice"] = 10
 	amount := 5
 
@@ -222,7 +222,7 @@ func TestWhenTransferTransactionExecutedThenReceiverHasCorrectBalance(t *testing
 }
 
 func TestWhenRewardTransactionExecutedThenReceiverHasCorrectBalance(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	rewardTx := constructRewardTransaction()
 	coveredTransactions := chain.GetCoveredTransactions([]blockchain.Transaction{rewardTx})
 	chain.ExecuteTransactions(coveredTransactions)
@@ -235,7 +235,7 @@ func TestWhenRewardTransactionExecutedThenReceiverHasCorrectBalance(t *testing.T
 }
 
 func TestWhenNoRewardTransactionInBlockThenBlockIsInvalid(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	block := constructBlock()
 
 	got := chain.IsBlockRewardTransactionValid(block)
@@ -246,7 +246,7 @@ func TestWhenNoRewardTransactionInBlockThenBlockIsInvalid(t *testing.T) {
 }
 
 func TestWhenMultipleRewardTransactionsInBlockThenBlockIsInvalid(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	block := constructBlock()
 	rewardTxs := []blockchain.Transaction{
 		constructRewardTransaction(),
@@ -262,7 +262,7 @@ func TestWhenMultipleRewardTransactionsInBlockThenBlockIsInvalid(t *testing.T) {
 }
 
 func TestWhenRewardTransactionHasForgerAsReceiverAndCorrectAmountThenBlockIsValid(t *testing.T) {
-	chain := blockchain.CreateBlockchain()
+	chain := blockchain.CreateBlockchain(*new([]blockchain.Transaction))
 	block := constructBlock()
 	block.Transactions[0].Amount = 11
 	rewardTx := constructRewardTransaction()

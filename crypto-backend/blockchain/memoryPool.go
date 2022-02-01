@@ -29,10 +29,6 @@ func (memoryPool *MemoryPool) IsTransactionInPool(transaction Transaction) bool 
 func (memoryPool *MemoryPool) AddTransaction(transaction Transaction) {
 	if !memoryPool.IsTransactionInPool(transaction) {
 		memoryPool.Transactions = append(memoryPool.Transactions, transaction)
-
-		if memoryPool.GetTransactionsLength() == 99 {
-
-		}
 	}
 }
 

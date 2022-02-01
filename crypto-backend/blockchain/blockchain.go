@@ -82,7 +82,7 @@ func (blockchain *Blockchain) IsValidPreviousBlockHash(block Block) bool {
 }
 
 func (blockchain *Blockchain) IsValidForger(block Block) bool {
-	return block.Forger == blockchain.getNextForger()
+	return block.Forger == blockchain.GetNextForger()
 }
 
 func (blockchain *Blockchain) IsBlockTransactionsValid(block Block) bool {
@@ -165,7 +165,7 @@ func (blockchain *Blockchain) GetAccountBalance(publicKey string) int {
 	return blockchain.AccountModel.GetBalance(publicKey)
 }
 
-func (blockchain *Blockchain) getNextForger() string {
+func (blockchain *Blockchain) GetNextForger() string {
 	prevBlockHash := blockchain.LatestPreviousHash()
 	return blockchain.ProofOfStake.PickForger(prevBlockHash)
 }

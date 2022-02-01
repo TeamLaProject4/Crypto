@@ -212,6 +212,46 @@ func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transacti
 	if cryptoNode.IsTransactionValid(transaction) {
 		cryptoNode.MemoryPool.AddTransaction(transaction)
 		utils.Logger.Info("Transaction added to memory pool")
+
+		if cryptoNode.MemoryPool.IsTransactionThresholdReached() {
+			cryptoNode.forge()
+			utils.Logger.Info("Threshold reached")
+			//forgen
+		}
+	}
+}
+
+func (cryptoNode *CryptoNode) forge() {
+	forger := cryptoNode.Blockchain.GetNextForger()
+
+	if forger == cryptoNode.Wallet.GetPublicKeyHex() {
+		utils.Logger.Info("I am the forger!")
+		transactions := cryptoNode.MemoryPool.Transactions
+
+		//add staker reward
+		rewardTrans := blockchain.CreateRewardTransaction(forger, transactions)
+		transactions = append(transactions, rewardTrans)
+
+		block := blockchain.CreateBlock(blockchain.Block{
+			Transactions: transactions,
+			PreviousHash: cryptoNode.Blockchain.LatestPreviousHash(),
+			Forger:       forger,
+			Height:       cryptoNode.Blockchain.LatestBlockHeight() + 1,
+		})
+		//sign block
+		signature := cryptoNode.Wallet.Sign(block.Payload())
+		block.Sign(signature)
+
+		//TODO: excecute transactions?
+
+		cryptoNode.Blockchain.AddBlock(block)
+
+		cryptoNode.MemoryPool.RemoveTransactions(transactions)
+
+		cryptoNode.WriteToTopic(block.ToJson(), BLOCK_FORGED)
+
+	} else {
+		utils.Logger.Info("Not the forger...")
 	}
 }
 
