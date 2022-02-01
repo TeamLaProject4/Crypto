@@ -47,7 +47,6 @@ func (blockchain *Blockchain) AddBlock(block Block) {
 	}
 }
 
-
 func (blockchain *Blockchain) ExecuteTransactions(transactions []Transaction) {
 	for _, transaction := range transactions {
 		blockchain.executeTransaction(transaction)
@@ -55,7 +54,7 @@ func (blockchain *Blockchain) ExecuteTransactions(transactions []Transaction) {
 }
 
 func (blockchain *Blockchain) executeTransaction(transaction Transaction) {
-	sender := transaction.SenderPublicKey
+	sender := transaction.SenderPublicKeyString
 	receiver := transaction.ReceiverPublicKey
 	amount := transaction.Amount
 	amountWithoutFee := CalculateInitialAmount(amount)
@@ -158,7 +157,7 @@ func (blockchain *Blockchain) IsTransactionCovered(transaction Transaction) bool
 	if transaction.Type == EXCHANGE || transaction.Type == REWARD {
 		return true
 	}
-	senderBalance := blockchain.AccountModel.GetBalance(transaction.SenderPublicKey)
+	senderBalance := blockchain.AccountModel.GetBalance(transaction.SenderPublicKeyString)
 	return senderBalance >= transaction.Amount
 }
 

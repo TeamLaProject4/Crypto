@@ -4,6 +4,7 @@ import (
 	"context"
 	"cryptomunt/blockchain"
 	"cryptomunt/proofOfStake"
+	"cryptomunt/structs"
 	"cryptomunt/utils"
 	"cryptomunt/wallet"
 	"encoding/json"
@@ -37,7 +38,7 @@ type CryptoNode struct {
 	//sub map[TopicType]Subscription
 }
 
-func CreateAndInitCryptoNode(config Config) CryptoNode {
+func CreateAndInitCryptoNode(config Config, apiRequest chan structs.ApiCallMessage, apiResponse chan string) *CryptoNode {
 	utils.Logger.Info("Starting network")
 	ctx := context.Background()
 
@@ -53,7 +54,16 @@ func CreateAndInitCryptoNode(config Config) CryptoNode {
 	//blockchain, memPool, wallet
 	initBlockchain(config, cryptoNode)
 
-	return cryptoNode
+	go handleApiCalls(apiRequest, apiResponse)
+
+	return &cryptoNode
+}
+
+func handleApiCalls(apiRequest chan structs.ApiCallMessage, apiResponse chan string) {
+	for requestMessage := range apiRequest {
+		utils.Logger.Info("GOTTEN API CALL: ", requestMessage.Message, requestMessage.CallType)
+		apiResponse <- "response test"
+	}
 }
 
 func initBlockchain(config Config, cryptoNode CryptoNode) {
@@ -201,7 +211,7 @@ func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transacti
 func (cryptoNode *CryptoNode) IsTransactionValid(transaction blockchain.Transaction) bool {
 	payload := transaction.Payload()
 	signature := transaction.Signature
-	senderPublicKey := transaction.SenderPublicKey
+	senderPublicKey := transaction.SenderPublicKeyString
 
 	transactionInMemoryPool := cryptoNode.MemoryPool.IsTransactionInPool(transaction)
 	signatureValid := wallet.IsValidSignature(payload, signature, senderPublicKey)

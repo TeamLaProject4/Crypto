@@ -4,6 +4,7 @@ import (
 	"cryptomunt/api"
 	"cryptomunt/blockchain"
 	"cryptomunt/networking"
+	"cryptomunt/structs"
 	"math/rand"
 	"strconv"
 )
@@ -15,8 +16,13 @@ func nodeFactory(config networking.Config) {
 }
 
 func startNode(config networking.Config) {
-	node := networking.CreateAndInitCryptoNode(config)
-	go api.StartApi(&node)
+	apiRequest := make(chan structs.ApiCallMessage)
+	apiResponse := make(chan string)
+
+	node := networking.CreateAndInitCryptoNode(config, apiRequest, apiResponse)
+	go api.StartApi(node, apiRequest, apiResponse)
+	select {}
+
 }
 
 func innitialCoinOffering() {

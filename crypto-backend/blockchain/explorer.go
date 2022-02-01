@@ -67,7 +67,7 @@ func (blockchain *Blockchain) GetAllAccountTransactions(publicKey string) []Tran
 func getAccountTransactionsFromBlock(block Block, transactions chan []Transaction, publicKey string) {
 	transactionsFromBlock := *new([]Transaction)
 	for _, transaction := range block.Transactions {
-		if transaction.SenderPublicKey == publicKey || transaction.ReceiverPublicKey == publicKey {
+		if transaction.SenderPublicKeyString == publicKey || transaction.ReceiverPublicKey == publicKey {
 			transactionsFromBlock = append(transactionsFromBlock, transaction)
 		}
 	}

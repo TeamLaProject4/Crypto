@@ -83,16 +83,17 @@ func createTransaction(c *gin.Context, node *networking.CryptoNode) {
 		}
 
 		transaction := node.Wallet.CreateTransaction(recieverPublicKey[0], amountInt, blockchain.TRANSFER)
-		//if !node.IsTransactionValid(transaction) {
-		//	c.JSON(419, "Transaction is not valid")
-		//	return
-		//}
+		if !node.IsTransactionValid(transaction) {
+			c.JSON(419, "Transaction is not valid")
+			return
+		}
+		utils.Logger.Info("TRANSACTION VALID")
 		//transaction := node.Wallet.CreateTransaction("receiverpubkey", 20, blockchain.TRANSFER)
 
-		payload := transaction.Payload()
-		signature := transaction.Signature
-		senderPublicKeyString := transaction.SenderPublicKeyString
-		utils.Logger.Info("valid signature", wallet.IsValidSignature(payload, signature, senderPublicKeyString))
+		//payload := transaction.Payload()
+		//signature := transaction.Signature
+		//senderPublicKeyString := transaction.SenderPublicKeyString
+		//utils.Logger.Info("valid signature", wallet.IsValidSignature(payload, signature, senderPublicKeyString))
 
 		//add transaction to mem pool
 		node.MemoryPool.AddTransaction(transaction)

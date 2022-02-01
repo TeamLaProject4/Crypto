@@ -48,6 +48,10 @@ func (wallet *Wallet) GetPublicKeyHex() string {
 	return hex.EncodeToString(pubKeyBytes)
 }
 
+func (wallet *Wallet) GetPublicKeyString() string {
+	return string(ethCrypto.FromECDSAPub(&wallet.Key.PublicKey))
+}
+
 func IsValidSignature(data string, signature string, publicKey string) bool {
 	message := []byte(data)
 	hashed := ethCrypto.Keccak256Hash(message)
@@ -63,8 +67,10 @@ func IsValidSignature(data string, signature string, publicKey string) bool {
 		utils.Logger.Error(err)
 		return false
 	}
-	matches2 := bytes.Equal(sigPublicKey, []byte(publicKey))
-	utils.Logger.Info("VALID ? ", matches2)
+	matches := bytes.Equal(sigPublicKey, []byte(publicKey))
 
-	return matches2
+	return matches
+}
+func GetPublicKeyString() {
+
 }
