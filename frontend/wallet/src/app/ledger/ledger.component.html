@@ -108,54 +108,69 @@
       </div>
       <hr />
       <br /><br /><br />
-
-      <form
-        action="wallet"
-        class="p-4 p-md-5 border rounded-3 bg-dark"
-        data-bitwarden-watching="1"
-      >
-        <h1>Ledger:</h1>
-        <hr class="my-4" />
-
-        <h4>📉Balance: 4.001CM📈</h4>
-        <br />
-        <div>
-          <div class="row">
-            <div class="col"><h5>Sent/Received</h5></div>
-            <div class="col"><h5>Amount</h5></div>
-            <div class="col"><h5>To/From</h5></div>
-          </div>
-          <hr class="my-3" />
-
-          <div class="row">
-            <div class="col"><h5>Received</h5></div>
-            <div class="col"><h5>2.000CM</h5></div>
-            <div class="col"><h5>1faSh83A</h5></div>
-          </div>
-          <div class="row">
-            <div class="col"><h5>Sent</h5></div>
-            <div class="col"><h5>200CM</h5></div>
-            <div class="col"><h5>d7sa78dR</h5></div>
-          </div>
-          <div class="row">
-            <div class="col"><h5>Sent</h5></div>
-            <div class="col"><h5>20.000CM</h5></div>
-            <div class="col"><h5>Qef93P08</h5></div>
-          </div>
-          <div class="row">
-            <div class="col"><h5>Sent</h5></div>
-            <div class="col"><h5>1CM</h5></div>
-            <div class="col"><h5>n983mAS9</h5></div>
-          </div>
-          <div class="row">
-            <div class="col"><h5>Received</h5></div>
-            <div class="col"><h5>200CM</h5></div>
-            <div class="col"><h5>98uyr32A</h5></div>
-          </div>
-        </div>
-      </form>
     </div>
+    <table
+      mat-table
+      [dataSource]="dataSource"
+      matSort
+      (matSortChange)="announceSortChange($event)"
+      class="mat-elevation-z8"
+    >
+      <!-- Position Column -->
+      <ng-container matColumnDef="position">
+        <th
+          mat-header-cell
+          *matHeaderCellDef
+          mat-sort-header
+          sortActionDescription="Sort by number"
+        >
+          No.
+        </th>
+        <td mat-cell *matCellDef="let element">{{ element.position }}</td>
+      </ng-container>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.js"></script>
+      <!-- Name Column -->
+      <ng-container matColumnDef="name">
+        <th
+          mat-header-cell
+          *matHeaderCellDef
+          mat-sort-header
+          sortActionDescription="Sort by name"
+        >
+          Name
+        </th>
+        <td mat-cell *matCellDef="let element">{{ element.name }}</td>
+      </ng-container>
+
+      <!-- Weight Column -->
+      <ng-container matColumnDef="weight">
+        <th
+          mat-header-cell
+          *matHeaderCellDef
+          mat-sort-header
+          sortActionDescription="Sort by weight"
+        >
+          Weight
+        </th>
+        <td mat-cell *matCellDef="let element">{{ element.weight }}</td>
+      </ng-container>
+
+      <!-- Symbol Column -->
+      <ng-container matColumnDef="symbol">
+        <th
+          mat-header-cell
+          *matHeaderCellDef
+          mat-sort-header
+          sortActionDescription="Sort by symbol"
+        >
+          Symbol
+        </th>
+        <td mat-cell *matCellDef="let element">{{ element.symbol }}</td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
   </body>
 </html>
+<script src="https://code.jquery.com/jquery-3.5.1.js"></script>
