@@ -78,7 +78,7 @@ func initBlockchain(config Config, cryptoNode *CryptoNode) {
 		transactions := wallet.CreateGenesisTransactions()
 		cryptoNode.Blockchain = blockchain.CreateBlockchain(transactions)
 		cryptoNode.MemoryPool = blockchain.CreateMemoryPool()
-		cryptoNode.Wallet = wallet.CreateWalletFromKeyFile()
+		cryptoNode.Wallet = wallet.CreateGenesisWallet()
 
 		cryptoNode.Blockchain.AccountModel.SetBalancesFromBlockChain(cryptoNode.Blockchain)
 	}
@@ -168,12 +168,13 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 			cryptoNode.HandleTransaction(transaction)
 
 		case BLOCK_FORGED:
-			utils.Logger.Info("Forged block received from the network")
+
 			var block blockchain.Block
 			err := json.Unmarshal([]byte(message.Message), &block)
 			if err != nil {
 				utils.Logger.Error("unmarshal error ", err)
 			}
+			utils.Logger.Info("Forged block received from the network", block)
 			cryptoNode.handleBlockForged(block)
 
 		}
@@ -255,6 +256,7 @@ func (cryptoNode *CryptoNode) Forge() {
 
 		cryptoNode.MemoryPool.RemoveTransactions(transactions)
 
+		utils.Logger.Info("block forged", block)
 		cryptoNode.WriteToTopic(block.ToJson(), BLOCK_FORGED)
 
 	} else {
