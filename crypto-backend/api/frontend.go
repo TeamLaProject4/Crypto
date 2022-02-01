@@ -35,6 +35,10 @@ func getAccountBalance(c *gin.Context, cryptoNode *networking.CryptoNode) {
 		"start": "ERROR: no parameters publicKey found",
 	})
 }
+func getOwnPublicKey(c *gin.Context, cryptoNode *networking.CryptoNode) {
+	c.JSON(200, cryptoNode.Wallet.GetPublicKeyHex())
+}
+
 func getMnemonic(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -74,35 +78,39 @@ func createTransaction(c *gin.Context, node *networking.CryptoNode) {
 	queryParameters := c.Request.URL.Query()
 	recieverPublicKey := queryParameters["recieverPublicKey"]
 	amount := queryParameters["amount"]
+	transactionType := queryParameters["transactionType"]
 
-	if recieverPublicKey != nil && amount != nil {
+	if recieverPublicKey != nil && amount != nil && transactionType != nil {
 		amountInt, err := strconv.Atoi(amount[0])
 		if err != nil {
 			c.JSON(419, "Amount is not an integer")
 			return
 		}
+		//set trans type
+		var transType blockchain.TransactionType
+		if transactionType[0] == "transfer" {
+			transType = blockchain.TRANSFER
+		} else {
+			transType = blockchain.STAKE
+		}
 
-		transaction := node.Wallet.CreateTransaction(recieverPublicKey[0], amountInt, blockchain.TRANSFER)
+		//create and verify transaction
+		transaction := node.Wallet.CreateTransaction(recieverPublicKey[0], amountInt, transType)
 		if !node.IsTransactionValid(transaction) {
 			c.JSON(419, "Transaction is not valid")
 			return
 		}
-		utils.Logger.Info("TRANSACTION VALID")
 
-		//add transaction to mem pool
-		node.MemoryPool.AddTransaction(transaction)
+		//memPool, validate & forge if threshold reached
+		node.HandleTransaction(transaction)
+
 		//write to topic
 		node.WriteToTopic(transaction.ToJson(), networking.TRANSACTION)
-
-		//stake if threshold is reached
-		if node.MemoryPool.IsTransactionThresholdReached() {
-
-		}
 
 		c.JSON(200, "added transaction to memoryPool")
 		return
 	}
 	c.JSON(419, gin.H{
-		"start": "ERROR: no parameters recieverPublicKey or amount found",
+		"start": "ERROR: no parameters recieverPublicKey, amount or transactionType found",
 	})
 }

@@ -165,7 +165,7 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 			if err != nil {
 				utils.Logger.Error("unmarshal error ", err)
 			}
-			cryptoNode.handleTransaction(transaction)
+			cryptoNode.HandleTransaction(transaction)
 
 		case BLOCK_FORGED:
 			utils.Logger.Info("Forged block received from the network")
@@ -177,12 +177,9 @@ func (cryptoNode *CryptoNode) readSubscription(sub Subscription) {
 	}
 }
 
-//TODO: getMissingBLocks
-//TODO: consensus over the network \w bad actor
-//TODO: timing, new forged block transaction not in memory pool then wait a few seconds
-
 //block forged on other node
 func (cryptoNode *CryptoNode) handleBlockForged(block blockchain.Block) {
+	//TODO: update balance?
 
 	//TODO: cryptoNode.request_missing_blocks()
 	//if !blockCountValid {
@@ -208,20 +205,30 @@ func (cryptoNode *CryptoNode) isForgedBlockValid(block blockchain.Block) bool {
 	return blockTransactionsValid && forgerValid && signatureValid && previousBlockHashValid && blockCountValid
 }
 
-func (cryptoNode *CryptoNode) handleTransaction(transaction blockchain.Transaction) {
+//Add transaction to memorypool, make stake if required, forge block when threshold is reached
+func (cryptoNode *CryptoNode) HandleTransaction(transaction blockchain.Transaction) {
 	if cryptoNode.IsTransactionValid(transaction) {
+
+		if transaction.Type == blockchain.STAKE {
+			err := cryptoNode.Blockchain.ProofOfStake.UpdateStake(transaction.SenderPublicKey, transaction.Amount)
+			transaction.ReceiverPublicKey = cryptoNode.Blockchain.ProofOfStake.GenesisPublicKey
+			if err != nil {
+				utils.Logger.Error(err)
+				return
+			}
+		}
+
 		cryptoNode.MemoryPool.AddTransaction(transaction)
 		utils.Logger.Info("Transaction added to memory pool")
 
 		if cryptoNode.MemoryPool.IsTransactionThresholdReached() {
-			cryptoNode.forge()
+			cryptoNode.Forge()
 			utils.Logger.Info("Threshold reached")
-			//forgen
 		}
 	}
 }
 
-func (cryptoNode *CryptoNode) forge() {
+func (cryptoNode *CryptoNode) Forge() {
 	forger := cryptoNode.Blockchain.GetNextForger()
 
 	if forger == cryptoNode.Wallet.GetPublicKeyHex() {
@@ -242,8 +249,6 @@ func (cryptoNode *CryptoNode) forge() {
 		signature := cryptoNode.Wallet.Sign(block.Payload())
 		block.Sign(signature)
 
-		//TODO: excecute transactions?
-
 		cryptoNode.Blockchain.AddBlock(block)
 
 		cryptoNode.MemoryPool.RemoveTransactions(transactions)
@@ -251,7 +256,7 @@ func (cryptoNode *CryptoNode) forge() {
 		cryptoNode.WriteToTopic(block.ToJson(), BLOCK_FORGED)
 
 	} else {
-		utils.Logger.Info("Not the forger...")
+		utils.Logger.Info("I am not the forger...")
 	}
 }
 
