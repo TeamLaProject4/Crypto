@@ -41,10 +41,10 @@ func (blockchain *Blockchain) LatestBlockHeight() int {
 }
 
 func (blockchain *Blockchain) AddBlock(block Block) {
-	if blockchain.IsValidBlockHeight(block) && blockchain.IsValidPreviousBlockHash(block) {
-		blockchain.ExecuteTransactions(block.Transactions)
-		blockchain.Blocks = append(blockchain.Blocks, block)
-	}
+	//if blockchain.IsValidBlockHeight(block) && blockchain.IsValidPreviousBlockHash(block) {
+	blockchain.ExecuteTransactions(block.Transactions)
+	blockchain.Blocks = append(blockchain.Blocks, block)
+	//}
 }
 
 func (blockchain *Blockchain) ExecuteTransactions(transactions []Transaction) {
