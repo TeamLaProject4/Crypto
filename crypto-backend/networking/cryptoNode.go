@@ -191,6 +191,8 @@ func (cryptoNode *CryptoNode) handleBlockForged(block blockchain.Block) {
 	if cryptoNode.isForgedBlockValid(block) {
 		cryptoNode.Blockchain.AddBlock(block)
 		cryptoNode.MemoryPool.RemoveTransactions(block.Transactions)
+	} else {
+		utils.Logger.Error("FORGED BLOCK NOT VALID")
 	}
 }
 
@@ -204,6 +206,11 @@ func (cryptoNode *CryptoNode) isForgedBlockValid(block blockchain.Block) bool {
 	//signatureValid := wallet.IsValidSignature(payload, signature, forgerPublicKey)
 	forgerValid := cryptoNode.Blockchain.IsValidForger(block)
 	blockTransactionsValid := cryptoNode.Blockchain.IsBlockTransactionsValid(block)
+
+	utils.Logger.Error("blockCountValid ", blockCountValid)
+	utils.Logger.Error("previousBlockHashValid", previousBlockHashValid)
+	utils.Logger.Error("forgerValid", forgerValid)
+	utils.Logger.Error("blockTransactionsValid", blockTransactionsValid)
 
 	return blockTransactionsValid && forgerValid && previousBlockHashValid && blockCountValid
 	//signatureValid

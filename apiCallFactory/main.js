@@ -3,13 +3,13 @@ const axios = require('axios');
 
 async function main() {
     await login()
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 5; i++) {
         createTransaction()
     }
 }
 
 
-const url = "http://95.217.211.123:42658"
+const url = "http://95.217.211.123:39794"
 
 
 
