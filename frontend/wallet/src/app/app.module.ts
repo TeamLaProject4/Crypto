@@ -18,6 +18,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import { LogoutComponent } from './logout/logout.component';
+import { StakeComponent } from './stake/stake.component';
 
 
 
@@ -31,6 +32,7 @@ import { LogoutComponent } from './logout/logout.component';
     LandingComponent,
     NewwalletComponent,
     LogoutComponent,
+    StakeComponent,
   ],
   imports: [
     BrowserModule,

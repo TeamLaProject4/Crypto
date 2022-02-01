@@ -57,4 +57,12 @@ export class WalletComponent {
       queryParams: { amount: this.to_amount, to: this.accountnumber },
     });
   }
+
+  makeStake() {
+    this.to_amount = this.userForm.get('to_amount')?.value;
+    this.accountnumber = 'STAKE';
+    this.router.navigate(['stake'], {
+      queryParams: { amount: this.to_amount, to: this.accountnumber },
+    });
+  }
 }

@@ -9,7 +9,7 @@ export class APIService {
   constructor(private httpClient: HttpClient) {}
 
   IP = 'http://192.168.178.111';
-  PORT = '57864';
+  PORT = '50929';
 
   getPublicKey(): Observable<any> {
     return this.httpClient.get(
