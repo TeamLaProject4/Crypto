@@ -10,11 +10,11 @@ import { HttpClient } from '@angular/common/http';
 import { APIService } from '../api.service';
 import { RouterModule } from '@angular/router';
 @Component({
-  selector: 'app-landing',
-  templateUrl: './landing.component.html',
-  styleUrls: ['./landing.component.scss'],
+  selector: 'app-logout',
+  templateUrl: './logout.component.html',
+  styleUrls: ['./logout.component.scss'],
 })
-export class LandingComponent implements OnInit {
+export class LogoutComponent implements OnInit {
   public loginForm: FormGroup;
   seedphrase: string = '';
 
@@ -30,17 +30,7 @@ export class LandingComponent implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-    this.checkIfPublicKeyPresent();
-  }
-
-  checkIfPublicKeyPresent() {
-    this.api.getPublicKey().subscribe((data) => {
-      if (data != '') {
-        this.router.navigate(['wallet'], {});
-      }
-    });
-  }
+  ngOnInit(): void {}
 
   login() {
     this.seedphrase = this.loginForm.get('seedphrase')?.value;

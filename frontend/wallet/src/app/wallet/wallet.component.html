@@ -12,6 +12,15 @@
     />
   </head>
   <body class="d-flex h-100 text-center text-white bg-dark">
+    <div class="row">
+      <div class="col">
+        <form action="logout">
+          <button [routerLink]="['/logout']" class="btn btn-dark">
+            &larr; logout
+          </button>
+        </form>
+      </div>
+    </div>
     <div class="container col-xl-10 col-xxl-8 px-4 py-5">
       <div class="row align-items-center g-lg-5 py-5">
         <div class="col-lg-7 text-center text-lg-start">
@@ -19,7 +28,7 @@
             Welcome to your <i> CryptoMunt </i> wallet
           </h1>
           <p class="col-lg-10 fs-4">
-            Your part of the revolution in crypto currency. <br />
+            You're a part of the revolution in crypto currency. <br />
             All aboard the <i>CryptoMunt</i> rocketship to the moon and way
             beyond!🚀
           </p>
@@ -37,7 +46,7 @@
                 id="accountnumber"
                 name="accountnumber"
                 formControlName="accountnumber"
-                value="{{ accountnumber }}"
+                value="accountnumber"
                 placeholder="Account number"
               />
               <label for="account_number">Account number</label>

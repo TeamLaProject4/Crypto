@@ -3,6 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { CryptieComponent } from './cryptie/cryptie.component';
 import { LandingComponent } from './landing/landing.component';
 import { LedgerComponent } from './ledger/ledger.component';
+import { LogoutComponent } from './logout/logout.component';
 import { NewwalletComponent } from './newwallet/newwallet.component';
 import { PaymentComponent } from './payment/payment.component';
 import { WalletComponent } from './wallet/wallet.component';
@@ -13,12 +14,13 @@ const routes: Routes = [
   { path: 'payment', component: PaymentComponent },
   { path: 'payment/:amount/:to', component: PaymentComponent },
   { path: 'ledger', component: LedgerComponent },
-  { path: 'newwallet', component: NewwalletComponent }, 
- { path: '**', component: LandingComponent },
+  { path: 'newwallet', component: NewwalletComponent },
+  { path: 'logout', component: LogoutComponent },
+  { path: '**', component: LandingComponent },
 ];
 
 @NgModule({
   imports: [RouterModule.forRoot(routes)],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}

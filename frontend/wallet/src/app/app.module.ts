@@ -17,6 +17,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
+import { LogoutComponent } from './logout/logout.component';
 
 
 
@@ -29,6 +30,7 @@ import {MatPaginatorModule} from '@angular/material/paginator';
     LedgerComponent,
     LandingComponent,
     NewwalletComponent,
+    LogoutComponent,
   ],
   imports: [
     BrowserModule,

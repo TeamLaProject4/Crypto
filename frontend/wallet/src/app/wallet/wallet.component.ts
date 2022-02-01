@@ -38,10 +38,8 @@ export class WalletComponent {
   }
 
   loadBalance() {
-    console.log(this.accountnumber);
     this.api.getBalance(this.accountnumber).subscribe((data) => {
       this.balance = data;
-      console.log(this.balance);
     });
   }
 
