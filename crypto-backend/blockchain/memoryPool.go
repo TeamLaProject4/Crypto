@@ -45,12 +45,15 @@ func (memoryPool *MemoryPool) GetTransactionsLength() int {
 
 func (memoryPool *MemoryPool) GetTransactionIndex(transaction Transaction) (int, error) {
 	utils.Logger.Info("transaction", transaction.Id)
+	utils.Logger.Info("mem pool length", len(memoryPool.Transactions))
+
 	for index, transactionInPool := range memoryPool.Transactions {
 		utils.Logger.Info("transaction in pool", transactionInPool.Id)
 		if transactionInPool.Id == transaction.Id || transactionInPool.Timestamp == transaction.Timestamp {
 			return index, nil
 		}
 	}
+
 	err := errors.New("transaction not found in memory pool")
 	return -1, err
 }
