@@ -29,7 +29,10 @@ export class CryptieComponent implements OnInit {
     this.to_amount = this.userForm.get('to_amount')?.value;
     this.accountnumber = this.userForm.get('accountnumber')?.value;
     this.CryptieQRcode =
-      'payment?to=' + this.accountnumber + '&amount=' + this.to_amount;
+      'localhost:4200/payment?to=' +
+      this.accountnumber +
+      '&amount=' +
+      this.to_amount;
     this.router.navigate(['cryptie'], {
       queryParams: { amount: this.to_amount, to: this.accountnumber },
     });
