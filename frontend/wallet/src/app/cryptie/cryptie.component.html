@@ -41,11 +41,11 @@
             [errorCorrectionLevel]="'M'"
           ></qrcode>
           <div class="row">
-            <div class="col" hidden id="sharelink">
+            <div class="col" id="sharelink">
               <input
                 type="url"
                 id="cryptielink"
-                placeholder="https://chart.googleapis.com/chart?cht=qr&chl=m4Rt1jN-1000&chs=160x160&chld=L|0"
+                value="{{ CryptieQRcode }}"
                 readonly
               />
               <button class="btn btn-info" onclick="copyLink()">
