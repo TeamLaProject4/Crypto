@@ -3,6 +3,7 @@ from typing import List
 from .transaction import Transaction
 
 TRANSACTION_THRESHOLD = 100
+TRANSACTION_THRESHOLD = 100
 
 
 class MemoryPool():
