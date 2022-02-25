@@ -6,8 +6,6 @@ name: Release - Test, Build & Redeploy
 #       main
 #       #- 'release-*'
 on:
-  schedule:
-    - cron: '20 9 * * *'
   push:
     branches: [ main ]
     # Publish semver tags as releases.
